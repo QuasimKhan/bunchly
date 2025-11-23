@@ -14,17 +14,18 @@ export const signup = async (req, res) => {
                 message: "Fields are required",
             });
         }
+        const existingUser = await User.findOne({ email });
 
-        const userExist = await User.findOne({ email });
-        if (userExist && !userExist.isVerified) {
+        if (existingUser && !existingUser.isVerified) {
             return res.status(409).json({
                 success: false,
                 unverified: true,
-                message: "Email exists but not verified. Resend verification?",
+                message:
+                    "Email exists but not verified. Please resend verification.",
             });
         }
 
-        if (userExist && userExist.isVerified) {
+        if (existingUser && existingUser.isVerified) {
             return res.status(409).json({
                 success: false,
                 message: "User Already Exist, please Login",
@@ -235,7 +236,7 @@ export const login = async (req, res) => {
             return res.status(403).json({
                 success: false,
                 message: "Email not verified",
-                resend: true,
+                unverified: true,
             });
         }
         req.session.userId = user._id;

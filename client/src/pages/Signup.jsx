@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import InputField from "../components/ui/InputField";
 import SubmitButton from "../components/ui/SubmitButton";
 import { Mail, Lock, User } from "lucide-react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
-import api from "../lib/api";
 
 const Signup = () => {
     const [form, setForm] = useState({
@@ -21,22 +20,24 @@ const Signup = () => {
         password: "",
     });
 
-    const { signup, authLoading } = useAuth();
+    const [showResend, setShowResend] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
+
+    const { signup, resendVerification, authLoading } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+    // ============================
+    //      HANDLE SIGNUP
+    // ============================
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Reset errors
-        setErrors({
-            name: "",
-            email: "",
-            password: "",
-        });
+        setErrors({ name: "", email: "", password: "" });
+        setShowResend(false);
 
         let valid = true;
 
@@ -62,14 +63,43 @@ const Signup = () => {
 
         try {
             await signup(form.name, form.email, form.password);
-            toast.success("Account created! Please verify your email ");
-            navigate("/verify-email-sent");
-        } catch (error) {
-            toast.error(
-                error?.response?.data?.message ||
-                    "Signup failed. Please try again."
-            );
+
+            toast.success("Account created! Please verify your email");
+            navigate(`/verify-email-sent?email=${form.email}`);
+        } catch (err) {
+            toast.error(err.message);
+
+            if (err.unverified) {
+                setShowResend(true);
+            }
         }
+    };
+
+    // ============================
+    //   HANDLE RESEND EMAIL
+    // ============================
+    const handleResend = async () => {
+        try {
+            setResendLoading(true);
+
+            const message = await resendVerification(form.email);
+            toast.success(message);
+
+            navigate(`/verify-email-sent?email=${form.email}`);
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
+    // ============================
+    //       GOOGLE SIGNUP
+    // ============================
+    const handleGoogleSignup = () => {
+        window.location.href = `${
+            import.meta.env.VITE_API_URL
+        }/api/auth/google`;
     };
 
     return (
@@ -79,33 +109,48 @@ const Signup = () => {
                 <ThemeToggle />
             </div>
 
-            {/* Left Panel */}
-            <div
-                className="hidden lg:flex items-center justify-center 
-                bg-gradient-to-b from-purple-600 via-indigo-600 to-blue-600
-                relative overflow-hidden text-white"
-            >
-                <h1 className="text-4xl font-bold drop-shadow-lg">LinkHub</h1>
+            {/* Left Branding Panel */}
+            <div className="hidden lg:flex items-center justify-center bg-gradient-to-b from-purple-600 via-indigo-600 to-blue-600">
+                <img
+                    src="/img/linkhub_light.png"
+                    className="w-40 drop-shadow-xl dark:hidden"
+                    alt="LinkHub Logo"
+                />
+                <img
+                    src="/img/linkhub_dark.png"
+                    className="w-40 drop-shadow-xl hidden dark:block"
+                    alt="LinkHub Logo"
+                />
             </div>
 
             {/* Right Panel */}
             <div className="flex items-center justify-center p-6">
                 <div
                     className="
-                    w-full max-w-md
-                    bg-white/40 dark:bg-gray-800/40
-                    backdrop-blur-xl
-                    border border-gray-300 dark:border-gray-700
-                    rounded-2xl p-8 shadow-xl
-                    transition-colors text-center
-                "
+                        w-full max-w-md
+                        bg-white/40 dark:bg-gray-800/40
+                        backdrop-blur-xl
+                        border border-gray-300 dark:border-gray-700
+                        rounded-2xl p-8 shadow-xl
+                        text-center
+                    "
                 >
-                    {/* Title */}
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    {/* Mobile Logo */}
+                    <img
+                        src="/img/linkhub_light.png"
+                        alt="LinkHub"
+                        className="w-28 mx-auto mb-4 block dark:hidden"
+                    />
+
+                    <img
+                        src="/img/linkhub_dark.png"
+                        alt="LinkHub"
+                        className="w-28 mx-auto mb-4 hidden dark:block"
+                    />
+
+                    <h1 className="text-3xl font-bold mb-2">
                         Create your account ✨
                     </h1>
-
-                    {/* Subtitle */}
                     <p className="text-gray-700 dark:text-gray-300 mb-6">
                         Join LinkHub and build your smart profile
                     </p>
@@ -152,6 +197,24 @@ const Signup = () => {
                         />
                     </form>
 
+                    {/* RESEND VERIFICATION BLOCK */}
+                    {showResend && (
+                        <div className="mt-4 text-center">
+                            <p className="text-red-500 text-sm mb-2">
+                                This email is already registered but not
+                                verified.
+                            </p>
+
+                            <SubmitButton
+                                text="Resend Verification Email"
+                                fullWidth
+                                size="sm"
+                                loading={resendLoading}
+                                onClick={handleResend}
+                            />
+                        </div>
+                    )}
+
                     {/* Divider */}
                     <div className="my-6 flex items-center justify-center gap-3">
                         <span className="h-px w-20 bg-gray-300 dark:bg-gray-600"></span>
@@ -163,13 +226,15 @@ const Signup = () => {
 
                     {/* Google Button */}
                     <button
+                        onClick={handleGoogleSignup}
                         className="
-                        w-full py-2 rounded-xl bg-gray-200 dark:bg-gray-700
-                        border border-gray-300 dark:border-gray-600
-                        flex items-center justify-center gap-3
-                        hover:bg-gray-300 dark:hover:bg-gray-600
-                        transition
-                    "
+                            w-full py-2 rounded-xl
+                            bg-gray-200 dark:bg-gray-700
+                            border border-gray-300 dark:border-gray-600
+                            flex items-center justify-center gap-3
+                            hover:bg-gray-300 dark:hover:bg-gray-600
+                            transition cursor-pointer
+                        "
                     >
                         <img
                             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -183,7 +248,7 @@ const Signup = () => {
                         Already have an account?
                         <Link
                             to="/login"
-                            className="text-indigo-500 hover:underline ml-1"
+                            className="ml-1 text-indigo-500 hover:underline"
                         >
                             Log in
                         </Link>
