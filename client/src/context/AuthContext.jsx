@@ -5,67 +5,69 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Me loader
-    const [authLoading, setAuthLoading] = useState(false); // Button loader
+    const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(false);
 
-    // -------- FETCH LOGGED IN USER --------
+    // Fetch logged-in user
     const fetchMe = async () => {
         try {
             const res = await api.get("/api/auth/me");
-            setUser(res.data?.user);
+            setUser(res.data?.user ?? null);
         } catch (error) {
-            if (error.response?.status === 401) setUser(null);
+            if (error?.response?.status === 401) setUser(null);
+            else setUser(null);
         } finally {
             setLoading(false);
         }
     };
 
-    // -------- SIGNUP --------
+    // Helper: normalize backend error to object {message, unverified, status}
+    const normalizeError = (error) => {
+        const res = error?.response;
+        return {
+            message:
+                res?.data?.message || error?.message || "Something went wrong",
+            unverified: res?.data?.unverified || false,
+            status: res?.status || 500,
+        };
+    };
+
+    // Signup
     const signup = async (name, email, password) => {
         try {
             setAuthLoading(true);
-
             const res = await api.post("/api/auth/signup", {
                 name,
                 email,
                 password,
             });
-
-            return res.data; // important for success handling
+            return res.data;
         } catch (error) {
-            // return complete metadata
-            throw {
-                message: error?.response?.data?.message || "Signup failed",
-                unverified: error?.response?.data?.unverified || false,
-                status: error?.response?.status || 400,
-            };
+            throw normalizeError(error);
         } finally {
             setAuthLoading(false);
         }
     };
 
-    // -------- LOGIN --------
+    // Login
     const login = async (email, password) => {
         try {
             setAuthLoading(true);
-
-            const res = await api.post("/api/auth/login", { email, password });
-
+            const res = await api.post("/api/auth/login", {
+                email,
+                password,
+            });
+            // fetch user after successful login
             await fetchMe();
-
             return res.data;
         } catch (error) {
-            throw {
-                message: error?.response?.data?.message || "Login failed",
-                unverified: error?.response?.data?.unverified || false,
-                status: error?.response?.status || 400,
-            };
+            throw normalizeError(error);
         } finally {
             setAuthLoading(false);
         }
     };
 
-    // -------- RESEND VERIFICATION --------
+    // Resend verification
     const resendVerification = async (email) => {
         try {
             setAuthLoading(true);
@@ -74,21 +76,20 @@ export const AuthProvider = ({ children }) => {
             });
             return res.data?.message;
         } catch (error) {
-            throw {
-                message:
-                    error?.response?.data?.message ||
-                    "Failed to resend verification",
-                status: error?.response?.status || 400,
-            };
+            throw normalizeError(error);
         } finally {
             setAuthLoading(false);
         }
     };
 
-    // -------- LOGOUT --------
     const logout = async () => {
-        await api.post("/api/auth/logout");
-        setUser(null);
+        try {
+            await api.post("/api/auth/logout");
+            setUser(null);
+        } catch (err) {
+            // ignore
+            setUser(null);
+        }
     };
 
     useEffect(() => {
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
     if (loading)
         return (
             <div className="text-center py-8">
-                <span className="loading loading-ball loading-xs"></span>
+                <span className="loading loading-ball loading-xs" />
             </div>
         );
 

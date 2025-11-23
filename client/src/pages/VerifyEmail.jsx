@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import api from "../lib/api";
 
 export default function VerifyEmail() {
     const [status, setStatus] = useState("loading");
     const [message, setMessage] = useState("");
-
+    const [canResend, setCanResend] = useState(false);
     const [params] = useSearchParams();
     const token = params.get("token");
     const uid = params.get("uid");
+    const navigate = useNavigate();
 
     useEffect(() => {
         async function verify() {
@@ -18,22 +19,25 @@ export default function VerifyEmail() {
                 setMessage("Invalid verification link");
                 return;
             }
-
             try {
                 const res = await api.get(
                     `/api/auth/verify?token=${token}&uid=${uid}`
                 );
-
                 setStatus("success");
-                setMessage("Your email has been verified successfully!");
+                setMessage(res.data?.message || "Email verified");
+                // auto-redirect to login after 3s
+                setTimeout(() => navigate("/login"), 3000);
             } catch (error) {
+                const msg =
+                    error?.response?.data?.message || "Verification failed";
+                setMessage(msg);
                 setStatus("error");
-                setMessage(
-                    error?.response?.data?.message || "Verification failed"
-                );
+                // if token expired or unused -> allow resend
+                const unverified = error?.response?.data?.unverified || false;
+                const expired = error?.response?.status === 400 || false;
+                if (unverified || expired) setCanResend(true);
             }
         }
-
         verify();
     }, [token, uid]);
 
@@ -60,12 +64,9 @@ export default function VerifyEmail() {
                     <p className="text-gray-600 dark:text-gray-300 mt-2">
                         {message}
                     </p>
-
                     <Link
                         to="/login"
-                        className="mt-6 inline-block px-6 py-2 rounded-xl 
-                        bg-indigo-600 text-white hover:bg-indigo-700 
-                        transition-all shadow-md"
+                        className="mt-6 inline-block px-6 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md"
                     >
                         Go to Login
                     </Link>
@@ -82,16 +83,24 @@ export default function VerifyEmail() {
                         {message}
                     </p>
 
-                    <Link
-                        to="/login"
-                        className="mt-6 inline-block px-6 py-2 rounded-xl 
-                        bg-gray-300 dark:bg-white/10
-                        text-gray-900 dark:text-white
-                        hover:bg-gray-200 dark:hover:bg-white/20 
-                        transition-all"
-                    >
-                        Back to Login
-                    </Link>
+                    <div className="mt-6 flex flex-col items-center gap-3">
+                        <Link
+                            to="/login"
+                            className="inline-block px-6 py-2 rounded-xl bg-gray-300 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-all"
+                        >
+                            Back to Login
+                        </Link>
+                        {canResend && (
+                            <Link
+                                to={`/verify-email-sent?email=${
+                                    params.get("email") || ""
+                                }`}
+                                className="text-indigo-500 hover:underline text-sm"
+                            >
+                                Request a new verification email
+                            </Link>
+                        )}
+                    </div>
                 </>
             )}
         </div>
