@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { corsOptions } from "./config/cors.js";
 import { sessionMiddleware } from "./config/session.js";
 import authRouter from "./routes/auth.routes.js";
+import userRouter from "./routes/user.routes.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(sessionMiddleware);
 //routes
 
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;
     else req.session.views++;
