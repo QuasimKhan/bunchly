@@ -1,8 +1,9 @@
 import Link from "../models/Link.js";
 
+// Create a new link
 export const createLink = async (req, res) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user._id;
         const { title, url } = req.body;
 
         if (!title || !url) {
@@ -12,6 +13,7 @@ export const createLink = async (req, res) => {
             });
         }
 
+        // determine order for new link
         const lastLink = await Link.findOne({ userId }).sort("-order");
         const order = lastLink ? lastLink.order + 1 : 1;
 
@@ -35,15 +37,11 @@ export const createLink = async (req, res) => {
     }
 };
 
+// Get all links
 export const getLinks = async (req, res) => {
     try {
-        const userId = req.user?._id;
-        if (!userId) {
-            return res.status(400).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
+        const userId = req.user._id;
+
         const links = await Link.find({ userId }).sort("order");
 
         res.status(200).json({
@@ -59,31 +57,17 @@ export const getLinks = async (req, res) => {
     }
 };
 
+// Update a link
 export const updateLink = async (req, res) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user._id;
         const { id } = req.params;
 
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-
-        if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "slug is required",
-            });
-        }
-
-        const link = await Link.findByIdAndUpdate({ _id: id, userId });
-
+        const link = await Link.findOne({ _id: id, userId });
         if (!link) {
             return res.status(404).json({
                 success: false,
-                message: "Link not found or not belog to yours",
+                message: "Link not found or unauthorized",
             });
         }
 
@@ -92,7 +76,7 @@ export const updateLink = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Link Editied",
+            message: "Link updated",
             data: link,
         });
     } catch (error) {
@@ -103,37 +87,23 @@ export const updateLink = async (req, res) => {
     }
 };
 
+// Delete link
 export const deleteLink = async (req, res) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user._id;
         const { id } = req.params;
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-
-        if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "Slug required",
-            });
-        }
 
         const deletedLink = await Link.findOneAndDelete({ _id: id, userId });
         if (!deletedLink) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
-                message: "Link not found or not yours",
+                message: "Link not found or unauthorized",
             });
         }
 
         res.status(200).json({
             success: true,
             message: "Link deleted",
-            data: deletedLink,
         });
     } catch (error) {
         return res.status(500).json({
@@ -143,17 +113,11 @@ export const deleteLink = async (req, res) => {
     }
 };
 
+// Reorder links
 export const reorderLinks = async (req, res) => {
     try {
-        const userId = req.user?._id;
+        const userId = req.user._id;
         const { orderedIds } = req.body;
-
-        if (!userId) {
-            return res.status(400).json({
-                success: false,
-                message: "Unauthoried",
-            });
-        }
 
         if (!Array.isArray(orderedIds)) {
             return res.status(400).json({
