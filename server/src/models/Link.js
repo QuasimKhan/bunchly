@@ -1,0 +1,38 @@
+import mongoose from "mongoose";
+
+const linkSchema = new mongoose.Schema(
+    {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+            index: true,
+        },
+
+        title: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 100,
+        },
+
+        url: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        order: {
+            type: Number,
+            default: 0, // we'll set dynamic order later
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+    },
+    { timestamps: true }
+);
+
+const Link = mongoose.model("Link", linkSchema);
+
+export default Link;

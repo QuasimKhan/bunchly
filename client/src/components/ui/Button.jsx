@@ -48,6 +48,11 @@ const Button = ({
             hover:bg-gray-100
             dark:text-gray-100 dark:border-gray-500 dark:hover:bg-gray-800
         `,
+        danger: `
+            bg-red-500 text-white border border-red-600
+            hover:bg-red-600
+            dark:bg-red-700 dark:hover:bg-red-800
+`,
 
         ghost: `
             bg-transparent text-gray-900 hover:bg-gray-200

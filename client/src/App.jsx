@@ -12,6 +12,8 @@ import VerifyEmail from "./pages/VerifyEmail.jsx";
 import GuestRoute from "./components/GuestRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Home from "./pages/Home.jsx";
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import Links from "./pages/Links.jsx";
 
 const App = () => {
     return (
@@ -36,7 +38,12 @@ const App = () => {
 
                 {/* Protected Routes (user must be logged IN) */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route element={<DashboardLayout />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/links" element={<Links />} />
+
+                        {/* Later add: Links, Appearance, Analytics, Settings */}
+                    </Route>
                 </Route>
 
                 {/* Fallback route */}

@@ -7,6 +7,7 @@ import { corsOptions } from "./config/cors.js";
 import { sessionMiddleware } from "./config/session.js";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
+import linkRouter from "./routes/link.routes.js";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(sessionMiddleware);
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/link", linkRouter);
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;
     else req.session.views++;

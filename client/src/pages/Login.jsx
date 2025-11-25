@@ -17,8 +17,7 @@ const Login = () => {
     const { login, resendVerification, authLoading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const params = new URLSearchParams(location.search);
-    const redirect = params.get("redirect");
+    const redirectTo = new URLSearchParams(location.search).get("redirect");
 
     const handleChange = (e) =>
         setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -40,12 +39,14 @@ const Login = () => {
         if (!valid) return;
 
         try {
-            await login(form.email.trim(), form.password);
+            const success = await login(form.email.trim(), form.password);
             toast.success("Logged in successfully");
-            if (redirect && redirect.startsWith("/")) {
-                navigate(redirect);
-            } else {
-                navigate("/dashboard");
+            if (success) {
+                if (redirectTo && redirectTo.startsWith("/")) {
+                    navigate(redirectTo, { replace: true });
+                } else {
+                    navigate("/dashboard", { replace: true });
+                }
             }
         } catch (err) {
             const message = err?.message || "Login failed";
