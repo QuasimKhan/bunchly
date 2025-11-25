@@ -1,10 +1,30 @@
-import { Navigate } from "react-router-dom";
+import React from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import FullScreenLoader from "../components/ui/FullScreenLoader";
 
-export default function ProtectedRoute({ children }) {
+const ProtectedRoute = () => {
     const { user, loading } = useAuth();
-    if (loading) return <div>Loading....</div>;
-    if (!user) return <Navigate to="/login" replace />;
+    const location = useLocation();
 
-    return children;
-}
+    // 1. While loading session (initial /auth/me)
+    if (loading) {
+        return <FullScreenLoader />;
+    }
+
+    // 2. Not logged in → redirect to login with redirect param
+    if (!user) {
+        const redirectUrl = location.pathname + location.search;
+        return (
+            <Navigate
+                to={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
+                replace
+            />
+        );
+    }
+
+    // 3. Logged in → allow access
+    return <Outlet />;
+};
+
+export default ProtectedRoute;

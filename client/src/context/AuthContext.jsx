@@ -97,8 +97,6 @@ export const AuthProvider = ({ children }) => {
         fetchMe();
     }, []);
 
-    if (loading) return <FullScreenLoader />;
-
     return (
         <AuthContext.Provider
             value={{

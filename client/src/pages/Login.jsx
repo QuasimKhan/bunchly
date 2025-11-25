@@ -3,7 +3,7 @@ import InputField from "../components/ui/InputField";
 import { Lock, Mail } from "lucide-react";
 import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import ThemeToggle from "../components/ThemeToggle";
 
@@ -16,6 +16,7 @@ const Login = () => {
 
     const { login, resendVerification, authLoading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const params = new URLSearchParams(location.search);
     const redirect = params.get("redirect");
 
