@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-    useSearchParams,
-    Link,
-    useNavigate,
-    useLocation,
-    Navigate,
-} from "react-router-dom";
+import { useSearchParams, Link, useNavigate, Navigate } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import api from "../lib/api";
 
@@ -17,8 +11,6 @@ export default function VerifyEmail() {
     const token = params.get("token");
     const uid = params.get("uid");
     const navigate = useNavigate();
-
-    const location = useLocation();
 
     useEffect(() => {
         async function verify() {
@@ -48,12 +40,6 @@ export default function VerifyEmail() {
         }
         verify();
     }, [token, uid]);
-
-    const email = location.state?.email;
-
-    if (!email) {
-        return <Navigate to="/signup" replace />;
-    }
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
