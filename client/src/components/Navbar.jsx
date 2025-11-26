@@ -37,12 +37,12 @@ const Navbar = () => {
             >
                 <img
                     src="/img/Bunchly-dark.png"
-                    className="h-10 hidden dark:block"
+                    className="h-6 md:h-10 hidden dark:block"
                     alt="logo"
                 />
                 <img
                     src="/img/Bunchly-light.png"
-                    className="h-10 dark:hidden"
+                    className="h-6 md:h-10 dark:hidden"
                     alt="logo"
                 />
             </Link>
@@ -62,9 +62,7 @@ const Navbar = () => {
                     <ThemeToggle />
                 </div>
 
-                {!user && (
-                    <Button text="Login / Signup" onClick={handleLogin} />
-                )}
+                {!user && <Button text="Join" onClick={handleLogin} />}
 
                 {user && (
                     <div ref={menuRef} className="relative">
@@ -96,19 +94,21 @@ const Navbar = () => {
                                     {user?.name || user?.email}
                                 </p>
                                 <hr className="my-3 opacity-30" />
-                                <Button
-                                    text="Dashboard"
-                                    fullWidth
-                                    size="sm"
-                                    onClick={() => navigate("/dashboard")}
-                                />
-                                <Button
-                                    text="Logout"
-                                    fullWidth
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={logout}
-                                />
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        text="Dashboard"
+                                        fullWidth
+                                        size="sm"
+                                        onClick={() => navigate("/dashboard")}
+                                    />
+                                    <Button
+                                        text="Logout"
+                                        fullWidth
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={logout}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
