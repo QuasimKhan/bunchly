@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import InputField from "../components/ui/InputField";
-import { Lock, Mail } from "lucide-react";
+import { EyeClosedIcon, EyeIcon, Lock, Mail } from "lucide-react";
 import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -13,6 +13,7 @@ const Login = () => {
     const [showResend, setShowResend] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { login, resendVerification, authLoading } = useAuth();
     const navigate = useNavigate();
@@ -87,7 +88,7 @@ const Login = () => {
                 <ThemeToggle />
             </div>
 
-            {/* LEFT PANEL — EXACT MATCH WITH SIGNUP */}
+            {/* LEFT PANEL */}
             <div className="hidden lg:flex flex-col justify-between relative bg-[#0F0F14] dark:bg-black px-12 py-16 overflow-hidden">
                 {/* Glowing Background Animations */}
                 <div className="absolute inset-0">
@@ -110,28 +111,31 @@ const Login = () => {
                 </div>
 
                 {/* Title & Text */}
-                <div className="relative z-20 mt-10 animate-slide-up">
-                    <h1 className="text-4xl font-bold tracking-tight text-white leading-snug">
-                        Welcome Back to
-                        <br />
-                        <span className="text-indigo-400">
-                            Your Smart Profile
-                        </span>
-                    </h1>
+                <div className="flex">
+                    <div className="relative z-20 mt-10 animate-slide-up">
+                        <h1 className="text-4xl font-bold tracking-tight text-white leading-snug">
+                            Welcome Back to
+                            <br />
+                            <span className="text-indigo-400">
+                                Your Smart Profile
+                            </span>
+                        </h1>
 
-                    <p className="text-gray-300 text-lg mt-4 max-w-sm">
-                        Manage your links, grow your digital presence, and share
-                        everything that matters — beautifully and effortlessly.
-                    </p>
-                </div>
+                        <p className="text-gray-300 text-lg mt-4 max-w-sm">
+                            Manage your links , grow your digital presence, and
+                            share everything that matters — beautifully and
+                            effortlessly.
+                        </p>
+                    </div>
 
-                {/* Phone Mockup */}
-                <div className="relative z-20 mt-10 flex justify-center animate-float">
-                    <img
-                        src="/img/mockup_phone.png"
-                        alt="Bunchly Preview"
-                        className="w-64 drop-shadow-2xl rounded-3xl border border-white/10"
-                    />
+                    {/* Phone Mockup */}
+                    <div className=" z-20 animate-float">
+                        <img
+                            src="/img/mockup_phone.png"
+                            alt="Bunchly Preview"
+                            className="w-64 drop-shadow-2xl rounded-3xl border border-white/10"
+                        />
+                    </div>
                 </div>
 
                 <div className="relative z-20 text-gray-400 text-sm mt-auto">
@@ -142,7 +146,7 @@ const Login = () => {
             {/* RIGHT PANEL — FORM */}
             <div className="flex items-center justify-center p-6">
                 <div className="w-full max-w-md bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-gray-300 dark:border-gray-700 rounded-2xl p-8 shadow-xl text-center">
-                    {/* Logo (mobile only) */}
+                    {/* Logo */}
                     <img
                         src="/img/Bunchly-light.png"
                         alt="Bunchly"
@@ -154,9 +158,10 @@ const Login = () => {
                         className="w-28 mx-auto mb-4 hidden dark:block"
                     />
 
-                    <h1 className="text-3xl font-bold mb-2">Welcome Back 👋</h1>
+                    <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
                     <p className="text-gray-700 dark:text-gray-300 mb-6">
-                        Login to your Bunchly account
+                        Login to your{" "}
+                        <span className="text-indigo-400">Bunchly</span> account
                     </p>
 
                     {/* FORM */}
@@ -174,13 +179,15 @@ const Login = () => {
 
                         <InputField
                             label="Password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="••••••••"
                             icon={Lock}
                             value={form.password}
                             onChange={handleChange}
                             error={errors.password}
+                            eye={showPassword ? EyeClosedIcon : EyeIcon}
+                            onClick={() => setShowPassword(!showPassword)}
                         />
 
                         <Button

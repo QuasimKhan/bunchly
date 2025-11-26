@@ -19,5 +19,5 @@ authRouter.post("/login", login);
 authRouter.get("/google", googleAuthRedirect);
 authRouter.get("/google/callback", googleAuthCallback);
 authRouter.get("/me", getMe);
-authRouter.get("/logout", logout);
+authRouter.post("/logout", logout);
 export default authRouter;

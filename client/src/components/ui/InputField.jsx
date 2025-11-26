@@ -9,6 +9,8 @@ const InputField = ({
     onChange,
     placeholder,
     error,
+    eye: Eye,
+    onClick,
 }) => {
     return (
         <div className="mb-4">
@@ -53,6 +55,13 @@ const InputField = ({
                         text-gray-900 dark:text-gray-100
                     "
                 />
+
+                {Eye && (
+                    <Eye
+                        className="w-5 h-5 text-gray-500 cursor-pointer dark:text-gray-400 shrink-0"
+                        onClick={onClick}
+                    />
+                )}
             </div>
 
             {error && (

@@ -1,5 +1,7 @@
 import ThemeToggle from "../components/ThemeToggle";
 
+//it is not using at the time but we will use it in future may be
+
 export default function AuthLayout({ children }) {
     return (
         <div className="min-h-screen grid lg:grid-cols-2 relative">

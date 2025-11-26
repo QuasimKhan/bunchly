@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import InputField from "../components/ui/InputField";
 import Button from "../components/ui/Button";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, EyeClosed, Eye, EyeIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,8 @@ const Signup = () => {
     const [showResend, setShowResend] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
     const { signup, resendVerification, authLoading } = useAuth();
     const navigate = useNavigate();
 
@@ -106,43 +108,47 @@ const Signup = () => {
                 </div>
 
                 {/* Main Title + Marketing Highlights */}
-                <div className="relative z-20 mt-10 animate-slide-up">
-                    <h1 className="text-4xl font-bold tracking-tight text-white leading-snug">
-                        Build Your{" "}
-                        <span className="text-indigo-400">Smart Profile</span>
-                        <br />
-                        In Minutes 🚀
-                    </h1>
+                <div className="flex">
+                    <div className="relative z-20 mt-10 animate-slide-up">
+                        <h1 className="text-4xl font-bold tracking-tight text-white leading-snug">
+                            Build Your <br />
+                            <span className="text-indigo-400">
+                                Smart Profile
+                            </span>
+                            <br />
+                            In Minutes 🚀
+                        </h1>
 
-                    <p className="text-gray-300 text-lg mt-4 max-w-sm">
-                        Showcase your identity with a clean, modern and powerful
-                        Bunchly page.
-                    </p>
+                        <p className="text-gray-300 text-lg mt-4 max-w-sm">
+                            Showcase your identity with a clean, modern and
+                            powerful Bunchly page.
+                        </p>
 
-                    {/* Marketing Highlights */}
-                    <div className="mt-6 space-y-4">
-                        <div className="flex items-center gap-3 text-gray-300">
-                            <span className="w-2 h-2 bg-indigo-400 rounded-full"></span>
-                            Fully customizable profile & links
-                        </div>
-                        <div className="flex items-center gap-3 text-gray-300">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                            Track clicks & audience insights
-                        </div>
-                        <div className="flex items-center gap-3 text-gray-300">
-                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                            Share everywhere with one smart link
+                        {/* Marketing Highlights */}
+                        <div className="mt-6 space-y-4">
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <span className="w-2 h-2 bg-indigo-400 rounded-full"></span>
+                                Fully customizable profile & links
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                                Track clicks & audience insights
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                Share everywhere with one smart link
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Phone Mockup Preview */}
-                <div className="relative z-20 mt-10 flex justify-center animate-float">
-                    <img
-                        src="/img/mockup_phone.png"
-                        alt="Bunchly Preview"
-                        className="w-64 drop-shadow-2xl rounded-3xl border border-white/10"
-                    />
+                    {/* Phone Mockup Preview */}
+                    <div className=" z-20 animate-float">
+                        <img
+                            src="/img/mockup_phone.png"
+                            alt="Bunchly Preview"
+                            className="w-64 drop-shadow-2xl rounded-3xl border border-white/10"
+                        />
+                    </div>
                 </div>
 
                 {/* Footer */}
@@ -195,12 +201,14 @@ const Signup = () => {
                         <InputField
                             label="Password"
                             icon={Lock}
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="••••••••"
                             value={form.password}
                             onChange={handleChange}
                             error={errors.password}
+                            eye={showPassword ? EyeClosed : EyeIcon}
+                            onClick={() => setShowPassword(!showPassword)}
                         />
                         <Button
                             text="Create Account"
