@@ -10,11 +10,6 @@ import {
 import SwitchToggle from "../ui/SwitchToggle";
 import { toast } from "sonner";
 
-/**
- * Premium LinkCard
- * Parent owns all state (recommended)
- */
-
 const platformMap = [
     { key: "youtube", match: /youtube\.com|youtu\.be/, label: "YouTube" },
     { key: "instagram", match: /instagram\.com/, label: "Instagram" },
@@ -26,12 +21,12 @@ const platformMap = [
 const PlatformIcon = ({ url }) => {
     if (!url) return null;
     const found = platformMap.find((p) => p.match.test(url.toLowerCase()));
-    if (!found) return <ExternalLink className="w-4 h-4 text-indigo-300" />;
-
-    return (
-        <div className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/6 text-indigo-200 border border-white/6">
+    return found ? (
+        <div className="text-[10px] sm:text-xs px-2 py-[2px] rounded-full bg-white/6 text-indigo-200 border border-white/6">
             {found.label}
         </div>
+    ) : (
+        <ExternalLink className="w-4 h-4 text-indigo-300" />
     );
 };
 
@@ -50,12 +45,12 @@ const Favicon = ({ url, size = 32 }) => {
         : null;
 
     return (
-        <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center bg-white/6 border border-white/8">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden flex items-center justify-center bg-white/6 border border-white/8">
             {src ? (
                 <img
                     src={src}
                     alt="favicon"
-                    className="w-6 h-6 object-contain"
+                    className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                 />
             ) : (
                 <ExternalLink className="w-4 h-4 text-gray-300" />
@@ -65,9 +60,7 @@ const Favicon = ({ url, size = 32 }) => {
 };
 
 const Sparkline = ({ points = [] }) => {
-    if (!points || points.length === 0) {
-        return <div className="text-xs text-gray-400">—</div>;
-    }
+    if (!points.length) return <div className="text-xs text-gray-400">—</div>;
 
     const max = Math.max(...points);
     const min = Math.min(...points);
@@ -83,7 +76,7 @@ const Sparkline = ({ points = [] }) => {
         .join(" ");
 
     return (
-        <svg width={width} height={height} className="inline-block">
+        <svg width={width} height={height} className="hidden sm:inline-block">
             <path
                 d={d}
                 stroke="rgba(99,102,241,0.9)"
@@ -97,7 +90,6 @@ const Sparkline = ({ points = [] }) => {
 };
 
 const LinkCard = ({ link, onToggle, onEdit, onDelete }) => {
-    const titleRef = useRef(null);
     const [copying, setCopying] = useState(false);
     const [dragging, setDragging] = useState(false);
 
@@ -105,117 +97,108 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete }) => {
         try {
             await navigator.clipboard.writeText(link.url);
             setCopying(true);
-            toast.success("URL copied");
+            toast.success("URL Copied");
             setTimeout(() => setCopying(false), 1200);
         } catch {
-            toast.error("Copy failed");
+            toast.error("Copy Failed");
         }
-    };
-
-    const handleToggle = (checked) => {
-        onToggle(link._id, checked);
     };
 
     return (
         <div
-            className={`relative w-full p-5 rounded-2xl bg-white/8 dark:bg-black/30 backdrop-blur-2xl border border-white/10 shadow-lg transition-all duration-200 ${
-                dragging ? "scale-[1.02] shadow-2xl" : "hover:scale-[1.01]"
-            }`}
+            className={`relative w-full p-5 sm:p-6 rounded-2xl bg-white/8 dark:bg-black/30 backdrop-blur-2xl border border-white/10 shadow-lg transition-all duration-200 
+                ${dragging ? "scale-[1.02]" : "hover:scale-[1.01]"}`}
+            /** 🔥 Enable mobile drag */
             onMouseDown={() => setDragging(true)}
             onMouseUp={() => setDragging(false)}
             onMouseLeave={() => setDragging(false)}
+            onTouchStart={() => setDragging(true)}
+            onTouchEnd={() => setDragging(false)}
         >
-            <div className="flex items-start gap-4">
-                {/* drag handle & favicon */}
-                <div className="flex-shrink-0 flex items-center gap-3 pr-2">
-                    <div className="pr-2 text-gray-400 dark:text-gray-500 cursor-grab select-none">
-                        <GripVertical className="w-5 h-5" />
-                    </div>
+            {/* TOP ROW RESPONSIVE FIX */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                {/* Drag + favicon */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-grab" />
                     <Favicon url={link.url} />
                 </div>
 
-                {/* content */}
+                {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                        {/* Title + URL */}
                         <div className="min-w-0">
-                            <h3 className="font-semibold text-lg truncate">
+                            <h3 className="text-base sm:text-lg font-semibold truncate">
                                 {link.title}
                             </h3>
 
-                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-400 truncate">
-                                <span className="truncate">{link.url}</span>
+                            <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-gray-400 overflow-hidden">
+                                <span className="truncate max-w-[65vw] sm:max-w-none break-all">
+                                    {link.url}
+                                </span>
 
                                 <button
                                     onClick={handleCopy}
-                                    className="ml-2 p-1 rounded-md hover:bg-white/6 transition"
+                                    className="p-1 rounded-md hover:bg-white/10 cursor-pointer"
                                 >
-                                    <Copy className="w-4 h-4 text-gray-300" />
+                                    <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
 
                                 <a
                                     href={link.url}
                                     target="_blank"
-                                    rel="noreferrer noopener"
-                                    className="ml-1 p-1 rounded-md hover:bg-white/6 transition"
+                                    rel="noopener"
+                                    className="p-1 rounded-md hover:bg-white/10"
                                 >
-                                    <ExternalLink className="w-4 h-4 text-gray-300" />
+                                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </a>
                             </div>
                         </div>
 
-                        {/* right info */}
-                        <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                        {/* Right Section */}
+                        <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
                             <PlatformIcon url={link.url} />
-
-                            <div className="text-xs text-gray-400 flex items-center gap-2">
-                                <BarChart2 className="w-4 h-4 text-indigo-300" />
-                                <span>{link.clickCount ?? 0}</span>
+                            <div className="text-xs text-gray-400 flex items-center gap-1 sm:gap-2">
+                                <BarChart2 className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-300" />
+                                {link.clickCount ?? 0}
                             </div>
                         </div>
                     </div>
 
-                    {/* bottom row */}
-                    <div className="mt-3 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <span
-                                className={`inline-block px-2.5 py-0.5 text-xs font-medium rounded-full transition-all duration-300 ${
-                                    link.isActive
-                                        ? "bg-green-500/20 text-green-400 border border-green-400/20"
-                                        : "bg-gray-500/20 text-gray-300 border border-gray-400/20"
-                                }`}
+                    {/* Bottom Row — Mobile Wrap Fix */}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+                        <span
+                            className={`px-2 py-0.5 text-[10px] sm:text-xs rounded-full 
+                            ${
+                                link.isActive
+                                    ? "bg-green-500/20 text-green-400 border border-green-400/20"
+                                    : "bg-gray-500/20 text-gray-400 border border-gray-400/20"
+                            }`}
+                        >
+                            {link.isActive ? "Active" : "Hidden"}
+                        </span>
+
+                        <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+                            <button
+                                onClick={() => onEdit(link)}
+                                className="p-1.5 sm:p-2 rounded-lg cursor-pointer bg-white/6 hover:bg-white/10"
                             >
-                                {link.isActive ? "Active" : "Hidden"}
-                            </span>
-                        </div>
+                                <Pencil className="w-3 h-3 sm:w-4 sm:h-4 text-gray-200" />
+                            </button>
 
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:block">
-                                <Sparkline points={link.clicks ?? []} />
-                            </div>
+                            <button
+                                onClick={() => onDelete(link._id)}
+                                className="p-1.5 sm:p-2 rounded-lg cursor-pointer bg-red-500/10 hover:bg-red-500/20"
+                            >
+                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
+                            </button>
 
-                            {/* actions */}
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => onEdit(link)}
-                                    className="p-2 rounded-lg bg-white/6 hover:bg-white/10 transition shadow-sm"
-                                >
-                                    <Pencil className="w-4 h-4 text-gray-200" />
-                                </button>
-
-                                <button
-                                    onClick={() => onDelete(link._id)}
-                                    className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition shadow-sm"
-                                >
-                                    <Trash2 className="w-4 h-4 text-red-400" />
-                                </button>
-
-                                <SwitchToggle
-                                    checked={link.isActive}
-                                    onChange={(checked) =>
-                                        onToggle(link._id, checked)
-                                    }
-                                />
-                            </div>
+                            <SwitchToggle
+                                checked={link.isActive}
+                                onChange={(checked) =>
+                                    onToggle(link._id, checked)
+                                }
+                            />
                         </div>
                     </div>
                 </div>

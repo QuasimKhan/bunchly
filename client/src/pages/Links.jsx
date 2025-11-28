@@ -161,7 +161,11 @@ const Links = () => {
             </div>
 
             {/* LOADING */}
-            {loading && <p className="text-gray-500">Loading your links...</p>}
+            {loading && (
+                <p className="text-gray-500 text-center">
+                    Loading your links...
+                </p>
+            )}
 
             {/* EMPTY STATE */}
             {!loading && links.length === 0 && (
