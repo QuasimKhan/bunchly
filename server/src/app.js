@@ -39,11 +39,16 @@ app.get("/api/session", (req, res) => {
 });
 
 //health check route
-app.get("/health", (req, res) => {
+app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
         message: "LinkHub API running",
     });
+});
+
+//ping to awake server in free tier of hosting
+app.get("/ping", (req, res) => {
+    res.send("awake");
 });
 
 export default app;
