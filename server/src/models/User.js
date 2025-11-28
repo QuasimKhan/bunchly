@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Link from "./Link.js";
 
 const userSchema = new mongoose.Schema(
     {
@@ -30,6 +31,19 @@ const userSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+// AUTOCACADE deletion
+// When a user is deleted => delete all their links
+
+userSchema.pre("findOneAndDelete", async function (next) {
+    const user = await this.model.findOne(this.getFilter());
+
+    if (user) {
+        await Link.deleteMany({ userId: user._id });
+        console.log(`🗑 Deleted all links belonging to user: ${user._id}`);
+    }
+    next();
+});
 
 const User = mongoose.model("User", userSchema);
 

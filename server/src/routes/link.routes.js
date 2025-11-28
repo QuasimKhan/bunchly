@@ -6,7 +6,7 @@ import {
     reorderLinks,
     updateLink,
 } from "../controllers/link.controller.js";
-import { requireAuth } from "../middlewares/auth..middleware.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const linkRouter = express.Router();
 
