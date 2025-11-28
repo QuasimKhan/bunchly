@@ -10,7 +10,7 @@ const DashboardLayout = () => {
     const closeSidebar = () => setSidebarOpen(false);
 
     return (
-        <div className="min-h-screen flex bg-[#F5F6FA] dark:bg-[#0F0F14]">
+        <div className="min-h-screen flex overflow-x-hidden bg-[#F5F6FA] dark:bg-[#0F0F14]">
             {/* Sidebar (mobile + desktop) */}
             <Sidebar sidebarOpen={sidebarOpen} closeSidebar={closeSidebar} />
 
@@ -27,7 +27,7 @@ const DashboardLayout = () => {
             )}
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-64 transition-all">
+            <div className="flex-1 transition-all overflow-x-hidden lg:ml-64">
                 <Topbar toggleSidebar={toggleSidebar} />
 
                 <main className="p-6">
