@@ -83,6 +83,7 @@ const Links = () => {
 
         if (!form.title.trim() || !form.url.trim()) {
             setError("Title and URL are required");
+            setCreating(false);
             return;
         }
 
