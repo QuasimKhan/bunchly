@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { navItems } from "../../constants/navItems";
+import ThemeToggle from "../ThemeToggle";
 
 const Sidebar = ({ sidebarOpen, closeSidebar }) => {
     const location = useLocation();
@@ -71,6 +72,9 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
                         </NavLink>
                     );
                 })}
+                <div className="mx-auto lg:hidden">
+                    <ThemeToggle />
+                </div>
             </nav>
         </aside>
     );

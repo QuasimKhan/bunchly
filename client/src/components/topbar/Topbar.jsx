@@ -40,7 +40,9 @@ const Topbar = ({ toggleSidebar }) => {
 
             {/* Right side */}
             <div className="flex items-center gap-4">
-                <ThemeToggle />
+                <div className="hidden lg:block">
+                    <ThemeToggle />
+                </div>
 
                 {/* Avatar */}
                 <div
