@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState } from "react";
 import {
     GripVertical,
     Pencil,
@@ -6,7 +6,6 @@ import {
     Copy,
     ExternalLink,
     BarChart2,
-    CopyCheck,
 } from "lucide-react";
 import SwitchToggle from "../ui/SwitchToggle";
 import { toast } from "sonner";
@@ -24,7 +23,7 @@ const PlatformIcon = ({ url }) => {
     if (!url) return null;
     const found = platformMap.find((p) => p.match.test(url.toLowerCase()));
     return found ? (
-        <div className="text-[10px] sm:text-xs px-2 py-[2px] rounded-full bg-white/6 text-indigo-200 border border-white/6">
+        <div className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-white/6 text-indigo-200 border border-white/6">
             {found.label}
         </div>
     ) : (
@@ -103,6 +102,8 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete }) => {
             setTimeout(() => setCopying(false), 1200);
         } catch {
             toast.error("Copy Failed");
+        } finally {
+            setCopying(false);
         }
     };
 
@@ -141,7 +142,7 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete }) => {
                                     </span>
 
                                     {link.description && (
-                                        <span className="text-gray-400 text-[11px] sm:text-xs opacity-80 break-words mt-[2px]">
+                                        <span className="text-gray-400 text-[11px] sm:text-xs opacity-80 wrap-break-word mt-0.5">
                                             {link.description}
                                         </span>
                                     )}
@@ -151,6 +152,7 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete }) => {
                                 <Button
                                     icon={Copy}
                                     size="sm"
+                                    loading={copying}
                                     onClick={handleCopy}
                                 />
 

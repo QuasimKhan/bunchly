@@ -4,7 +4,7 @@ import Link from "../models/Link.js";
 export const createLink = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { title, url, description } = req.body;
+        const { title, url, description, icon } = req.body;
 
         if (!title || !url) {
             return res.status(400).json({
@@ -22,6 +22,7 @@ export const createLink = async (req, res) => {
             title,
             url,
             description: description || "",
+            icon: icon || "",
             order,
         });
 
@@ -76,6 +77,7 @@ export const updateLink = async (req, res) => {
         if (req.body.url !== undefined) link.url = req.body.url;
         if (req.body.description !== undefined)
             link.description = req.body.description;
+        if (req.body.icon !== undefined) link.icon = req.body.icon;
         if (req.body.isActive !== undefined) link.isActive = req.body.isActive;
 
         await link.save();

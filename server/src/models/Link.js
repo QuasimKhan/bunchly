@@ -20,6 +20,10 @@ const linkSchema = new mongoose.Schema(
             default: "",
             trim: true,
         },
+        icon: {
+            type: String,
+            default: "",
+        },
 
         url: {
             type: String,
