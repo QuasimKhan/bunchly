@@ -15,6 +15,11 @@ const linkSchema = new mongoose.Schema(
             trim: true,
             maxlength: 100,
         },
+        description: {
+            type: String,
+            default: "",
+            trim: true,
+        },
 
         url: {
             type: String,

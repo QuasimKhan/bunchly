@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import InputField from "../ui/InputField";
+import { Link, PencilLineIcon, PenSquareIcon } from "lucide-react";
 
 const EditLinkModal = ({ open, onClose, onSave, link, editing }) => {
-    const [form, setForm] = useState({ title: "", url: "" });
+    const [form, setForm] = useState({ title: "", url: "", description: "" });
 
     useEffect(() => {
         if (link) {
@@ -27,20 +29,31 @@ const EditLinkModal = ({ open, onClose, onSave, link, editing }) => {
             <h2 className="text-xl font-semibold mb-4">Edit Link</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <input
+                <InputField
                     type="text"
                     name="title"
                     placeholder="Title"
+                    icon={PenSquareIcon}
                     value={form.title}
                     onChange={handleChange}
                     className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 border border-white/20 outline-none"
                 />
 
-                <input
+                <InputField
                     type="text"
                     name="url"
                     placeholder="https://example.com"
+                    icon={Link}
                     value={form.url}
+                    onChange={handleChange}
+                    className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 border border-white/20 outline-none"
+                />
+                <InputField
+                    type="text"
+                    name="description"
+                    placeholder="description"
+                    icon={PencilLineIcon}
+                    value={form.description}
                     onChange={handleChange}
                     className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 border border-white/20 outline-none"
                 />

@@ -15,7 +15,15 @@ import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
 import EditLinkModal from "../components/links/EditLinkModal";
 
 import { toast } from "sonner";
-import { ListPlus } from "lucide-react";
+import {
+    Eye,
+    Icon,
+    Link,
+    ListPlus,
+    PencilLineIcon,
+    SquarePen,
+    Text,
+} from "lucide-react";
 
 // Drag & Drop imports
 import {
@@ -31,13 +39,14 @@ import {
     verticalListSortingStrategy,
     arrayMove,
 } from "@dnd-kit/sortable";
+import InputField from "../components/ui/InputField";
 
 const Links = () => {
     const [links, setLinks] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [openModal, setOpenModal] = useState(false);
-    const [form, setForm] = useState({ title: "", url: "" });
+    const [form, setForm] = useState({ title: "", url: "", description: "" });
     const [error, setError] = useState("");
     const [creating, setCreating] = useState(false);
 
@@ -81,8 +90,12 @@ const Links = () => {
 
         setCreating(true);
 
-        if (!form.title.trim() || !form.url.trim()) {
-            setError("Title and URL are required");
+        if (
+            !form.title.trim() ||
+            !form.url.trim() ||
+            !form.description.trim()
+        ) {
+            setError("Title, URL and description are required");
             setCreating(false);
             return;
         }
@@ -91,7 +104,7 @@ const Links = () => {
             await createLink(form);
             toast.success("Link created successfully");
             setOpenModal(false);
-            setForm({ title: "", url: "" });
+            setForm({ title: "", url: "", description: "" });
             fetchLinks();
         } catch {
             toast.error("Failed to create link");
@@ -267,24 +280,34 @@ const Links = () => {
                 {error && <p className="text-red-500 mb-2">{error}</p>}
 
                 <form onSubmit={handleCreateLink} className="space-y-4">
-                    <input
+                    <InputField
                         type="text"
                         name="title"
                         placeholder="Title"
+                        icon={SquarePen}
                         value={form.title}
                         onChange={handleChange}
                         className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 
                             border border-white/20 outline-none"
                     />
 
-                    <input
+                    <InputField
                         type="text"
                         name="url"
                         placeholder="https://example.com"
+                        icon={Link}
                         value={form.url}
                         onChange={handleChange}
                         className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 
                             border border-white/20 outline-none"
+                    />
+                    <InputField
+                        type="text"
+                        name="description"
+                        placeholder="Description"
+                        icon={PencilLineIcon}
+                        value={form.description}
+                        onChange={handleChange}
                     />
 
                     <Button

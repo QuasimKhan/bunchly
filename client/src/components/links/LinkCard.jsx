@@ -6,9 +6,11 @@ import {
     Copy,
     ExternalLink,
     BarChart2,
+    CopyCheck,
 } from "lucide-react";
 import SwitchToggle from "../ui/SwitchToggle";
 import { toast } from "sonner";
+import Button from "../ui/Button";
 
 const platformMap = [
     { key: "youtube", match: /youtube\.com|youtu\.be/, label: "YouTube" },
@@ -131,19 +133,28 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete }) => {
                             <h3 className="text-base sm:text-lg font-semibold truncate">
                                 {link.title}
                             </h3>
+                            <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-gray-400 overflow-hidden flex-wrap">
+                                {/* URL + description stacked */}
+                                <div className="flex flex-col max-w-[65vw] sm:max-w-none overflow-hidden">
+                                    <span className="truncate break-all text-gray-200">
+                                        {link.url}
+                                    </span>
 
-                            <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-gray-400 overflow-hidden">
-                                <span className="truncate max-w-[65vw] sm:max-w-none break-all">
-                                    {link.url}
-                                </span>
+                                    {link.description && (
+                                        <span className="text-gray-400 text-[11px] sm:text-xs opacity-80 break-words mt-[2px]">
+                                            {link.description}
+                                        </span>
+                                    )}
+                                </div>
 
-                                <button
+                                {/* Copy Button */}
+                                <Button
+                                    icon={Copy}
+                                    size="sm"
                                     onClick={handleCopy}
-                                    className="p-1 rounded-md hover:bg-white/10 cursor-pointer"
-                                >
-                                    <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
-                                </button>
+                                />
 
+                                {/* Open Link */}
                                 <a
                                     href={link.url}
                                     target="_blank"
