@@ -20,7 +20,7 @@ const SortableLink = ({ id, children }) => {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.9 : 1,
-        touchAction: "none", // REQUIRED for mobile drag
+        // ❌ removed touchAction none
     };
 
     return (
