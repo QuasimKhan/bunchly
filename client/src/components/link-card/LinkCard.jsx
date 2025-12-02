@@ -13,17 +13,9 @@ import { toast } from "sonner";
 
 /**
  * LinkCard
- * ============================
- * Premium, fully modular card layout combining:
- * - Drag Handle
- * - Favicon
- * - Title + URL + Description
- * - Platform Tag
- * - Analytics sparkline
- * - Status Badge
- * - Actions (Edit/Delete/Toggle/Icon Picker)
- *
- * All UI logic is now separated into clean atomic components.
+ * ---------------------------------------------
+ * Clean, modular, premium Link Card for Link Management UI.
+ * Works perfectly in both Light and Dark themes.
  */
 
 const LinkCard = ({ link, onToggle, onEdit, onDelete, onOpenIconPicker }) => {
@@ -37,22 +29,27 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete, onOpenIconPicker }) => {
     return (
         <LinkCardContainer dragging={false}>
             <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                {/* Drag Handle + Favicon */}
+                {/* Drag Handle + Icon/Favicon */}
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <LinkDragHandle />
-                    <LinkFavicon url={link.url} />
+                    <LinkFavicon url={link.url} icon={link.icon} />
                 </div>
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
-                    {/* Upper Row: Title/URL/Description + Platform Tag + Analytics */}
+                    {/* Top Section */}
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-                        {/* Left Column: Title / URL / Description */}
+                        {/* Title, URL, Description */}
                         <LinkInfo link={link} onCopy={handleCopy} />
 
-                        {/* Right Column: Platform + Analytics */}
+                        {/* Platform Tag + Analytics */}
                         <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
-                            <LinkPlatformTag url={link.url} />
+                            {/*  
+                                Show platform tag *only if* 
+                                a custom icon is NOT set 
+                            */}
+                            {!link.icon && <LinkPlatformTag url={link.url} />}
+
                             <LinkAnalytics
                                 clickCount={link.clickCount}
                                 clicks={link.clicks}
@@ -60,7 +57,7 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete, onOpenIconPicker }) => {
                         </div>
                     </div>
 
-                    {/* Bottom Row: Status Badge + Actions */}
+                    {/* Bottom Section */}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
                         <LinkStatusBadge isActive={link.isActive} />
 

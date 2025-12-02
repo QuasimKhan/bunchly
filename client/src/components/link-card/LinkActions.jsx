@@ -4,21 +4,6 @@ import { Pencil, Trash2, Sparkles } from "lucide-react";
 import SwitchToggle from "../ui/SwitchToggle";
 import Button from "../ui/Button";
 
-/**
- * LinkActions
- * ---------------------
- * Uses the global Button component for:
- * - Icon Picker
- * - Edit
- * - Delete
- * - Toggle
- *
- * Buttons now inherit:
- * - size="sm"
- * - variant styles
- * - consistent spacing + animation
- */
-
 const LinkActions = ({
     link,
     onEdit,
@@ -28,7 +13,7 @@ const LinkActions = ({
 }) => {
     return (
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-            {/* Icon Picker Button */}
+            {/* Icon Picker */}
             <Button
                 icon={Sparkles}
                 size="sm"
@@ -37,7 +22,7 @@ const LinkActions = ({
                 onClick={() => onOpenIconPicker(link)}
             />
 
-            {/* Edit Button */}
+            {/* Edit */}
             <Button
                 icon={Pencil}
                 size="sm"
@@ -46,7 +31,7 @@ const LinkActions = ({
                 onClick={() => onEdit(link)}
             />
 
-            {/* Delete Button */}
+            {/* Delete */}
             <Button
                 icon={Trash2}
                 size="sm"
@@ -55,10 +40,10 @@ const LinkActions = ({
                 onClick={() => onDelete(link._id)}
             />
 
-            {/* Toggle Switch */}
+            {/* Toggle */}
             <SwitchToggle
                 checked={link.isActive}
-                onChange={(checked) => onToggle(link._id, checked)}
+                onChange={(checked) => onToggle(link._id, checked)} // ONLY BOOLEAN
             />
         </div>
     );

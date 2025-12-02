@@ -2,7 +2,27 @@
 import React, { useState } from "react";
 import { ExternalLink } from "lucide-react";
 
-const LinkFavicon = ({ url, size = 32 }) => {
+const LinkFavicon = ({ url, icon, size = 32 }) => {
+    // ⭐ PRIORITY 1 — Custom Icon from DB
+    if (icon && icon.trim().length > 0) {
+        return (
+            <div
+                className="
+                    w-8 h-8 sm:w-9 sm:h-9 
+                    rounded-lg flex items-center justify-center
+                    bg-gray-100 dark:bg-white/10
+                    border border-gray-300 dark:border-white/20
+                    text-gray-700 dark:text-white 
+                    shadow-sm
+                    text-base select-none
+                "
+            >
+                {icon}
+            </div>
+        );
+    }
+
+    // ⭐ PRIORITY 2 — Favicon from URL
     if (!url) return null;
 
     let hostname;
@@ -21,25 +41,28 @@ const LinkFavicon = ({ url, size = 32 }) => {
 
     return (
         <div
-            className={`
-                w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center overflow-hidden
-                bg-white/5 dark:bg-white/10 
-                border border-white/10 backdrop-blur-md
-                shadow-inner
+            className="
+                w-8 h-8 sm:w-9 sm:h-9
+                flex items-center justify-center 
+                rounded-lg overflow-hidden
+                bg-gray-100 dark:bg-white/10
+                border border-gray-300 dark:border-white/15
+                shadow-sm backdrop-blur-sm
                 transition-all duration-200
-            `}
+            "
         >
-            {/* 🔄 Skeleton shimmer while loading */}
+            {/* Skeleton Loader */}
             {!loaded && !failed && (
-                <div className="w-4 h-4 rounded-full animate-pulse bg-white/30" />
+                <div className="w-4 h-4 rounded-full animate-pulse bg-gray-300 dark:bg-white/30" />
             )}
 
-            {/* 🟢 Favicon */}
+            {/* Favicon */}
             {!failed && src && (
                 <img
                     src={src}
                     alt="favicon"
-                    className={`w-5 h-5 sm:w-6 sm:h-6 object-contain
+                    className={`
+                        w-5 h-5 sm:w-6 sm:h-6 object-contain
                         transition-opacity duration-200
                         ${loaded ? "opacity-100" : "opacity-0"}
                     `}
@@ -48,9 +71,9 @@ const LinkFavicon = ({ url, size = 32 }) => {
                 />
             )}
 
-            {/* ❌ Fallback icon if favicon fails */}
+            {/* ❌ Final fallback */}
             {failed && (
-                <ExternalLink className="w-4 h-4 text-gray-300 opacity-80" />
+                <ExternalLink className="w-4 h-4 text-gray-400 dark:text-gray-300" />
             )}
         </div>
     );

@@ -118,7 +118,10 @@ const PLATFORM_STYLES = [
     },
 ];
 
-const LinkPlatformTag = ({ url }) => {
+const LinkPlatformTag = ({ url, icon }) => {
+    // 👇 NEW RULE: If custom icon exists → skip platform tag
+    if (icon && icon.trim().length > 0) return null;
+
     if (!url) return null;
 
     const found = PLATFORM_STYLES.find((p) => p.match.test(url.toLowerCase()));

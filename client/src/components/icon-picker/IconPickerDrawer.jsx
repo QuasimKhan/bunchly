@@ -1,90 +1,118 @@
-// src/components/icon-picker/IconPickerDrawer.jsx
-import React, { useState, useMemo } from "react";
-import { ICONS, ICON_COLOR } from "../../lib/iconPalette";
-import { X } from "lucide-react";
+// src/components/link-card/LinkFavicon.jsx
+import React, { useState } from "react";
+import { ExternalLink } from "lucide-react";
+import { ICONS, ICON_COLOR } from "../../lib/iconPalette"; // adjust path if needed
 
-/**
- * Props:
- *  - open (bool)
- *  - onClose()
- *  - onSelect(iconSlug)  // returns slug string like "instagram"
- *  - initial (optional) current slug
- */
+const isLikelyEmoji = (str) => {
+    if (!str) return false;
+    // quick heuristic: short (1-3 chars) and contains non-alphanumeric OR surrogate pair
+    return (
+        str.length <= 3 && /[^\w\s]/u.test(str) // contains symbol-like char (emoji usually)
+    );
+};
 
-const categories = Array.from(new Set(ICONS.map((i) => i.category)));
+const LinkFavicon = ({ url, icon, size = 32 }) => {
+    // 1) If icon is a known slug from ICONS -> render that icon component
+    if (icon && icon.trim().length > 0) {
+        const entry = ICONS.find((i) => i.slug === icon);
+        if (entry) {
+            const IconComp = entry.Comp;
+            const colorClass = ICON_COLOR[entry.slug] || "";
+            // render Brand icon
+            return (
+                <div
+                    className="
+                        w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center
+                        bg-white/6 dark:bg-white/12
+                        border border-white/12 dark:border-white/18
+                        shadow-sm
+                    "
+                >
+                    <IconComp className={`w-5 h-5 ${colorClass}`} />
+                </div>
+            );
+        }
 
-const IconPickerDrawer = ({ open, onClose, onSelect, initial }) => {
-    const [q, setQ] = useState("");
+        // 2) If icon looks like emoji / custom text → render as text (emoji)
+        if (isLikelyEmoji(icon)) {
+            return (
+                <div
+                    className="
+                        w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center 
+                        bg-white/10 dark:bg-white/15 
+                        border border-white/15 dark:border-white/20
+                        shadow-sm text-lg select-none
+                    "
+                >
+                    <span className="leading-none">{icon}</span>
+                </div>
+            );
+        }
 
-    const filtered = useMemo(() => {
-        const qq = q.trim().toLowerCase();
-        return ICONS.filter((ic) => {
-            if (!qq) return true;
-            return ic.label.toLowerCase().includes(qq) || ic.slug.includes(qq);
-        });
-    }, [q]);
+        // 3) If it's a raw class / URL / unknown string, try to show it as text as last resort
+        return (
+            <div
+                className="
+                    w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center 
+                    bg-white/10 dark:bg-white/15 
+                    border border-white/15 dark:border-white/20
+                    shadow-sm text-sm select-none px-1
+                "
+            >
+                <span className="truncate">{icon}</span>
+            </div>
+        );
+    }
 
-    if (!open) return null;
+    // 4) Fallback: favicon from url (existing behavior)
+    if (!url) return null;
+
+    let hostname;
+    try {
+        hostname = new URL(url).hostname;
+    } catch {
+        hostname = null;
+    }
+
+    const src = hostname
+        ? `https://www.google.com/s2/favicons?domain=${hostname}&sz=${size}`
+        : null;
+
+    const [loaded, setLoaded] = useState(false);
+    const [failed, setFailed] = useState(false);
 
     return (
-        <div className="fixed inset-0 z-50 flex">
-            <div className="flex-1" onClick={onClose} />
+        <div
+            className="
+                w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center overflow-hidden
+                bg-white/5 dark:bg-white/10 
+                border border-white/10 backdrop-blur-md
+                shadow-inner transition-all duration-200
+            "
+        >
+            {!loaded && !failed && (
+                <div className="w-4 h-4 rounded-full animate-pulse bg-white/30" />
+            )}
 
-            <div className="w-[420px] max-w-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 p-4 shadow-2xl overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Choose Icon</h3>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-                    >
-                        <X />
-                    </button>
-                </div>
+            {!failed && src && (
+                <img
+                    src={src}
+                    alt="favicon"
+                    className={`
+                        w-5 h-5 sm:w-6 sm:h-6 object-contain
+                        transition-opacity duration-200
+                        ${loaded ? "opacity-100" : "opacity-0"}
+                    `}
+                    onLoad={() => setLoaded(true)}
+                    onError={() => setFailed(true)}
+                />
+            )}
 
-                <div className="mb-3">
-                    <input
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        placeholder="Search icons..."
-                        className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-800 bg-white/5"
-                    />
-                </div>
-
-                <div className="grid grid-cols-4 gap-3">
-                    {filtered.map((icon) => {
-                        const IconComp = icon.Comp;
-                        const isActive = initial === icon.slug;
-                        const colorClass =
-                            ICON_COLOR[icon.slug] || "text-gray-200";
-                        return (
-                            <button
-                                key={icon.slug}
-                                onClick={() => onSelect(icon.slug)}
-                                className={`flex flex-col items-center gap-1 p-3 rounded-lg transition hover:bg-white/5 ${
-                                    isActive ? "ring-2 ring-indigo-400/30" : ""
-                                }`}
-                            >
-                                <div
-                                    className={`w-10 h-10 rounded-md flex items-center justify-center ${
-                                        isActive
-                                            ? "bg-indigo-600/10"
-                                            : "bg-white/3"
-                                    }`}
-                                >
-                                    <IconComp
-                                        className={`w-5 h-5 ${colorClass}`}
-                                    />
-                                </div>
-                                <div className="text-xs text-gray-400">
-                                    {icon.label}
-                                </div>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
+            {failed && (
+                <ExternalLink className="w-4 h-4 text-gray-300 opacity-80" />
+            )}
         </div>
     );
 };
 
-export default IconPickerDrawer;
+export default LinkFavicon;

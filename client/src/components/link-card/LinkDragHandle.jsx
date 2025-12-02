@@ -1,42 +1,38 @@
-import React, { useState } from "react";
+// src/components/link-card/LinkDragHandle.jsx
+import React from "react";
 import { GripVertical } from "lucide-react";
+import { useDragHandle } from "../links/SortableLink"; // ⬅ REQUIRED
 
 /**
- * LinkDragHandle
- * -------------------------
- * A clean, responsive drag handle for dnd-kit sorting.
- *
- * ✔ Shows proper grabbing cursor
- * ✔ Works on both mouse + touch
- * ✔ No gesture conflicts
- * ✔ Minimal premium UI
+ * Mobile + Desktop Safe Drag Handle
+ * --------------------------------------
+ * ✔ Fully works on mobile (touch-action none)
+ * ✔ Drag listeners attached from dnd-kit
+ * ✔ Does NOT block scroll when not dragging
+ * ✔ Clean minimal UI
  */
 
 const LinkDragHandle = ({ className = "" }) => {
-    const [isDragging, setIsDragging] = useState(false);
+    const drag = useDragHandle(); // ⬅ This injects listeners + attributes
 
     return (
         <div
+            {...drag?.listeners} // ⬅ REQUIRED for drag to work
+            {...drag?.attributes} // ⬅ REQUIRED
             className={`
-                relative select-none pr-2 
-                transition-colors duration-150
-                ${isDragging ? "cursor-grabbing" : "cursor-grab"} 
+                cursor-grab active:cursor-grabbing
+                touch-none select-none
+                pr-2 flex items-center
                 ${className}
             `}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
-            onTouchStart={() => setIsDragging(true)}
-            onTouchEnd={() => setIsDragging(false)}
         >
             <GripVertical
                 className="
-                    w-4 h-4 sm:w-5 sm:h-5 
+                    w-4 h-4 sm:w-5 sm:h-5
                     text-gray-400 dark:text-gray-500
                     opacity-80 hover:opacity-100
-                    transition-opacity
+                    transition
                 "
-                aria-hidden="true"
             />
         </div>
     );
