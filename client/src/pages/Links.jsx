@@ -690,9 +690,9 @@ const Links = () => {
                     <InputField
                         type="text"
                         name="description"
-                        value={form.description}
                         placeholder="Description (optional)"
                         icon={PencilLineIcon}
+                        value={form.description}
                         onChange={handleChange}
                     />
 
@@ -705,6 +705,7 @@ const Links = () => {
                         className="!bg-indigo-600 hover:!bg-indigo-700 text-white 
                             shadow-lg shadow-indigo-500/20"
                         disabled={creating}
+                        tooltip="Submit"
                     />
                 </form>
             </Modal>

@@ -11,6 +11,7 @@ const Button = ({
     fullWidth = false,
     variant = "default",
     type = "button",
+    tooltip = "",
 }) => {
     // ========== AUTO SIZE LOGIC WITH ICON ==========
     const iconOnly = Icon && !text; // When icon exists & no text
@@ -65,33 +66,53 @@ const Button = ({
     };
 
     return (
-        <button
-            type={type}
-            onClick={onClick}
-            disabled={loading}
+        <div
             className={`
-                flex items-center justify-center 
-                ${
-                    Icon && text ? "gap-2" : ""
-                }     // adds spacing only when both exist
+            relative group
+            ${fullWidth ? "block w-full" : "inline-block"}
+        `}
+        >
+            <button
+                type={type}
+                onClick={onClick}
+                disabled={loading}
+                className={`
+                flex items-center justify-center
+                ${Icon && text ? "gap-2" : ""}
                 rounded-lg font-medium transition-all duration-200
                 active:scale-[0.96]
-
                 ${sizeClasses}
                 ${fullWidth ? "w-full" : ""}
                 ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                 ${variants[variant]}
                 ${className}
             `}
-        >
-            {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-            ) : Icon ? (
-                <Icon className={`${text ? "w-4 h-4" : "w-5 h-5"}`} /> // Smaller icon w/ text
-            ) : (
-                text
+            >
+                {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : Icon ? (
+                    <Icon className={`${text ? "w-4 h-4" : "w-5 h-5"}`} />
+                ) : (
+                    text
+                )}
+            </button>
+
+            {tooltip && (
+                <span
+                    className="
+                    absolute left-1/2 -translate-x-1/2
+                    -bottom-9 px-2 py-1
+                    text-xs rounded-md whitespace-nowrap
+                    bg-gray-900 text-white dark:bg-white dark:text-black
+                    opacity-0 group-hover:opacity-100
+                    pointer-events-none
+                    transition-all duration-200
+                "
+                >
+                    {tooltip}
+                </span>
             )}
-        </button>
+        </div>
     );
 };
 

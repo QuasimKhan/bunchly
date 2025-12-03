@@ -9,7 +9,11 @@ const EditLinkModal = ({ open, onClose, onSave, link, editing }) => {
 
     useEffect(() => {
         if (link) {
-            setForm({ title: link.title, url: link.url });
+            setForm({
+                title: link.title,
+                url: link.url,
+                description: link.description,
+            });
         }
     }, [link]);
 
@@ -51,7 +55,7 @@ const EditLinkModal = ({ open, onClose, onSave, link, editing }) => {
                 <InputField
                     type="text"
                     name="description"
-                    placeholder="description"
+                    placeholder="Description"
                     icon={PencilLineIcon}
                     value={form.description}
                     onChange={handleChange}
