@@ -690,9 +690,9 @@ const Links = () => {
                     <InputField
                         type="text"
                         name="description"
+                        value={form.description}
                         placeholder="Description (optional)"
                         icon={PencilLineIcon}
-                        value={form.description}
                         onChange={handleChange}
                     />
 

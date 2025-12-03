@@ -4,91 +4,108 @@ import Button from "../ui/Button";
 import { Copy, ExternalLink } from "lucide-react";
 
 /**
- * LinkInfo
- * -----------------------------------------
- * Shows title, URL, description + copy/open actions
- * Now fully light-mode safe and cleaner visually.
+ * LinkInfo (Enhanced UI Version)
+ * -----------------------------------------------------------------
+ * Clean, modern, industry-level component for displaying link details.
+ * - Responsive, crisp layout
+ * - Mobile title auto-truncates at 20 chars
+ * - Smooth UX in light + dark themes
  */
+
+const truncateForMobile = (text, max = 20) => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+        return text.length > max ? text.slice(0, max) + "…" : text;
+    }
+    return text;
+};
 
 const LinkInfo = ({ link, onCopy }) => {
     return (
-        <div className="min-w-0 flex flex-col gap-1.5">
+        <div className="min-w-0 flex flex-col gap-2">
             {/* Title */}
             <h3
                 className="
                     text-base sm:text-lg font-semibold
                     text-gray-900 dark:text-white
-                    truncate leading-tight
+                    leading-tight
+                    truncate sm:overflow-visible sm:whitespace-normal
                 "
             >
-                {link.title}
+                {truncateForMobile(link.title)}
             </h3>
 
-            {/* URL + Description + Buttons */}
+            {/* URL + Desc + Actions Row */}
             <div
                 className="
-                    flex items-center flex-wrap gap-2
+                    flex items-start justify-between gap-3
                     text-xs sm:text-sm
-                    text-gray-600 dark:text-gray-400
-                    overflow-hidden
                 "
             >
-                {/* URL + Description container */}
-                <div className="flex flex-col overflow-hidden max-w-[68vw] sm:max-w-none">
+                {/* URL + Description */}
+                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                     {/* URL */}
-                    <span
+                    <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="
                             truncate break-all
-                            text-gray-800 dark:text-gray-200
-                            hover:text-indigo-600 dark:hover:text-white
+                            font-medium
+                            text-gray-700 dark:text-gray-300
+                            hover:text-indigo-600 dark:hover:text-indigo-400
                             transition-colors
                         "
                     >
                         {link.url}
-                    </span>
+                    </a>
 
                     {/* Description */}
                     {link.description && (
-                        <span
+                        <p
                             className="
-                                text-gray-600 dark:text-gray-400
                                 text-[11px] sm:text-xs
-                                break-words leading-snug
-                                mt-[1px]
+                                text-gray-600 dark:text-gray-400
+                                leading-snug
+                                break-words
+                                opacity-90
                             "
                         >
                             {link.description}
-                        </span>
+                        </p>
                     )}
                 </div>
 
-                {/* Copy Button */}
-                <Button
-                    icon={Copy}
-                    size="sm"
-                    variant="ghost"
-                    className="
-                        rounded-md p-1.5
-                        text-gray-700 dark:text-gray-300
-                        hover:bg-gray-200/50 dark:hover:bg-white/10
-                    "
-                    onClick={onCopy}
-                />
+                {/* ACTIONS */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Copy Button */}
+                    <Button
+                        icon={Copy}
+                        size="sm"
+                        variant="ghost"
+                        className="
+                            p-1.5 rounded-md
+                            text-gray-700 dark:text-gray-300
+                            hover:bg-gray-200/60 dark:hover:bg-white/10
+                            transition
+                        "
+                        onClick={onCopy}
+                    />
 
-                {/* Open Link Button */}
-                <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="
-                        p-1.5 sm:p-2 rounded-md 
-                        text-gray-700 dark:text-gray-300
-                        hover:bg-gray-200/50 dark:hover:bg-white/10
-                        transition
-                    "
-                >
-                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-                </a>
+                    {/* Open Link Button */}
+                    <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                            p-1.5 rounded-md
+                            text-gray-700 dark:text-gray-300
+                            hover:bg-gray-200/60 dark:hover:bg-white/10
+                            transition
+                        "
+                    >
+                        <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </a>
+                </div>
             </div>
         </div>
     );
