@@ -1,13 +1,35 @@
 // src/components/link-card/LinkFavicon.jsx
 import React, { useState } from "react";
 import { ExternalLink } from "lucide-react";
+import { ICONS, ICON_COLOR } from "../../lib/iconPalette";
 
 const LinkFavicon = ({ url, icon, size = 32 }) => {
-    // ⭐ PRIORITY 1 — Custom Icon from DB
+    // ⭐ PRIORITY 1 — Custom Icon from DB (slug → icon component)
     if (icon && icon.trim().length > 0) {
-        return (
-            <div
-                className="
+        const entry = ICONS.find((i) => i.slug === icon);
+
+        if (entry) {
+            const IconComp = entry.Comp;
+            const color = ICON_COLOR[entry.slug] || "";
+
+            return (
+                <div
+                    className="
+                w-8 h-8 sm:w-9 sm:h-9 
+                rounded-lg flex items-center justify-center
+                bg-gray-100 dark:bg-white/10
+                border border-gray-300 dark:border-white/20
+                shadow-sm
+            "
+                >
+                    <IconComp className={`w-5 h-5 ${color}`} />
+                </div>
+            );
+        }
+
+        // fallback → if user sets emoji or text
+        <div
+            className="
                     w-8 h-8 sm:w-9 sm:h-9 
                     rounded-lg flex items-center justify-center
                     bg-gray-100 dark:bg-white/10
@@ -16,10 +38,9 @@ const LinkFavicon = ({ url, icon, size = 32 }) => {
                     shadow-sm
                     text-base select-none
                 "
-            >
-                {icon}
-            </div>
-        );
+        >
+            {icon}
+        </div>;
     }
 
     // ⭐ PRIORITY 2 — Favicon from URL
