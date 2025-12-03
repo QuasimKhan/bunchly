@@ -154,3 +154,18 @@ html.dark body {
 .animate-tooltip-enter {
     animation: tooltip-enter 0.17s ease-out;
 }
+
+@keyframes bunchlySlideUp {
+    0% {
+        transform: translateY(30px) scale(0.95);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-bunchlySlideUp {
+    animation: bunchlySlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

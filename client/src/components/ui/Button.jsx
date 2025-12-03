@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import React from "react";
 
 const Button = ({
-    text = "Submit",
+    text = "",
     icon: Icon,
     loading = false,
     onClick,
@@ -88,12 +88,26 @@ const Button = ({
                 ${className}
             `}
             >
+                {/* NEW FIXED LOGIC */}
+
                 {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                ) : Icon ? (
-                    <Icon className={`${text ? "w-4 h-4" : "w-5 h-5"}`} />
                 ) : (
-                    text
+                    <>
+                        {/* Icon Only */}
+                        {Icon && !text && <Icon className="w-5 h-5" />}
+
+                        {/* Text Only */}
+                        {text && !Icon && text}
+
+                        {/* Icon + Text */}
+                        {Icon && text && (
+                            <>
+                                <Icon className="w-4 h-4" />
+                                <span className="hidden md:block">{text}</span>
+                            </>
+                        )}
+                    </>
                 )}
             </button>
 
@@ -105,7 +119,7 @@ const Button = ({
                     text-xs rounded-md whitespace-nowrap
                     bg-gray-900 text-white dark:bg-white dark:text-black
                     opacity-0 group-hover:opacity-100
-                    pointer-events-none
+                    pointer-events-none z-50
                     transition-all duration-200
                 "
                 >

@@ -377,7 +377,7 @@ import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
 import EditLinkModal from "../components/links/EditLinkModal";
 
 import { toast } from "sonner";
-import { Link, ListPlus, PencilLineIcon, SquarePen } from "lucide-react";
+import { Eye, Link, ListPlus, PencilLineIcon, SquarePen } from "lucide-react";
 
 import IconPickerDrawer from "../components/icon-picker/IconPickerDrawer";
 import { ICONS } from "../lib/iconPalette";
@@ -397,6 +397,8 @@ import {
     arrayMove,
 } from "@dnd-kit/sortable";
 import InputField from "../components/ui/InputField";
+import { PreviewModal } from "../components/preview/PreviewModal";
+import { useAuth } from "../context/AuthContext";
 
 const Links = () => {
     const [links, setLinks] = useState([]);
@@ -419,10 +421,16 @@ const Links = () => {
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [iconPickerFor, setIconPickerFor] = useState(null); // link object
 
+    //PREVIEW LINK
+    const [previewModalOpen, setPreviewModalOpen] = useState(false);
+
     // DND Sensors
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );
+
+    // user
+    const { user } = useAuth();
 
     // Fetch links
     const fetchLinks = async () => {
@@ -556,16 +564,27 @@ const Links = () => {
             <div className="flex justify-between items-center mb-6 mt-4">
                 <h1 className="text-3xl font-bold">Your Links</h1>
 
-                <Button
-                    text={<ListPlus />}
-                    size="md"
-                    onClick={() => {
-                        setError("");
-                        setOpenModal(true);
-                    }}
-                    className="!bg-indigo-600 hover:!bg-indigo-700 text-white 
+                <div className="flex gap-4">
+                    <Button
+                        icon={Eye}
+                        size="md"
+                        text="Preview"
+                        tooltip="Preview"
+                        onClick={() => setPreviewModalOpen(true)}
+                    />
+
+                    <Button
+                        icon={ListPlus}
+                        size="md"
+                        tooltip="Add Link"
+                        onClick={() => {
+                            setError("");
+                            setOpenModal(true);
+                        }}
+                        className="!bg-indigo-600 hover:!bg-indigo-700 text-white 
                         shadow-lg shadow-indigo-500/20"
-                />
+                    />
+                </div>
             </div>
 
             {/* LOADING */}
@@ -746,6 +765,14 @@ const Links = () => {
                 initial={iconPickerFor?.icon}
                 onClose={closeIconPicker}
                 onSelect={handleIconSelect}
+            />
+
+            {/* Preview modal  */}
+            <PreviewModal
+                isOpen={previewModalOpen}
+                onClose={() => setPreviewModalOpen(false)}
+                user={user}
+                links={links}
             />
         </div>
     );
