@@ -48,6 +48,7 @@ export const getPublicProfile = async (req, res) => {
             image: user.image,
             bio: user.bio,
             role: user.role,
+            plan: user.plan,
         };
 
         res.status(200).json({

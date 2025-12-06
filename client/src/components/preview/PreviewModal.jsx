@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ICONS } from "../../lib/iconPalette";
 import Button from "../ui/Button";
+import { Icon, Link } from "lucide-react";
+import TickBadge from "../ui/TickBadge";
 
 // ⬇️ You should move this into its own file later, but keeping inline for now
 export const PreviewPage = ({ user = {}, links = [] }) => {
@@ -38,17 +40,18 @@ export const PreviewPage = ({ user = {}, links = [] }) => {
             )}
 
             {/* NAME */}
-            <h3 className="text-xl font-bold text-neutral-800 dark:text-white">
-                {user.name || user.email || "Unknown User"}
+            <h3 className="text-xl font-bold text-neutral-800 dark:text-white flex items-center gap-1">
+                @{user.username}
+                <TickBadge tier={user.plan === "paid" ? "paid" : "free"} />
             </h3>
 
-            {/* ROLE */}
+            {/* Bio */}
             <p className="text-sm text-neutral-500 mt-1 mb-6">
-                {user.role || "Bio not provided"}
+                {user.bio || "Bio not provided"}
             </p>
 
             {/* LINKS */}
-            <div className="w-full flex flex-col gap-4 pb-6">
+            <div className="w-full flex flex-col gap-4 pb-6 ">
                 {activeLinks.length > 0 ? (
                     activeLinks.map((link, i) => {
                         const IconComp =
@@ -56,19 +59,40 @@ export const PreviewPage = ({ user = {}, links = [] }) => {
                                 ?.Comp || null;
 
                         return (
-                            <button
+                            <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 key={i}
-                                disabled
                                 className="
-                                    bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white
-                                    w-full p-3 rounded-xl shadow hover:opacity-80 transition
-                                    flex items-center gap-2 justify-center
-                                    pointer-events-none
-                                "
+                        bg-white dark:bg-neutral-900  
+                        text-neutral-900 dark:text-white
+                        w-full py-4 px-5 rounded-2xl shadow-md 
+                        border border-neutral-200 dark:border-neutral-700 
+                        hover:shadow-lg hover:scale-[1.02] 
+                        hover:bg-neutral-50 dark:hover:bg-neutral-800
+                        transition-all duration-200
+                        flex items-center gap-4
+                        cursor-pointer
+                    "
                             >
-                                {IconComp && <IconComp size={18} />}
-                                {link.title}
-                            </button>
+                                {/* ICON LEFT (BIG LIKE LINKTREE) */}
+                                <div className="flex items-center justify-center w-8 h-8">
+                                    {IconComp ? (
+                                        <IconComp
+                                            size={22}
+                                            className="opacity-90"
+                                        />
+                                    ) : (
+                                        <Link />
+                                    )}
+                                </div>
+
+                                {/* TITLE */}
+                                <a className="text-[16px] font-semibold tracking-wide flex-1">
+                                    {link.title}
+                                </a>
+                            </a>
                         );
                     })
                 ) : (
@@ -208,7 +232,7 @@ export const PreviewModal = ({ isOpen, onClose, user = {}, links = [] }) => {
                                         transform: "scale(0.55)",
                                         transformOrigin: "top center",
                                     }}
-                                    className="pointer-events-none"
+                                    className=""
                                 >
                                     <PreviewPage user={user} links={links} />
                                 </div>

@@ -1,16 +1,23 @@
 import Link from "../models/Link.js";
+import { detectIconFromUrl } from "../utils/detectIconFromUrl.js";
 
 // Create a new link
 export const createLink = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { title, url, description, icon } = req.body;
+        const { title, url, description } = req.body;
+        let icon = req.body.icon;
 
         if (!title || !url) {
             return res.status(400).json({
                 success: false,
                 message: "Title and URL are required",
             });
+        }
+
+        if (!icon) {
+            const detected = detectIconFromUrl(url);
+            if (detected) icon = detected;
         }
 
         // determine order for new link
