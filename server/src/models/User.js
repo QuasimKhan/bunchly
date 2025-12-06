@@ -14,6 +14,8 @@ const userSchema = new mongoose.Schema(
         },
         image: {
             type: String,
+            default:
+                "https://imgs.search.brave.com/6_s2510n8Psxm_Aq6n1XeVlFNbNpZXQDqqpu9FuCsM8/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTAx/Njc0NDAzNC92ZWN0/b3IvcHJvZmlsZS1w/bGFjZWhvbGRlci1p/bWFnZS1ncmF5LXNp/bGhvdWV0dGUtbm8t/cGhvdG8uanBnP3M9/NjEyeDYxMiZ3PTAm/az0yMCZjPVJxdGky/NlZRal9mcy1faEwx/NW1KajZiODRGRVpO/YTAwRkpnWlJhRzVQ/RDQ9",
         },
         bio: {
             type: String,

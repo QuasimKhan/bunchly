@@ -248,6 +248,8 @@ export const login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 plan: user.plan,
+                role: user.role,
+                image: user.image,
             },
         });
     } catch (error) {
@@ -384,6 +386,9 @@ export const getMe = async (req, res) => {
                 email: user.email,
                 plan: user.plan,
                 authProvider: user.authProvider,
+                role: user.role,
+                image: user.image,
+                username: user.username,
             },
         });
     } catch (error) {

@@ -70,9 +70,9 @@ const Navbar = () => {
                             onClick={() => setOpenMenu((p) => !p)}
                             className="cursor-pointer active:scale-95"
                         >
-                            {user.photoURL ? (
+                            {user.image ? (
                                 <img
-                                    src={user.photoURL}
+                                    src={user.image}
                                     className="w-10 h-10 rounded-full object-cover border shadow"
                                 />
                             ) : (

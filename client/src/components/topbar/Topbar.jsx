@@ -1,11 +1,16 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Menu } from "lucide-react";
 import ThemeToggle from "../ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
+import { useNavigate } from "react-router-dom";
 
 const Topbar = ({ toggleSidebar }) => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [openMenu, setOpenMenu] = useState(false);
+
+    const menuRef = useRef(null);
 
     return (
         <header
@@ -45,21 +50,55 @@ const Topbar = ({ toggleSidebar }) => {
                 </div>
 
                 {/* Avatar */}
-                <div
-                    className="
-                        w-9 h-9 flex items-center justify-center
-                        rounded-full bg-indigo-500 text-white
-                        font-medium uppercase shadow-md font-serif
-                    "
-                >
-                    {user?.name?.[0] || user?.email?.[0] || "U"}
-                </div>
+                {user && (
+                    <div ref={menuRef} className="relative">
+                        <div
+                            onClick={() => setOpenMenu((p) => !p)}
+                            className="cursor-pointer active:scale-95"
+                        >
+                            {user.image ? (
+                                <img
+                                    src={user.image}
+                                    className="w-10 h-10 rounded-full object-cover border shadow"
+                                />
+                            ) : (
+                                <div
+                                    className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 
+                                                flex items-center justify-center text-white font-bold uppercase"
+                                >
+                                    {user?.name?.[0] || user?.email?.[0]}
+                                </div>
+                            )}
+                        </div>
 
-                <Button
-                    onClick={logout}
-                    className="text-sm bg-red-500 dark:bg-red-800"
-                    text="Logout"
-                />
+                        {openMenu && (
+                            <div
+                                className="absolute top-12 right-0 w-48 p-3 bg-white dark:bg-gray-900 
+                                            rounded-xl shadow-xl border animate-scaleIn z-50"
+                            >
+                                <p className="font-semibold">
+                                    {user?.name || user?.email}
+                                </p>
+                                <hr className="my-3 opacity-30" />
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        text="Home"
+                                        fullWidth
+                                        size="sm"
+                                        onClick={() => navigate("/")}
+                                    />
+                                    <Button
+                                        text="Logout"
+                                        fullWidth
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={logout}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </header>
     );

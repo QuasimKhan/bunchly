@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { PreviewPage } from "../components/preview/PreviewModal"; // ⬅ We already created this
+import { Loader2 } from "lucide-react";
 
 const PublicProfilePage = () => {
     const { username } = useParams();
@@ -36,7 +37,7 @@ const PublicProfilePage = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center text-neutral-500">
-                Loading…
+                <Loader2 />
             </div>
         );
     }
