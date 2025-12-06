@@ -31,7 +31,7 @@ export const getPublicProfile = async (req, res) => {
 
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(403).json({
+            return res.status(404).json({
                 success: false,
                 message: "User not found",
             });
