@@ -169,3 +169,16 @@ html.dark body {
 .animate-bunchlySlideUp {
     animation: bunchlySlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+@keyframes bunchlySlideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0%);
+    }
+}
+
+.animate-bunchlySlideIn {
+    animation: bunchlySlideIn 0.25s ease-out forwards;
+}

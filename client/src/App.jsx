@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Home from "./pages/Home.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Links from "./pages/Links.jsx";
+import PublicProfilePage from "./pages/PublicProfilePage.jsx";
 
 const App = () => {
     return (
@@ -23,6 +24,7 @@ const App = () => {
             <Routes>
                 {/* Public Route (open for all like Linktree) */}
                 <Route path="/" element={<Home />} />
+                <Route path="/u/:username" element={<PublicProfilePage />} />
 
                 {/* Guest-only Routes (user must be logged OUT) */}
                 <Route element={<GuestRoute />}>
