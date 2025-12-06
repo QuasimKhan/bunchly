@@ -24,7 +24,7 @@ const App = () => {
             <Routes>
                 {/* Public Route (open for all like Linktree) */}
                 <Route path="/" element={<Home />} />
-                <Route path="/u/:username" element={<PublicProfilePage />} />
+                <Route path="/:username" element={<PublicProfilePage />} />
 
                 {/* Guest-only Routes (user must be logged OUT) */}
                 <Route element={<GuestRoute />}>

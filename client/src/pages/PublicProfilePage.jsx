@@ -13,7 +13,9 @@ const PublicProfilePage = () => {
         const fetchProfile = async () => {
             try {
                 const res = await fetch(
-                    `${import.meta.env.VITE_API_URL}/public/${username}`
+                    `${
+                        import.meta.env.VITE_API_URL
+                    }/api/user/public/${username}`
                 );
                 const data = await res.json();
 

@@ -1,6 +1,9 @@
 import express from "express";
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import { deleteUser } from "../controllers/user.controller.js";
+import {
+    deleteUser,
+    getPublicProfile,
+} from "../controllers/user.controller.js";
 
 const userRouter = express.Router();
 
@@ -9,5 +12,7 @@ userRouter.get("/dashboard", requireAuth, (req, res) => {
 });
 
 userRouter.delete("/:userId", requireAuth, deleteUser);
+
+userRouter.get("/public/:username", getPublicProfile);
 
 export default userRouter;
