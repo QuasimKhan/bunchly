@@ -6,16 +6,13 @@ import morgan from "morgan";
 
 import { corsOptions } from "./config/cors.js";
 import { sessionMiddleware } from "./config/session.js";
-
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import linkRouter from "./routes/link.routes.js";
 
 const app = express();
 
-// --------------------
-// Global Middlewares
-// --------------------
+//middlewares
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
@@ -23,17 +20,25 @@ app.use(morgan("dev"));
 app.use(cors(corsOptions));
 app.set("trust proxy", 1);
 
-// -----------------------------------------------------
-// 1️⃣ PUBLIC ROUTES (NO SESSION, NO AUTH REQUIRED)
-// -----------------------------------------------------
+app.use(sessionMiddleware);
 
-// Auth routes like login/signup — public
+//routes
+
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
+app.use("/api/links", linkRouter);
+app.get("/api/session", (req, res) => {
+    if (!req.session.views) req.session.views = 1;
+    else req.session.views++;
 
-// Public user profile route (e.g., /api/user/public/quasim)
-app.use("/api/user/public", userRouter);
+    res.json({
+        success: true,
+        views: req.session.views,
+        message: "Session views fetch succussfully ",
+    });
+});
 
-// Health check
+//health check route
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -41,23 +46,9 @@ app.get("/", (req, res) => {
     });
 });
 
-// Ping for uptime robot or hosting free tier
-app.get("/ping", (req, res) => res.send("awake"));
+//ping to awake server in free tier of hosting
+app.get("/ping", (req, res) => {
+    res.send("awake");
+});
 
-// -----------------------------------------------------
-// 2️⃣ SESSION MIDDLEWARE (APPLIED ONLY TO PROTECTED ROUTES)
-// -----------------------------------------------------
-app.use(sessionMiddleware);
-
-// -----------------------------------------------------
-// 3️⃣ PROTECTED ROUTES (NEED AUTH)
-// -----------------------------------------------------
-
-// All other /api/user routes (dashboard, delete user, etc.)
-app.use("/api/user", userRouter);
-
-// Link management routes (always protected)
-app.use("/api/links", linkRouter);
-
-// -----------------------------------------------------
 export default app;
