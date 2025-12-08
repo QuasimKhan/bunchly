@@ -64,3 +64,5 @@ export const getPublicProfile = async (req, res) => {
         });
     }
 };
+
+export const updateProfile = async (req, res) => {};

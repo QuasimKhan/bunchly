@@ -15,8 +15,12 @@ import Home from "./pages/Home.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Links from "./pages/Links.jsx";
 import PublicProfilePage from "./pages/PublicProfilePage.jsx";
+import Profile from "./pages/Profile.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
+import SettingsDashboard from "./pages/SettingsDashboard.jsx";
 
 const App = () => {
+    const { user } = useAuth();
     return (
         <>
             <Toaster richColors position="top-center" />
@@ -43,6 +47,14 @@ const App = () => {
                     <Route element={<DashboardLayout />}>
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/links" element={<Links />} />
+                        <Route
+                            path="/profile"
+                            element={<Profile user={user} />}
+                        />
+                        <Route
+                            path="/settings"
+                            element={<SettingsDashboard user={user} />}
+                        />
 
                         {/* Later add: Links, Appearance, Analytics, Settings */}
                     </Route>

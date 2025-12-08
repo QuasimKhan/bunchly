@@ -96,6 +96,12 @@ const Navbar = () => {
                                 <hr className="my-3 opacity-30" />
                                 <div className="flex flex-col gap-2">
                                     <Button
+                                        text="Profile"
+                                        fullWidth
+                                        size="sm"
+                                        onClick={() => navigate("/profile")}
+                                    />
+                                    <Button
                                         text="Dashboard"
                                         fullWidth
                                         size="sm"

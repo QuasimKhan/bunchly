@@ -88,6 +88,12 @@ const Topbar = ({ toggleSidebar }) => {
                                         onClick={() => navigate("/")}
                                     />
                                     <Button
+                                        text="Profile"
+                                        fullWidth
+                                        size="sm"
+                                        onClick={() => navigate("/profile")}
+                                    />
+                                    <Button
                                         text="Logout"
                                         fullWidth
                                         size="sm"
