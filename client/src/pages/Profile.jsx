@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import TickBadge from "../components/ui/TickBadge";
 import Button from "../components/ui/Button";
-import EditModal from "../components/profile/EditModal";
+import EditModal from "../components/profile/EditModal.jsx";
 import api from "../lib/api.js";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
