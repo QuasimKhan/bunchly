@@ -6,7 +6,7 @@ import EditProfileField from "../components/profile/EditProfileField";
 import api from "../lib/api.js";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
-import DeleteAccountModal from "../components/Profile/DeleteAccountModal.jsx";
+import DeleteAccountModal from "../components/profile/DeleteAccountModal.jsx";
 
 export default function Profile({ user }) {
     const [profile, setProfile] = useState(user);
