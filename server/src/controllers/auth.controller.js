@@ -7,13 +7,43 @@ import { sendVerificationEmail } from "../utils/email.js";
 
 export const signup = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
+        const { name, email, password, username } = req.body;
+        if (!name || !email || !password || !username) {
             return res.status(400).json({
                 success: false,
                 message: "Fields are required",
             });
         }
+
+        const cleanUsername = username.trim().toLowerCase();
+
+        const usernameRegex = /^[a-zA-Z0-9._-]{3,20}$/;
+        if (!usernameRegex.test(cleanUsername)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid username. Use 3–20 characters: letters, numbers, ., -, _",
+            });
+        }
+
+        // Reserved usernames (No-one use this username)
+        const reserved = ["admin", "support", "help", "dashboard", "profile"];
+        if (reserved.includes(cleanUsername)) {
+            return res.status(400).json({
+                success: false,
+                message: "This username is reserved. Please choose another.",
+            });
+        }
+
+        const usernameTaken = await User.findOne({ username: cleanUsername });
+
+        if (usernameTaken) {
+            return res.status(409).json({
+                success: false,
+                message: "Username already taken",
+            });
+        }
+
         const existingUser = await User.findOne({ email });
 
         if (existingUser && !existingUser.isVerified) {
@@ -37,7 +67,9 @@ export const signup = async (req, res) => {
         const user = await User.create({
             name,
             email,
+            username: cleanUsername,
             password: hashedPassword,
+            plan: "free",
         });
 
         const rawToken = crypto.randomBytes(32).toString("hex");
