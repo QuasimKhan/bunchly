@@ -8,8 +8,25 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 
 const Signup = () => {
-    const [form, setForm] = useState({ name: "", email: "", password: "" });
-    const [errors, setErrors] = useState({ name: "", email: "", password: "" });
+    const [form, setForm] = useState({
+        name: "",
+        username: "",
+        email: "",
+        password: "",
+    });
+    const [errors, setErrors] = useState({
+        name: "",
+        username: "",
+        email: "",
+        password: "",
+    });
+
+    //username
+    const [usernameStatus, setUsernameStatus] = useState(null);
+    // null | "checking" | "available" | "taken" | "invalid" | "reserved"
+
+    let usernameTimer = null;
+
     const [showResend, setShowResend] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
@@ -18,12 +35,56 @@ const Signup = () => {
     const { signup, resendVerification, authLoading } = useAuth();
     const navigate = useNavigate();
 
-    const handleChange = (e) =>
-        setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+    const checkUsername = async (value) => {
+        if (!value.trim()) {
+            setUsernameStatus(null);
+            return;
+        }
+
+        setUsernameStatus("checking");
+
+        try {
+            const res = await fetch(
+                `${
+                    import.meta.env.VITE_API_URL
+                }/api/auth/check-username?username=${value}`
+            );
+
+            const data = await res.json();
+
+            if (!data.success && data.message.includes("Invalid")) {
+                setUsernameStatus("invalid");
+                return;
+            }
+
+            if (!data.success && data.message.includes("reserved")) {
+                setUsernameStatus("reserved");
+                return;
+            }
+
+            setUsernameStatus(data.available ? "available" : "taken");
+        } catch {
+            setUsernameStatus("invalid");
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm((s) => ({ ...s, [name]: value }));
+
+        if (name === "username") {
+            clearTimeout(usernameTimer);
+            const clean = value.toLowerCase().trim();
+
+            usernameTimer = setTimeout(() => {
+                checkUsername(clean);
+            }, 500); // debounce
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrors({ name: "", email: "", password: "" });
+        setErrors({ name: "", username: "", email: "", password: "" });
         setShowResend(false);
 
         let valid = true;
@@ -31,6 +92,17 @@ const Signup = () => {
             setErrors((p) => ({ ...p, name: "Name is required" }));
             valid = false;
         }
+        if (!form.username.trim()) {
+            setErrors((p) => ({ ...p, username: "Username is required" }));
+            valid = false;
+        } else if (usernameStatus !== "available") {
+            setErrors((p) => ({
+                ...p,
+                username: "Choose a valid available username",
+            }));
+            valid = false;
+        }
+
         if (!form.email.trim()) {
             setErrors((p) => ({ ...p, email: "Email is required" }));
             valid = false;
@@ -178,6 +250,72 @@ const Signup = () => {
                     </p>
 
                     <form className="space-y-4" onSubmit={handleSubmit}>
+                        <InputField
+                            label="Username"
+                            icon={User}
+                            type="text"
+                            name="username"
+                            placeholder="yourusername"
+                            value={form.username}
+                            onChange={handleChange}
+                            error={errors.username}
+                        />
+
+                        {/* Username Status Messaging (PREMIUM UI) */}
+                        {usernameStatus === "checking" && (
+                            <div
+                                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm 
+                        px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/30 
+                        border border-blue-200 dark:border-blue-800 animate-fade-in"
+                            >
+                                <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                                Checking availability...
+                            </div>
+                        )}
+
+                        {usernameStatus === "available" && (
+                            <div
+                                className="flex items-center gap-2 text-green-700 dark:text-green-400 text-sm 
+                        px-3 py-1 rounded-lg bg-green-50 dark:bg-green-900/20 
+                        border border-green-200 dark:border-green-800 animate-fade-in"
+                            >
+                                <span>✓</span>
+                                Username is available
+                            </div>
+                        )}
+
+                        {usernameStatus === "taken" && (
+                            <div
+                                className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm 
+                        px-3 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 
+                        border border-red-200 dark:border-red-800 animate-fade-in"
+                            >
+                                <span>✗</span>
+                                Username already taken
+                            </div>
+                        )}
+
+                        {usernameStatus === "invalid" && (
+                            <div
+                                className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 text-sm 
+                        px-3 py-1 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 
+                        border border-yellow-300 dark:border-yellow-800 animate-fade-in"
+                            >
+                                ⚠ Username must be 3–20 characters (letters,
+                                numbers, . _ -)
+                            </div>
+                        )}
+
+                        {usernameStatus === "reserved" && (
+                            <div
+                                className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm 
+                        px-3 py-1 rounded-lg bg-orange-50 dark:bg-orange-900/20 
+                        border border-orange-200 dark:border-orange-800 animate-fade-in"
+                            >
+                                🔒 This username is reserved
+                            </div>
+                        )}
+
                         <InputField
                             label="Name"
                             icon={User}

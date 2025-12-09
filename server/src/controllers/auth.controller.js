@@ -96,6 +96,75 @@ export const signup = async (req, res) => {
     }
 };
 
+export const checkUsernameAvailability = async (req, res) => {
+    try {
+        const { username } = req.query;
+
+        if (!username) {
+            return res.status(400).json({
+                success: false,
+                message: "Username is required",
+            });
+        }
+
+        // Normalize username
+        const cleanUsername = username.trim().toLowerCase();
+
+        // Username format check
+        const usernameRegex = /^[a-zA-Z0-9._-]{3,20}$/;
+        if (!usernameRegex.test(cleanUsername)) {
+            return res.status(400).json({
+                success: false,
+                available: false,
+                message:
+                    "Invalid username format. Use 3–20 characters (letters, numbers, ., -, _)",
+            });
+        }
+
+        // Reserved usernames
+        const reserved = [
+            "admin",
+            "root",
+            "support",
+            "dashboard",
+            "profile",
+            "settings",
+            "help",
+            "api",
+            "login",
+            "signup",
+        ];
+
+        if (reserved.includes(cleanUsername)) {
+            return res.status(400).json({
+                success: false,
+                available: false,
+                message: "This username is reserved",
+            });
+        }
+
+        const usernameExits = await User.findOne({ username: cleanUsername });
+        if (usernameExits) {
+            return res.status(200).json({
+                success: true,
+                available: false,
+                message: "Username already taken",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            available: true,
+            message: "Username is available",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            available: false,
+            message: error.message,
+        });
+    }
+};
+
 export const verifyEmail = async (req, res) => {
     try {
         const { token, uid } = req.query;
@@ -376,9 +445,21 @@ export const googleAuthCallback = async (req, res) => {
             );
         }
 
+        const baseUsername = googleUser.email.split("@")[0].toLowerCase();
+
+        let finalUsername = baseUsername;
+        let count = 1;
+
+        while (await User.findOne({ username: finalUsername })) {
+            finalUsername = `${baseUsername}${count}`;
+            count++;
+        }
+
         //case3: new user
         const newUser = await User.create({
             name: googleUser.name,
+            username: finalUsername,
+            image: googleUser.picture,
             email: googleUser.email,
             authProvider: "google",
             isVerified: true,

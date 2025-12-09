@@ -8,11 +8,13 @@ import {
     getMe,
     logout,
     resendVerification,
+    checkUsernameAvailability,
 } from "../controllers/auth.controller.js";
 
 const authRouter = express.Router();
 
 authRouter.post("/signup", signup);
+authRouter.get("/check-username", checkUsernameAvailability);
 authRouter.get("/verify", verifyEmail);
 authRouter.post("/resend-verification", resendVerification);
 authRouter.post("/login", login);

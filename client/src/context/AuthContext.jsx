@@ -34,11 +34,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Signup
-    const signup = async (name, email, password) => {
+    const signup = async (name, username, email, password) => {
         try {
             setAuthLoading(true);
             const res = await api.post("/api/auth/signup", {
                 name,
+                username,
                 email,
                 password,
             });
