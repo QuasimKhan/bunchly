@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "./ui/Button";
 import ThemeToggle from "./ThemeToggle";
+import UserMenu from "./ui/UserMenu";
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -23,6 +24,13 @@ const Navbar = () => {
     }, []);
 
     const handleLogin = () => navigate("/login");
+
+    const menuItems = [
+        { label: "Profile", action: () => navigate("/profile") },
+        { label: "Dashboard", action: () => navigate("/dashboard") },
+        { label: "Settings", action: () => navigate("/settings") },
+        { label: "Logout", action: logout, variant: "danger" },
+    ];
 
     return (
         <nav
@@ -64,61 +72,7 @@ const Navbar = () => {
 
                 {!user && <Button text="Join" onClick={handleLogin} />}
 
-                {user && (
-                    <div ref={menuRef} className="relative">
-                        <div
-                            onClick={() => setOpenMenu((p) => !p)}
-                            className="cursor-pointer active:scale-95"
-                        >
-                            {user.image ? (
-                                <img
-                                    src={user.image}
-                                    className="w-10 h-10 rounded-full object-cover border shadow"
-                                />
-                            ) : (
-                                <div
-                                    className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 
-                                                flex items-center justify-center text-white font-bold uppercase"
-                                >
-                                    {user?.name?.[0] || user?.email?.[0]}
-                                </div>
-                            )}
-                        </div>
-
-                        {openMenu && (
-                            <div
-                                className="absolute top-12 right-0 w-48 p-3 bg-white dark:bg-gray-900 
-                                            rounded-xl shadow-xl border animate-scaleIn z-50"
-                            >
-                                <p className="font-semibold">
-                                    {user?.name || user?.email}
-                                </p>
-                                <hr className="my-3 opacity-30" />
-                                <div className="flex flex-col gap-2">
-                                    <Button
-                                        text="Profile"
-                                        fullWidth
-                                        size="sm"
-                                        onClick={() => navigate("/profile")}
-                                    />
-                                    <Button
-                                        text="Dashboard"
-                                        fullWidth
-                                        size="sm"
-                                        onClick={() => navigate("/dashboard")}
-                                    />
-                                    <Button
-                                        text="Logout"
-                                        fullWidth
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={logout}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                {user && <UserMenu user={user} items={menuItems} />}
 
                 {/* Mobile toggle */}
                 {!mobileMenu && (
