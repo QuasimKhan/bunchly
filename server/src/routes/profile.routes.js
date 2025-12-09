@@ -3,7 +3,8 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import {
     deleteUser,
     getPublicProfile,
-} from "../controllers/user.controller.js";
+    updateProfile,
+} from "../controllers/profile.controller.js";
 
 const userRouter = express.Router();
 
@@ -12,6 +13,7 @@ userRouter.get("/dashboard", requireAuth, (req, res) => {
 });
 
 userRouter.delete("/:userId", requireAuth, deleteUser);
+userRouter.patch("/update-profile", updateProfile);
 
 userRouter.get("/public/:username", getPublicProfile);
 

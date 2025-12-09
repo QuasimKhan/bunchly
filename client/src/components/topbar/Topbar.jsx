@@ -11,7 +11,7 @@ const Topbar = ({ toggleSidebar }) => {
     const navigate = useNavigate();
 
     const menuItems = [
-        { label: "Home", action: () => navigate("/home") },
+        { label: "Home", action: () => navigate("/") },
         { label: "Profile", action: () => navigate("/profile") },
         { label: "Settings", action: () => navigate("/settings") },
         { label: "Logout", action: logout, variant: "danger" },

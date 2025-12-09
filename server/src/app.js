@@ -7,7 +7,7 @@ import morgan from "morgan";
 import { corsOptions } from "./config/cors.js";
 import { sessionMiddleware } from "./config/session.js";
 import authRouter from "./routes/auth.routes.js";
-import userRouter from "./routes/user.routes.js";
+import userRouter from "./routes/profile.routes.js";
 import linkRouter from "./routes/link.routes.js";
 
 const app = express();

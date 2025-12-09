@@ -497,11 +497,14 @@ export const getMe = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                plan: user.plan,
-                authProvider: user.authProvider,
-                role: user.role,
-                image: user.image,
                 username: user.username,
+                plan: user.plan,
+                role: user.role,
+                authProvider: user.authProvider,
+                image: user.image,
+                bio: user.bio, // <- 🚀 ADD THIS
+                isVerified: user.isVerified,
+                createdAt: user.createdAt,
             },
         });
     } catch (error) {
