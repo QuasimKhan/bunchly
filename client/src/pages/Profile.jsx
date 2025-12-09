@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import TickBadge from "../components/ui/TickBadge";
 import Button from "../components/ui/Button";
 import EditModal from "../components/profile/EditModal";
-import EditProfileField from "../components/profile/EditProfileField";
 import api from "../lib/api.js";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
+import EditProfileField from "../components/profile/EditProfileField.jsx";
 import DeleteAccountModal from "../components/profile/DeleteAccountModal.jsx";
 
 export default function Profile({ user }) {
