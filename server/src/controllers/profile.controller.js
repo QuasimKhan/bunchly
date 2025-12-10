@@ -241,3 +241,5 @@ export const updateProfile = async (req, res) => {
         });
     }
 };
+
+export const uploadProfile = async (req, res) => {};
