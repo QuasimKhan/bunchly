@@ -130,8 +130,6 @@ userSchema.pre("findOneAndDelete", async function (next) {
 });
 
 // Helpful indexes for SaaS-scale usage
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
 userSchema.index({ "billing.customerId": 1 });
 userSchema.index({ "billing.subscriptionId": 1 });
 
