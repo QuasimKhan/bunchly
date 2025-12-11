@@ -1,24 +1,43 @@
+/* ========================================================================== */
+/* 01) GLOBAL FONT IMPORTS — MUST ALWAYS BE FIRST                             */
+/* ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&family:Manrope:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+
+/* ========================================================================== */
+/* 02) TAILWIND + PLUGINS                                                     */
+/* ========================================================================== */
+
 @import "tailwindcss";
 @plugin "daisyui";
+
+/* Custom dark variant */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ======================= FONT IMPORT ======================= */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+/* ========================================================================== */
+/* 03) THEME CONFIGURATION (Fonts, Colors)                                    */
+/* ========================================================================== */
 
 @theme {
-    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter", "Plus Jakarta Sans", "Manrope", ui-sans-serif,
+        system-ui, sans-serif;
+
+    --font-heading: "Poppins", "Plus Jakarta Sans", ui-sans-serif, system-ui,
+        sans-serif;
 }
 
 :root {
     font-family: var(--font-sans);
 }
 
-/* ======================= BASE COLORS ======================= */
+/* ========================================================================== */
+/* 04) BASE UI COLORS & THEME HANDLING                                        */
+/* ========================================================================== */
 
-/* Light Mode */
 html,
 body {
-    @apply bg-gray-100 text-gray-900 transition-colors duration-300;
+    @apply bg-gray-100 text-gray-900 transition-colors duration-300
+        antialiased;
 }
 
 /* Dark Mode */
@@ -27,15 +46,33 @@ html.dark body {
     @apply bg-gray-900 text-gray-100;
 }
 
-/* ============================================================ */
-/* ======================= ANIMATIONS ========================= */
-/* ============================================================ */
+/* Smooth Theme Transition */
+* {
+    transition: background-color 0.25s ease, border-color 0.25s ease,
+        color 0.25s ease;
+}
 
-/* Fade In (Global) */
+/* ========================================================================== */
+/* 05) PREMIUM HEADINGS                                                       */
+/* ========================================================================== */
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--font-heading);
+    @apply font-semibold tracking-tight;
+}
+
+/* ========================================================================== */
+/* 06) GLOBAL ANIMATIONS                                                      */
+/* ========================================================================== */
+
+/* Fade In */
 @keyframes fade-in {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
@@ -43,14 +80,14 @@ html.dark body {
     }
 }
 .animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
+    animation: fade-in 0.7s ease-out forwards;
 }
 
 /* Slide Up */
 @keyframes slide-up {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(40px);
     }
     to {
         opacity: 1;
@@ -58,44 +95,44 @@ html.dark body {
     }
 }
 .animate-slide-up {
-    animation: slide-up 1s ease-out forwards;
+    animation: slide-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* Soft Pulse */
 @keyframes pulse-slow {
     0% {
-        opacity: 0.3;
+        opacity: 0.4;
     }
     50% {
-        opacity: 0.5;
+        opacity: 1;
     }
     100% {
-        opacity: 0.3;
+        opacity: 0.4;
     }
 }
 .animate-pulse-slow {
-    animation: pulse-slow 6s ease-in-out infinite;
+    animation: pulse-slow 5s ease-in-out infinite;
 }
 
-/* Floating Effect */
+/* Floating Effect (hero / cards) */
 @keyframes float {
     0%,
     100% {
         transform: translateY(0px);
     }
     50% {
-        transform: translateY(-8px);
+        transform: translateY(-10px);
     }
 }
 .animate-float {
-    animation: float 4s ease-in-out infinite;
+    animation: float 4.5s ease-in-out infinite;
 }
 
-/* Theme Enter */
+/* Theme Pop-in */
 @keyframes theme-in {
     from {
         opacity: 0;
-        transform: scale(0.6) rotate(-12deg);
+        transform: scale(0.75) rotate(-6deg);
     }
     to {
         opacity: 1;
@@ -106,7 +143,7 @@ html.dark body {
     animation: theme-in 0.25s ease-out forwards;
 }
 
-/* ======================= MODAL ANIMATION ======================= */
+/* Modal Zoom */
 @keyframes scaleIn {
     0% {
         transform: scale(0.92);
@@ -121,11 +158,7 @@ html.dark body {
     animation: scaleIn 0.18s ease-out;
 }
 
-/* ============================================================ */
-/* ======================= TOOLTIP ANIMATIONS ================= */
-/* ============================================================ */
-
-/* Tooltip Fade (simple tooltip) */
+/* Tooltip Fade */
 @keyframes tooltip-fade {
     0% {
         opacity: 0;
@@ -140,11 +173,11 @@ html.dark body {
     animation: tooltip-fade 0.18s ease-out;
 }
 
-/* Tooltip Premium Slide/Scale (industry standard) */
+/* Premium Tooltip Scale + Slide */
 @keyframes tooltip-enter {
     0% {
         opacity: 0;
-        transform: translateY(4px) scale(0.98);
+        transform: translateY(6px) scale(0.96);
     }
     100% {
         opacity: 1;
@@ -152,12 +185,13 @@ html.dark body {
     }
 }
 .animate-tooltip-enter {
-    animation: tooltip-enter 0.17s ease-out;
+    animation: tooltip-enter 0.2s ease-out;
 }
 
+/* Slide Up (Bunchly Custom) */
 @keyframes bunchlySlideUp {
     0% {
-        transform: translateY(30px) scale(0.95);
+        transform: translateY(35px) scale(0.95);
         opacity: 0;
     }
     100% {
@@ -165,20 +199,19 @@ html.dark body {
         opacity: 1;
     }
 }
-
 .animate-bunchlySlideUp {
     animation: bunchlySlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* Slide From Right */
 @keyframes bunchlySlideIn {
     from {
-        transform: translateX(100%);
+        transform: translateX(80px);
     }
     to {
-        transform: translateX(0%);
+        transform: translateX(0);
     }
 }
-
 .animate-bunchlySlideIn {
     animation: bunchlySlideIn 0.25s ease-out forwards;
 }
