@@ -16,47 +16,71 @@ export default function Profile({ user }) {
     const [accountDeleteModal, setAccountDeleteModal] = useState(false);
     const [accountDeleteLoading, setAccountDeleteLoading] = useState(false);
 
-    /** Prevent background scrolling when modal is open */
-    useEffect(() => {
-        if (modal || accountDeleteModal) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "auto";
-        }
-    }, [modal, accountDeleteModal]);
+    /** Prevent background scroll when modal is open */
+    // useEffect(() => {
+    //     document.body.style.overflow =
+    //         modal || accountDeleteModal ? "hidden" : "auto";
+    // }, [modal, accountDeleteModal]);
 
     const open = (field) => setModal(field);
     const close = () => setModal(null);
 
+    /** ------------------------------------------------------
+     *  Save Handler (Handles both text + image updates)
+     * ------------------------------------------------------ */
     const handleSave = async (updates) => {
         setLoading(true);
+
         try {
+            // IMAGE URL RECEIVED (after cropping + upload)
+            if (
+                typeof updates.image === "string" &&
+                updates.image.startsWith("http")
+            ) {
+                setProfile((prev) => ({
+                    ...prev,
+                    image: updates.image,
+                }));
+                toast.success("Profile image updated!");
+                close();
+                return;
+            }
+
+            // TEXT FIELD UPDATES
             const res = await api.patch("/api/user/update-profile", updates);
-            setProfile(res.data.user);
-            toast.success("Updated successfully");
-            close();
+
+            if (res.data.success) {
+                setProfile(res.data.user);
+                toast.success("Updated successfully");
+                close();
+            } else {
+                toast.error(res.data.message || "Update failed");
+            }
         } catch (err) {
-            toast.error(err?.message || "Update failed");
+            toast.error(err?.response?.data?.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
     };
 
+    /** ------------------------------------------------------
+     *  Account deletion handler
+     * ------------------------------------------------------ */
     const handleAccountDelete = async () => {
         setAccountDeleteLoading(true);
         try {
-            const res = await api.delete("/api/user/delete");
+            const res = await api.delete("/api/user/delete", {
+                withCredentials: true,
+            });
 
             if (res.data.success) {
                 toast.success("Account deleted successfully");
-                setTimeout(() => {
-                    window.location.href = "/login";
-                }, 800);
+                setTimeout(() => (window.location.href = "/login"), 800);
             } else {
                 toast.error(res.data.message || "Unable to delete account");
             }
-        } catch (err) {
-            toast.error(err?.message || "Failed to delete account");
+        } catch {
+            toast.error("Failed to delete account");
         } finally {
             setAccountDeleteLoading(false);
         }
@@ -71,26 +95,24 @@ export default function Profile({ user }) {
                 className="w-full max-w-3xl p-6 md:p-10 rounded-3xl bg-white/70 dark:bg-white/5 
                 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl"
             >
-                {/* ⭐ PREMIUM HEADER (updated) */}
-                <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-8 mb-10">
+                {/* -------------------------------------
+                    PROFILE HEADER
+                -------------------------------------- */}
+                <div className="flex flex-col items-center sm:flex-row sm:items-center gap-8 mb-10">
                     {/* Avatar */}
                     <div className="relative group mx-auto sm:mx-0">
                         <img
-                            src={profile.image}
-                            className="
-                                w-28 h-28 sm:w-32 sm:h-32 rounded-3xl 
-                                object-cover shadow-xl border border-white/50 dark:border-neutral-800
-                            "
+                            src={profile.image || "/default-avatar.png"}
+                            className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover shadow-xl 
+                                       border border-white/50 dark:border-neutral-800"
                         />
 
                         {/* Edit Image Button */}
                         <button
                             onClick={() => open("image")}
-                            className="
-                                absolute bottom-2 right-2 bg-black/60 backdrop-blur-md 
-                                rounded-full p-1.5 opacity-0 group-hover:opacity-100 
-                                transition-all duration-200
-                            "
+                            className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md 
+                                rounded-full p-1.5 group-hover:opacity-100 
+                                transition-all duration-200 cursor-pointer"
                         >
                             <Camera className="w-4 h-4 text-white" />
                         </button>
@@ -120,7 +142,9 @@ export default function Profile({ user }) {
                     </div>
                 </div>
 
-                {/* ⭐ PROFILE FIELDS */}
+                {/* -------------------------------------
+                    PROFILE FIELDS GRID
+                -------------------------------------- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <EditProfileField
                         label="Name"
@@ -177,7 +201,9 @@ export default function Profile({ user }) {
                     />
                 </div>
 
-                {/* ⭐ DELETE ACCOUNT */}
+                {/* -------------------------------------
+                    DELETE ACCOUNT BUTTON
+                -------------------------------------- */}
                 <div className="mt-10 text-center">
                     <Button
                         text="Delete Account"
@@ -187,7 +213,9 @@ export default function Profile({ user }) {
                     />
                 </div>
 
-                {/* ⭐ MODALS */}
+                {/* -------------------------------------
+                    MODALS
+                -------------------------------------- */}
                 {modal === "name" && (
                     <EditModal
                         open
@@ -195,7 +223,7 @@ export default function Profile({ user }) {
                         label="Edit Name"
                         value={profile.name}
                         onClose={close}
-                        onSave={(val) => handleSave(val)}
+                        onSave={handleSave}
                         loading={loading}
                     />
                 )}
@@ -207,7 +235,7 @@ export default function Profile({ user }) {
                         label="Edit Username"
                         value={profile.username}
                         onClose={close}
-                        onSave={(val) => handleSave(val)}
+                        onSave={handleSave}
                         loading={loading}
                     />
                 )}
@@ -219,7 +247,7 @@ export default function Profile({ user }) {
                         label="Update Email"
                         value={profile.email}
                         onClose={close}
-                        onSave={(val) => handleSave(val)}
+                        onSave={handleSave}
                         loading={loading}
                     />
                 )}
@@ -231,7 +259,7 @@ export default function Profile({ user }) {
                         label="Edit Bio"
                         value={profile.bio}
                         onClose={close}
-                        onSave={(val) => handleSave(val)}
+                        onSave={handleSave}
                         loading={loading}
                     />
                 )}
@@ -243,7 +271,7 @@ export default function Profile({ user }) {
                         label="Change Password"
                         passwordMode
                         onClose={close}
-                        onSave={(val) => handleSave(val)}
+                        onSave={handleSave}
                         loading={loading}
                     />
                 )}
@@ -255,7 +283,7 @@ export default function Profile({ user }) {
                         label="Update Profile Image"
                         value={profile.image}
                         onClose={close}
-                        onSave={(val) => handleSave(val)}
+                        onSave={handleSave}
                         loading={loading}
                         imageMode
                     />

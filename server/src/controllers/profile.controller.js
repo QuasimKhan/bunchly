@@ -242,4 +242,32 @@ export const updateProfile = async (req, res) => {
     }
 };
 
-export const uploadProfile = async (req, res) => {};
+
+export const uploadProfileController = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No image uploaded",
+            });
+        }
+
+        const userId = req.user._id;
+        const imageUrl = req.file.path;
+
+        await User.findByIdAndUpdate(userId, { image: imageUrl });
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile Image uploaded successfully",
+            image: imageUrl,
+        });
+    } catch (error) {
+        console.error("Upload error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+

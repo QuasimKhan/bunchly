@@ -4,17 +4,25 @@ import {
     deleteUser,
     getPublicProfile,
     updateProfile,
+    uploadProfileController,
 } from "../controllers/profile.controller.js";
+import uploadProfile from "../middlewares/profileUpload.js";
 
-const userRouter = express.Router();
+const profileRouter = express.Router();
 
-userRouter.get("/dashboard", requireAuth, (req, res) => {
+profileRouter.get("/dashboard", requireAuth, (req, res) => {
     res.send("Dashboard and you are authorized");
 });
 
-userRouter.delete("/:userId", requireAuth, deleteUser);
-userRouter.patch("/update-profile", updateProfile);
+profileRouter.delete("/:userId", requireAuth, deleteUser);
+profileRouter.patch("/update-profile", updateProfile);
 
-userRouter.get("/public/:username", getPublicProfile);
+profileRouter.get("/public/:username", getPublicProfile);
+profileRouter.post(
+    "/profile/upload",
+    requireAuth,
+    uploadProfile.single("image"),
+    uploadProfileController
+);
 
-export default userRouter;
+export default profileRouter;

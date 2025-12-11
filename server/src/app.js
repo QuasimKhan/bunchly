@@ -7,7 +7,7 @@ import morgan from "morgan";
 import { corsOptions } from "./config/cors.js";
 import { sessionMiddleware } from "./config/session.js";
 import authRouter from "./routes/auth.routes.js";
-import userRouter from "./routes/profile.routes.js";
+import profileRouter from "./routes/profile.routes.js";
 import linkRouter from "./routes/link.routes.js";
 
 const app = express();
@@ -25,7 +25,7 @@ app.use(sessionMiddleware);
 //routes
 
 app.use("/api/auth", authRouter);
-app.use("/api/user", userRouter);
+app.use("/api/user", profileRouter);
 app.use("/api/links", linkRouter);
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;
