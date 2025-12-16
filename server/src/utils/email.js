@@ -1,12 +1,110 @@
-import { Resend } from "resend";
-import { ENV } from "../config/env.js";
+// import { Resend } from "resend";
+// import { ENV } from "../config/env.js";
 
-const resend = new Resend(ENV.RESEND_API_KEY);
+// const resend = new Resend(ENV.RESEND_API_KEY);
+
+// export const sendVerificationEmail = async (email, url) => {
+//     try {
+//         await resend.emails.send({
+//             from: "Bunchly <onboarding@resend.dev>",
+//             to: email,
+//             subject: "Verify Your Bunchly Account ✨",
+//             html: `
+//       <div style="
+//           font-family: 'Segoe UI', sans-serif;
+//           background:#f6f7ff;
+//           padding:40px 0;
+//           text-align:center;
+//       ">
+
+//         <div style="
+//             background:#ffffff;
+//             max-width:520px;
+//             margin:auto;
+//             padding:30px 25px;
+//             border-radius:14px;
+//             box-shadow:0 8px 25px rgba(0,0,0,0.05);
+//         ">
+
+//         <!-- LOGO -->
+//         <img
+//           src="https://bunchly.netlify.app/img/Bunchly-dark.png
+// "
+//           alt="Bunchly Logo"
+//           width="130"
+//           style="margin-bottom:18px;"
+//         />
+
+//         <h2 style="margin:0;font-size:22px;color:#111;">
+//           Welcome to <span style="color:#4f46e5;">Bunchly</span> 🎉
+//         </h2>
+
+//         <p style="font-size:15px;color:#444;margin:12px 0 22px;">
+//           Thank you for signing up!<br>
+//           Click the button below to verify your email and activate your account.
+//         </p>
+
+//         <!-- BUTTON -->
+//         <a href="${url}" target="_blank" style="
+//             display:inline-block;
+//             font-size:16px;
+//             background:#4f46e5;
+//             color:#fff;
+//             margin-top:5px;
+//             padding:12px 28px;
+//             border-radius:8px;
+//             font-weight:600;
+//             text-decoration:none;
+//             transition:0.3s ease;
+//         ">
+//           Verify Email
+//         </a>
+
+//         <p style="margin-top:24px;color:#666;font-size:13px;">
+//           🔒 This link will expire in <b>10 minutes</b> for security reasons.
+//         </p>
+
+//         <hr style="border:none;border-top:1px solid #eee;margin:26px 0;">
+
+//         <p style="font-size:12px;color:#999;">
+//           If you didn’t request this, you can safely ignore this email.<br>
+//           Need help? Reply to this mail anytime 💙
+//         </p>
+//         </div>
+//       </div>
+//       `,
+//         });
+
+//         console.log("Verification email sent");
+//     } catch (error) {
+//         console.error("Email sending failed:", error.message);
+//     }
+// };
+
+import nodemailer from "nodemailer";
+
+export const transporter = nodemailer.createTransport({
+    host: "smtp-relay.brevo.com",
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.BREVO_SMTP_USER, // "apikey"
+        pass: process.env.BREVO_SMTP_PASS, // Brevo API Key
+    },
+});
+
+transporter.verify((err) => {
+    if (err) {
+        console.error("Brevo SMTP error:", err);
+    } else {
+        console.log("Brevo SMTP ready");
+    }
+});
 
 export const sendVerificationEmail = async (email, url) => {
     try {
-        await resend.emails.send({
-            from: "Bunchly <onboarding@resend.dev>",
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
             to: email,
             subject: "Verify Your Bunchly Account ✨",
             html: `
@@ -25,13 +123,13 @@ export const sendVerificationEmail = async (email, url) => {
             border-radius:14px;
             box-shadow:0 8px 25px rgba(0,0,0,0.05);
         ">
-        
+
         <!-- LOGO -->
-        <img 
+        <img
           src="https://bunchly.netlify.app/img/Bunchly-dark.png
 "
           alt="Bunchly Logo"
-          width="130" 
+          width="130"
           style="margin-bottom:18px;"
         />
 
@@ -43,7 +141,7 @@ export const sendVerificationEmail = async (email, url) => {
           Thank you for signing up!<br>
           Click the button below to verify your email and activate your account.
         </p>
-    
+
         <!-- BUTTON -->
         <a href="${url}" target="_blank" style="
             display:inline-block;
