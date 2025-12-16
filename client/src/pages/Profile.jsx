@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Camera } from "lucide-react";
 import EditProfileField from "../components/profile/EditProfileField.jsx";
 import DeleteAccountModal from "../components/profile/DeleteAccountModal.jsx";
+import ChangePasswordModal from "../components/profile/ChangePasswordModal.jsx";
 
 export default function Profile({ user }) {
     const [profile, setProfile] = useState(user);
@@ -15,6 +16,13 @@ export default function Profile({ user }) {
 
     const [accountDeleteModal, setAccountDeleteModal] = useState(false);
     const [accountDeleteLoading, setAccountDeleteLoading] = useState(false);
+
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    const [changePasswordModal, setChangePasswordModal] = useState(false);
+    const [changePasswordLoading, setChangePasswordLoading] = useState(false);
 
     /** Prevent background scroll when modal is open */
     // useEffect(() => {
@@ -60,6 +68,40 @@ export default function Profile({ user }) {
             toast.error(err?.response?.data?.message || "Something went wrong");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // handle change password
+    const handleChangePassword = async () => {
+        if (!oldPassword || !newPassword || newPassword !== confirmPassword) {
+            toast.error("Please check your password inputs");
+            return;
+        }
+
+        setChangePasswordLoading(true);
+
+        try {
+            const res = await api.post(
+                "/api/user/change-password",
+                { oldPassword, newPassword },
+                { withCredentials: true }
+            );
+
+            if (res.data.success) {
+                toast.success(res.data.message);
+
+                // Cleanup
+                setOldPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setChangePasswordModal(false);
+            }
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message || "Failed to change password"
+            );
+        } finally {
+            setChangePasswordLoading(false);
         }
     };
 
@@ -184,21 +226,6 @@ export default function Profile({ user }) {
                         value={profile.isVerified ? "Yes" : "No"}
                         editable={false}
                     />
-
-                    <EditProfileField
-                        label="Role"
-                        value={profile.role || "User"}
-                        editable={false}
-                    />
-
-                    <EditProfileField
-                        label="Password"
-                        value="********"
-                        editable={profile.authProvider === "email"}
-                        onEdit={() =>
-                            profile.authProvider === "email" && open("password")
-                        }
-                    />
                 </div>
 
                 {/* -------------------------------------
@@ -210,7 +237,7 @@ export default function Profile({ user }) {
                         text="Change Password"
                         variant="secondary"
                         className="w-full sm:w-auto"
-                        onClick={() => setAccountDeleteModal(true)}
+                        onClick={() => setChangePasswordModal(true)}
                     />
                     <Button
                         text="Delete Account"
@@ -271,18 +298,6 @@ export default function Profile({ user }) {
                     />
                 )}
 
-                {modal === "password" && (
-                    <EditModal
-                        open
-                        field="password"
-                        label="Change Password"
-                        passwordMode
-                        onClose={close}
-                        onSave={handleSave}
-                        loading={loading}
-                    />
-                )}
-
                 {modal === "image" && (
                     <EditModal
                         open
@@ -301,6 +316,19 @@ export default function Profile({ user }) {
                     onClose={() => setAccountDeleteModal(false)}
                     onConfirm={handleAccountDelete}
                     loading={accountDeleteLoading}
+                />
+
+                <ChangePasswordModal
+                    open={changePasswordModal}
+                    onClose={() => setChangePasswordModal(false)}
+                    onConfirm={handleChangePassword}
+                    loading={changePasswordLoading}
+                    oldPassword={oldPassword}
+                    newPassword={newPassword}
+                    confirmPassword={confirmPassword}
+                    setOldPassword={setOldPassword}
+                    setNewPassword={setNewPassword}
+                    setConfirmPassword={setConfirmPassword}
                 />
             </div>
         </div>

@@ -1,6 +1,7 @@
 import express from "express";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import {
+    changePassword,
     deleteUser,
     getPublicProfile,
     updateProfile,
@@ -24,5 +25,7 @@ profileRouter.post(
     uploadProfile.single("image"),
     uploadProfileController
 );
+
+profileRouter.post("/change-password", requireAuth, changePassword);
 
 export default profileRouter;
