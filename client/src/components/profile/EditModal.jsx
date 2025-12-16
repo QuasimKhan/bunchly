@@ -11,8 +11,6 @@ import {
 import Button from "../ui/Button";
 import api from "../../lib/api";
 import getCroppedImg from "../../lib/cropImage.js";
-import InputField from "../ui/InputField.jsx";
-import TickBadge from "../ui/TickBadge.jsx";
 
 export default function EditModal({
     open,

@@ -126,8 +126,7 @@ export const sendVerificationEmail = async (email, url) => {
 
         <!-- LOGO -->
         <img
-          src="https://bunchly.netlify.app/img/Bunchly-dark.png
-"
+          src="https://bunchly.netlify.app/img/Bunchly-dark.png"
           alt="Bunchly Logo"
           width="130"
           style="margin-bottom:18px;"

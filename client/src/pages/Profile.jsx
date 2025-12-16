@@ -203,8 +203,15 @@ export default function Profile({ user }) {
 
                 {/* -------------------------------------
                     DELETE ACCOUNT BUTTON
+                     Change Password Button 
                 -------------------------------------- */}
-                <div className="mt-10 text-center">
+                <div className="mt-10 flex flex-col gap-3 justify-center items-center text-center">
+                    <Button
+                        text="Change Password"
+                        variant="secondary"
+                        className="w-full sm:w-auto"
+                        onClick={() => setAccountDeleteModal(true)}
+                    />
                     <Button
                         text="Delete Account"
                         variant="danger"
