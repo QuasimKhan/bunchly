@@ -114,7 +114,13 @@ const Signup = () => {
         if (!valid) return;
 
         try {
-            await signup(form.name.trim(), form.email.trim(), form.password);
+            await signup({
+                name: form.name,
+                username: form.username,
+                email: form.email,
+                password: form.password,
+            });
+
             toast.success("Account created! Please verify your email");
             navigate(
                 `/verify-email-sent?email=${encodeURIComponent(
