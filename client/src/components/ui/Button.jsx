@@ -109,7 +109,7 @@ const Button = ({
                         {Icon && text && (
                             <>
                                 <Icon className="w-4 h-4" />
-                                <span className="hidden md:block">{text}</span>
+                                <span className="">{text}</span>
                             </>
                         )}
                     </>

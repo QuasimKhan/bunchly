@@ -222,7 +222,7 @@ const Signup = () => {
                     {/* Phone Mockup Preview */}
                     <div className=" z-20 animate-float">
                         <img
-                            src="/img/mockup_phone.png"
+                            src="/img/screenshots/mobile.png"
                             alt="Bunchly Preview"
                             className="w-64 drop-shadow-2xl rounded-3xl border border-white/10"
                         />
