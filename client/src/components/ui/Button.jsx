@@ -8,6 +8,7 @@ const Button = ({
     onClick,
     className = "",
     size = "md",
+    disabled = false,
     fullWidth = false,
     variant = "default",
     type = "button",
@@ -75,18 +76,22 @@ const Button = ({
             <button
                 type={type}
                 onClick={onClick}
-                disabled={loading}
+                disabled={loading || disabled}
                 className={`
-                flex items-center justify-center
-                ${Icon && text ? "gap-2" : ""}
-                rounded-lg font-medium transition-all duration-200
-                active:scale-[0.96]
-                ${sizeClasses}
-                ${fullWidth ? "w-full" : ""}
-                ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-                ${variants[variant]}
-                ${className}
-            `}
+        flex items-center justify-center
+        ${Icon && text ? "gap-2" : ""}
+        rounded-lg font-medium transition-all duration-200
+        active:scale-[0.96]
+        ${sizeClasses}
+        ${fullWidth ? "w-full" : ""}
+        ${
+            loading || disabled
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+        }
+        ${variants[variant]}
+        ${className}
+    `}
             >
                 {/* NEW FIXED LOGIC */}
 
@@ -114,14 +119,19 @@ const Button = ({
             {tooltip && (
                 <span
                     className="
-                    absolute left-1/2 -translate-x-1/2
-                    -bottom-9 px-2 py-1
-                    text-xs rounded-md whitespace-nowrap
-                    bg-gray-900 text-white dark:bg-white dark:text-black
-                    opacity-0 group-hover:opacity-100
-                    pointer-events-none z-50
-                    transition-all duration-200
-                "
+            absolute left-1/2 -translate-x-1/2
+            -bottom-10
+            max-w-[220px]
+            px-3 py-2
+            text-xs leading-snug text-center
+            rounded-md
+            bg-gray-900 text-white
+            dark:bg-white dark:text-black
+            opacity-0 group-hover:opacity-100
+            pointer-events-none z-50
+            transition-all duration-200
+            break-words whitespace-normal
+        "
                 >
                     {tooltip}
                 </span>

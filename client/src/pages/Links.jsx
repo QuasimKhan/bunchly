@@ -37,6 +37,8 @@ import {
 import InputField from "../components/ui/InputField";
 import { PreviewModal } from "../components/preview/PreviewModal";
 import { useAuth } from "../context/AuthContext";
+import { PLAN_LIMITS } from "../lib/planLimits.js";
+import { useNavigate } from "react-router-dom";
 
 const Links = () => {
     const [links, setLinks] = useState([]);
@@ -69,6 +71,8 @@ const Links = () => {
 
     // user
     const { user } = useAuth();
+
+    const navigate = useNavigate();
 
     // Fetch links
     const fetchLinks = async () => {
@@ -201,6 +205,9 @@ const Links = () => {
         }
     };
 
+    const isFreeLimitReached =
+        user.plan === "free" && links.length >= PLAN_LIMITS.free.maxLinks;
+
     return (
         <div className="max-w-3xl mx-auto px-4">
             {/* HEADER */}
@@ -219,15 +226,38 @@ const Links = () => {
                     <Button
                         icon={ListPlus}
                         size="md"
-                        tooltip="Add Link"
+                        tooltip={
+                            isFreeLimitReached
+                                ? "Upgrade to Pro to add more links"
+                                : "Add Link"
+                        }
                         onClick={() => {
+                            if (isFreeLimitReached) return;
                             setError("");
                             setOpenModal(true);
                         }}
-                        className="bg-indigo-600! hover:bg-indigo-700! text-white 
-                        shadow-lg shadow-indigo-500/20"
+                        disabled={isFreeLimitReached}
+                        className="
+        bg-indigo-600! hover:bg-indigo-700! text-white 
+        shadow-lg shadow-indigo-500/20
+        disabled:opacity-50 disabled:cursor-not-allowed
+    "
                     />
                 </div>
+            </div>
+            <div className="flex justify-center items-center mb-2">
+                {isFreeLimitReached && (
+                    <p className="text-xs text-neutral-400 mt-1">
+                        Free plan allows up to {PLAN_LIMITS.free.maxLinks}{" "}
+                        links.
+                        <span
+                            onClick={() => navigate("/upgrade")}
+                            className="ml-1 text-indigo-500 cursor-pointer hover:underline"
+                        >
+                            Upgrade to Pro
+                        </span>
+                    </p>
+                )}
             </div>
 
             {/* LOADING */}

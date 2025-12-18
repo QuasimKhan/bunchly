@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { ICONS } from "../../lib/iconPalette";
 import Button from "../ui/Button";
-import { Icon, Link } from "lucide-react";
+import { ExternalLink, Smartphone, Monitor, X } from "lucide-react";
 import TickBadge from "../ui/TickBadge";
 
-// ⬇️ You should move this into its own file later, but keeping inline for now
+/**
+ * ===============================
+ * Premium Preview Page (Public + Modal)
+ * ===============================
+ * Design goals:
+ * - Calm, editorial typography
+ * - High contrast, soft depth
+ * - Linktree-class UX
+ * - Premium SaaS aesthetics
+ */
+
 export const PreviewPage = ({ user = {}, links = [] }) => {
     const activeLinks = links.filter((l) => l.isActive);
 
@@ -14,90 +24,64 @@ export const PreviewPage = ({ user = {}, links = [] }) => {
         if (user.email) return user.email.charAt(0).toUpperCase();
         return null;
     };
+
     const initial = getInitial();
 
     return (
-        <div className="flex flex-col items-center p-6 pb-10 w-full max-w-[600px] mx-auto">
-            {/* AVATAR */}
+        <div className="flex flex-col items-center px-6 py-10 w-full max-w-[420px] mx-auto font-sans">
+            {/* Avatar */}
             {user.image ? (
                 <img
                     src={user.image}
                     alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover mb-4 shadow-md border-4 border-white dark:border-neutral-700"
+                    className="w-24 h-24 rounded-full object-cover mb-4 shadow-lg "
                 />
-            ) : initial ? (
-                <div
-                    className="
-                        w-24 h-24 rounded-full bg-indigo-600 
-                        text-white flex items-center justify-center
-                        text-3xl font-bold mb-4 shadow-md border-4 border-white/50
-                    "
-                >
+            ) : (
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-3xl font-bold mb-4 shadow-lg ring-4 ring-white/50">
                     {initial}
                 </div>
-            ) : (
-                <div className="w-24 h-24 rounded-full bg-neutral-300 dark:bg-neutral-700 mb-4" />
             )}
 
-            {/* NAME */}
-            <h3 className="text-xl font-bold text-neutral-800 dark:text-white flex items-center gap-1">
+            {/* Username */}
+            <h3 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
                 @{user.username}
                 <TickBadge tier={user.plan === "paid" ? "paid" : "free"} />
             </h3>
 
             {/* Bio */}
-            <p className="text-sm text-neutral-500 mt-1 mb-6">
-                {user.bio || "Bio not provided"}
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center mt-2 mb-8 leading-relaxed">
+                {user.bio || "Sharing my important links in one place."}
             </p>
 
-            {/* LINKS */}
-            <div className="w-full flex flex-col gap-4 pb-6 ">
+            {/* Links */}
+            <div className="w-full flex flex-col gap-4">
                 {activeLinks.length > 0 ? (
                     activeLinks.map((link, i) => {
                         const IconComp =
                             ICONS.find((icon) => icon.slug === link.icon)
-                                ?.Comp || null;
+                                ?.Comp || ExternalLink;
 
                         return (
                             <a
+                                key={i}
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                key={i}
-                                className="
-                        bg-white dark:bg-neutral-900  
-                        text-neutral-900 dark:text-white
-                        w-full py-4 px-5 rounded-2xl shadow-md 
-                        border border-neutral-200 dark:border-neutral-700 
-                        hover:shadow-lg hover:scale-[1.02] 
-                        hover:bg-neutral-50 dark:hover:bg-neutral-800
-                        transition-all duration-200
-                        flex items-center gap-4
-                        cursor-pointer
-                    "
+                                className="group flex items-center gap-4 px-5 py-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-sm hover:shadow-lg hover:-translate-y-[1px] transition-all duration-200"
                             >
-                                {/* ICON LEFT (BIG LIKE LINKTREE) */}
-                                <div className="flex items-center justify-center w-8 h-8">
-                                    {IconComp ? (
-                                        <IconComp
-                                            size={22}
-                                            className="opacity-90"
-                                        />
-                                    ) : (
-                                        <Link />
-                                    )}
+                                <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                                    <IconComp className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />
                                 </div>
-
-                                {/* TITLE */}
-                                <a className="text-[16px] font-semibold tracking-wide flex-1">
+                                <span className="flex-1 font-medium text-neutral-900 dark:text-white tracking-wide">
                                     {link.title}
-                                </a>
+                                </span>
+                                <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 text-neutral-400" />
                             </a>
                         );
                     })
                 ) : (
                     <p className="text-center text-neutral-400 text-sm">
-                        No active links
+                        No active links yet
                     </p>
                 )}
             </div>
@@ -118,124 +102,61 @@ export const PreviewModal = ({ isOpen, onClose, user = {}, links = [] }) => {
 
     return (
         <div
-            className="
-                fixed inset-0 z-[999] 
-                bg-black/60 backdrop-blur-sm 
-                flex
-            "
+            className="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm flex"
             onClick={onClose}
         >
-            {/* RIGHT SIDE PANEL */}
             <div
-                className="
-                    ml-auto 
-                    h-full w-[650px]
-                    bg-white/20 dark:bg-black/40 backdrop-blur-xl
-                    border-l border-white/20
-                    shadow-xl
-                    animate-bunchlySlideIn
-                    overflow-y-auto
-                "
+                className="ml-auto h-full w-[720px] bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-l border-white/20 shadow-2xl animate-bunchlySlideIn overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* TOP BAR */}
-                <div
-                    className="
-                        flex justify-between items-center px-4 py-3 
-                        border-b border-white/20
-                        sticky top-0 
-                        bg-white/20 dark:bg-black/40 backdrop-blur-xl 
-                        z-10
-                    "
-                >
-                    <h2 className="text-lg font-semibold text-white">
-                        Preview
+                {/* Header */}
+                <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur">
+                    <h2 className="text-base font-semibold text-neutral-900 dark:text-white">
+                        Live Preview
                     </h2>
 
-                    {/* DEVICE TOGGLE */}
-                    <div className="flex items-center gap-2 mr-4">
+                    <div className="flex items-center gap-2">
                         <Button
+                            icon={Smartphone}
+                            size="sm"
+                            variant={device === "mobile" ? "primary" : "ghost"}
                             onClick={() => setDevice("mobile")}
-                            className={`
-                                px-3 py-1 rounded-xl text-sm font-medium
-                                transition
-                                ${
-                                    device === "mobile"
-                                        ? "bg-white/30 text-white"
-                                        : "text-white/60 hover:text-white"
-                                }
-                            `}
-                            text="Moblie"
-                            size="sm"
                         />
-
                         <Button
-                            onClick={() => setDevice("desktop")}
-                            className={`
-                                px-3 py-1 rounded-xl text-sm font-medium
-                                transition
-                                ${
-                                    device === "desktop"
-                                        ? "bg-white/30 text-white"
-                                        : "text-white/60 hover:text-white"
-                                }
-                            `}
-                            text="Desktop"
+                            icon={Monitor}
                             size="sm"
+                            variant={device === "desktop" ? "primary" : "ghost"}
+                            onClick={() => setDevice("desktop")}
+                        />
+                        <Button
+                            icon={X}
+                            size="sm"
+                            variant="ghost"
+                            onClick={onClose}
                         />
                     </div>
-
-                    {/* CLOSE BUTTON */}
-                    <Button
-                        text=""
-                        icon={() => (
-                            <span className="text-lg font-bold">×</span>
-                        )}
-                        className="!bg-transparent text-white hover:text-white"
-                        onClick={onClose}
-                    />
                 </div>
 
-                {/* PREVIEW CONTENT */}
-                <div className="p-4 flex justify-center w-full">
-                    {/* ⭐ MOBILE PREVIEW ⭐ */}
+                {/* Preview Content */}
+                <div className="p-6 flex justify-center">
                     {device === "mobile" && (
-                        <div className="flex justify-center w-full">
-                            <div
-                                className="
-                                    w-[280px] h-[540px] bg-gradient-to-b 
-                                    from-white to-neutral-100 
-                                    dark:from-neutral-900 dark:to-neutral-800
-                                    rounded-[2rem] border-[6px] border-neutral-300 dark:border-neutral-700
-                                    shadow-xl overflow-hidden flex-shrink-0
-                                "
-                            >
-                                <div className="h-full overflow-y-auto no-scrollbar">
-                                    <PreviewPage user={user} links={links} />
-                                </div>
+                        <div className="w-[300px] h-[560px] rounded-[2.2rem] border-[6px] border-neutral-300 dark:border-neutral-700 shadow-2xl overflow-hidden bg-neutral-50 dark:bg-neutral-900">
+                            <div className="h-full overflow-y-auto no-scrollbar">
+                                <PreviewPage user={user} links={links} />
                             </div>
                         </div>
                     )}
 
-                    {/* ⭐ DESKTOP PREVIEW ⭐ */}
                     {device === "desktop" && (
-                        <div className="flex justify-center w-full">
+                        <div className="w-full flex justify-center overflow-auto pt-6">
                             <div
-                                className="
-                                    relative w-full h-[600px] 
-                                    overflow-auto flex justify-center pt-6
-                                "
+                                style={{
+                                    width: "1200px",
+                                    transform: "scale(0.6)",
+                                    transformOrigin: "top center",
+                                }}
                             >
-                                <div
-                                    style={{
-                                        width: "1200px",
-                                        transform: "scale(0.55)",
-                                        transformOrigin: "top center",
-                                    }}
-                                    className=""
-                                >
-                                    <PreviewPage user={user} links={links} />
-                                </div>
+                                <PreviewPage user={user} links={links} />
                             </div>
                         </div>
                     )}
