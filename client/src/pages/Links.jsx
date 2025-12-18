@@ -101,7 +101,6 @@ const Links = () => {
 
         if (!form.title.trim() || !form.url.trim()) {
             setError("Title and URL are required");
-            setCreating(false);
             return;
         }
 
@@ -111,8 +110,14 @@ const Links = () => {
             setOpenModal(false);
             setForm({ title: "", url: "", description: "" });
             fetchLinks();
-        } catch {
-            toast.error("Failed to create link");
+        } catch (error) {
+            if (error.response.data.code === "PLAN_LIMIT_REACHED") {
+                toast.error(
+                    error.response.data.message || "Plan limit reached"
+                );
+            } else {
+                toast.error("Failed to create link");
+            }
         } finally {
             setCreating(false);
         }
