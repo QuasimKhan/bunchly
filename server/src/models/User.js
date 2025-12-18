@@ -54,8 +54,12 @@ const userSchema = new mongoose.Schema(
         // You already use: "free" and "paid" → keep fully compatible
         plan: {
             type: String,
-            enum: ["free", "paid", "pro", "enterprise"],
+            enum: ["free", "pro"],
             default: "free",
+        },
+        planExpiresAt: {
+            type: Date,
+            default: null,
         },
 
         // 🔹 BILLING / SUBSCRIPTION (SaaS stuff – all optional)

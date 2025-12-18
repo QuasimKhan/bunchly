@@ -351,6 +351,8 @@ export const login = async (req, res) => {
                 plan: user.plan,
                 role: user.role,
                 image: user.image,
+                plan: user.plan,
+                planExpiresAt: user.planExpiresAt,
             },
         });
     } catch (error) {
@@ -499,10 +501,11 @@ export const getMe = async (req, res) => {
                 email: user.email,
                 username: user.username,
                 plan: user.plan,
+                planExpiresAt: user.planExpiresAt,
                 role: user.role,
                 authProvider: user.authProvider,
                 image: user.image,
-                bio: user.bio, // <- 🚀 ADD THIS
+                bio: user.bio,
                 isVerified: user.isVerified,
                 createdAt: user.createdAt,
             },

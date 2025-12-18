@@ -1,5 +1,6 @@
 import Link from "../models/Link.js";
 import { detectIconFromUrl } from "../utils/detectIconFromUrl.js";
+import { PLANS } from "../config/plans.js";
 
 // Create a new link
 export const createLink = async (req, res) => {
@@ -18,6 +19,27 @@ export const createLink = async (req, res) => {
         if (!icon) {
             const detected = detectIconFromUrl(url);
             if (detected) icon = detected;
+        }
+
+        //PLAN ENFORCEMENT (Free vs Pro)
+        const userPlanKey = req.user.plan || "free";
+        const planRules = PLANS[userPlanKey];
+
+        if (!planRules) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid User Plan",
+            });
+        }
+
+        const currentLinksCount = await Link.countDocuments({ userId });
+
+        if (currentLinksCount >= planRules.maxLinks) {
+            return res.status(403).json({
+                success: false,
+                code: "PLAN_LIMIT_REACHED",
+                message: `Free plan allows up to ${planRules.maxLinks} links. Upgrade to Pro to add more.`,
+            });
         }
 
         // determine order for new link
