@@ -11,6 +11,7 @@ import profileRouter from "./routes/profile.routes.js";
 import linkRouter from "./routes/link.routes.js";
 import { redirectLink } from "./controllers/link.controller.js";
 import analyticsRouter from "./routes/analytics.routes.js";
+import paymentRouter from "./routes/payment.routes.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/user", profileRouter);
 app.use("/api/links", linkRouter);
 app.get("/l/:id", redirectLink);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/payment", paymentRouter);
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;
     else req.session.views++;

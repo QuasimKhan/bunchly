@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
         },
 
         // 🔹 PLAN / SAAS
-        // You already use: "free" and "paid" → keep fully compatible
+        // You already use: "free" and "pro" → keep fully compatible
         plan: {
             type: String,
             enum: ["free", "pro"],
@@ -62,23 +62,19 @@ const userSchema = new mongoose.Schema(
             default: null,
         },
 
-        // 🔹 BILLING / SUBSCRIPTION (SaaS stuff – all optional)
-        billing: {
-            customerId: { type: String, default: null }, // e.g. Stripe/Razorpay customer id
-            subscriptionId: { type: String, default: null },
+        subscription: {
+            provider: {
+                type: String,
+                enum: ["razorpay"],
+                default: null,
+            },
+            orderId: { type: String, default: null },
+            paymentId: { type: String, default: null },
             status: {
                 type: String,
-                enum: [
-                    "inactive",
-                    "trialing",
-                    "active",
-                    "past_due",
-                    "canceled",
-                ],
-                default: "inactive",
+                enum: ["active", "expired", "pending"],
+                default: null,
             },
-            renewalDate: { type: Date, default: null },
-            cancelAtPeriodEnd: { type: Boolean, default: false },
         },
 
         // 🔹 USAGE & ANALYTICS
