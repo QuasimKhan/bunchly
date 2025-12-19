@@ -2,7 +2,7 @@ import AnimateOnScroll from "../AnimateOnScroll";
 
 const Pricing = () => {
     return (
-        <section className="pt-28 px-6">
+        <section id="pricing" className="py-28 px-6 scroll-mt-32">
             <div className="max-w-6xl mx-auto text-center">
                 <AnimateOnScroll>
                     <h2 className="text-3xl md:text-4xl font-bold">

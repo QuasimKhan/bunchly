@@ -43,7 +43,10 @@ const features = [
 
 const Features = () => {
     return (
-        <section className="pt-24 sm:pt-28 px-5 sm:px-6 bg-white dark:bg-black">
+        <section
+            id="features"
+            className="py-24 sm:py-28 px-5 sm:px-6 bg-white dark:bg-black scroll-mt-32"
+        >
             <div className="max-w-6xl mx-auto">
                 <AnimateOnScroll>
                     <h2 className="text-3xl sm:text-4xl font-bold text-center mb-14 sm:mb-16">

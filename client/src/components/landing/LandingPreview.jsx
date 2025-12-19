@@ -2,7 +2,10 @@ import AnimateOnScroll from "../AnimateOnScroll";
 
 const LandingPreview = () => {
     return (
-        <section className="pt-24 sm:pt-28 px-5 sm:px-6 bg-gray-50 dark:bg-black">
+        <section
+            id="preview"
+            className="py-24 sm:py-28 px-5 sm:px-6 bg-gray-50 dark:bg-black"
+        >
             <div className="max-w-6xl mx-auto text-center">
                 <AnimateOnScroll>
                     <h2 className="text-3xl sm:text-4xl font-bold mb-10 sm:mb-14">

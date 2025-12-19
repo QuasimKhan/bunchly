@@ -3,7 +3,10 @@ import { Check, Minus } from "lucide-react";
 
 const ComparisonTable = () => {
     return (
-        <section className="pt-24 sm:pt-28 px-5 sm:px-6 bg-white dark:bg-black">
+        <section
+            id="comparison"
+            className="py-24 sm:py-28 px-5 sm:px-6 bg-white dark:bg-black scroll-mt-32"
+        >
             <div className="max-w-5xl mx-auto">
                 <AnimateOnScroll>
                     <h2 className="text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-12">

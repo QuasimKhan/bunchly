@@ -215,3 +215,7 @@ h4 {
 .animate-bunchlySlideIn {
     animation: bunchlySlideIn 0.25s ease-out forwards;
 }
+
+html {
+    scroll-behavior: smooth;
+}

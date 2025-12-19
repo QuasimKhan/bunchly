@@ -57,10 +57,10 @@ const Navbar = () => {
 
             {/* DESKTOP MENU */}
             <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
-                <NavItem to="/features" label="Features" />
-                <NavItem to="/pricing" label="Pricing" />
-                <NavItem to="/templates" label="Templates" />
-                <NavItem to="/support" label="Support" />
+                <NavItem to="#features" label="Features" />
+                <NavItem to="#pricing" label="Pricing" />
+                <NavItem to="#preview" label="Preview" />
+                <NavItem to="#cta" label="Get Started" />
             </ul>
 
             {/* RIGHT SIDE */}
@@ -105,13 +105,32 @@ const Navbar = () => {
     );
 };
 
-const NavItem = ({ to, label }) => (
-    <Link
-        to={to}
-        className="hover:text-indigo-500 dark:hover:text-indigo-400 font-medium transition"
-    >
-        {label}
-    </Link>
-);
+const NavItem = ({ to, label, onClick }) => {
+    const handleClick = (e) => {
+        if (to.startsWith("#")) {
+            e.preventDefault(); // 🔴 critical
+            const target = document.querySelector(to);
+
+            if (target) {
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            }
+        }
+
+        onClick?.();
+    };
+
+    return (
+        <a
+            href={to}
+            onClick={handleClick}
+            className="hover:text-indigo-500 dark:hover:text-indigo-400 font-medium transition"
+        >
+            {label}
+        </a>
+    );
+};
 
 export default Navbar;
