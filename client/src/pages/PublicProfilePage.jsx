@@ -120,7 +120,7 @@ const PublicProfilePage = () => {
             {/* ---------------- Profile Preview ---------------- */}
             <main className="flex justify-center px-4 pt-10 pb-16">
                 <div className="w-full max-w-md">
-                    <PreviewPage user={user} links={links} />
+                    <PreviewPage user={user} links={links} mode="public" />
 
                     {/* Do you want to join user on bunchly  */}
 

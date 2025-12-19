@@ -9,6 +9,8 @@ import { sessionMiddleware } from "./config/session.js";
 import authRouter from "./routes/auth.routes.js";
 import profileRouter from "./routes/profile.routes.js";
 import linkRouter from "./routes/link.routes.js";
+import { redirectLink } from "./controllers/link.controller.js";
+import analyticsRouter from "./routes/analytics.routes.js";
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use(sessionMiddleware);
 app.use("/api/auth", authRouter);
 app.use("/api/user", profileRouter);
 app.use("/api/links", linkRouter);
+app.get("/l/:id", redirectLink);
+app.use("/api/analytics", analyticsRouter);
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;
     else req.session.views++;

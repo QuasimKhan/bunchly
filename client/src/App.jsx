@@ -18,6 +18,8 @@ import PublicProfilePage from "./pages/PublicProfilePage.jsx";
 import Profile from "./pages/Profile.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import SettingsDashboard from "./pages/SettingsDashboard.jsx";
+import Analytics from "./pages/Analytics.jsx";
+import Upgrade from "./pages/Upgrade.jsx";
 
 const App = () => {
     const { user } = useAuth();
@@ -51,6 +53,9 @@ const App = () => {
                             path="/profile"
                             element={<Profile user={user} />}
                         />
+                        <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/upgrade" element={<Upgrade />} />
+
                         <Route
                             path="/settings"
                             element={<SettingsDashboard user={user} />}

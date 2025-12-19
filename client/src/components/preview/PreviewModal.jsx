@@ -15,7 +15,7 @@ import TickBadge from "../ui/TickBadge";
  * - Premium SaaS aesthetics
  */
 
-export const PreviewPage = ({ user = {}, links = [] }) => {
+export const PreviewPage = ({ user = {}, links = [], mode = "preview" }) => {
     const activeLinks = links.filter((l) => l.isActive);
 
     const getInitial = () => {
@@ -26,6 +26,21 @@ export const PreviewPage = ({ user = {}, links = [] }) => {
     };
 
     const initial = getInitial();
+
+    const handleLinkClick = (e, link) => {
+        if (mode === "preview") {
+            e.preventDefault();
+            return;
+        }
+
+        // ✅ Public mode → track analytics via backend
+        e.preventDefault();
+        window.open(
+            `${import.meta.env.VITE_API_URL}/l/${link._id}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    };
 
     return (
         <div className="flex flex-col items-center px-6 py-10 w-full max-w-[420px] mx-auto font-sans">
@@ -45,7 +60,7 @@ export const PreviewPage = ({ user = {}, links = [] }) => {
             {/* Username */}
             <h3 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
                 @{user.username}
-                <TickBadge tier={user.plan === "paid" ? "paid" : "free"} />
+                <TickBadge tier={user.plan === "pro" ? "pro" : "free"} />
             </h3>
 
             {/* Bio */}
@@ -64,10 +79,15 @@ export const PreviewPage = ({ user = {}, links = [] }) => {
                         return (
                             <a
                                 key={i}
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group flex items-center gap-4 px-5 py-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-sm hover:shadow-lg hover:-translate-y-[1px] transition-all duration-200"
+                                href={
+                                    mode === "public"
+                                        ? `${import.meta.env.VITE_API_URL}/l/${
+                                              link._id
+                                          }`
+                                        : "#"
+                                }
+                                onClick={(e) => handleLinkClick(e, link)}
+                                className="group flex items-center gap-4 px-5 py-4 rounded-2xl ..."
                             >
                                 <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
                                     <IconComp className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />

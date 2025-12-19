@@ -1,5 +1,5 @@
 export default function TickBadge({ tier = "free", className = "" }) {
-    const isPaid = tier === "paid";
+    const isPaid = tier === "pro";
 
     return (
         <span

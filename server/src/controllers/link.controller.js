@@ -1,6 +1,7 @@
 import Link from "../models/Link.js";
 import { detectIconFromUrl } from "../utils/detectIconFromUrl.js";
 import { PLANS } from "../config/plans.js";
+import User from "../models/User.js";
 
 // Create a new link
 export const createLink = async (req, res) => {
@@ -232,7 +233,37 @@ export const reorderLinks = async (req, res) => {
             data: updatedLinks,
         });
     } catch (error) {
-        console.error("Reorder error:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Server error",
+        });
+    }
+};
+
+export const redirectLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const link = await Link.findById(id);
+
+        if (!link || !link.isActive) {
+            return res.status(404).json({
+                success: false,
+                message: "Not Found",
+            });
+        }
+
+        await Link.updateOne({ _id: id }, { $inc: { clicks: 1 } });
+        await User.updateOne(
+            { _id: link.userId },
+            {
+                $inc: { "usage.totalClicks": 1 },
+                $set: { "usage.lastActiveAt": new Date() },
+            }
+        );
+
+        res.redirect(link.url);
+    } catch (error) {
         return res.status(500).json({
             success: false,
             message: error.message || "Server error",

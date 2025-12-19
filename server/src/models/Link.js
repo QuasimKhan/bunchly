@@ -38,6 +38,10 @@ const linkSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        clicks: {
+            type: Number,
+            default: 0,
+        },
     },
     { timestamps: true }
 );

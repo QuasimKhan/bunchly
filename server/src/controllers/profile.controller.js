@@ -71,6 +71,8 @@ export const getPublicProfile = async (req, res) => {
             });
         }
 
+        await User.updateOne({ _id: user._id }, { $inc: { profileViews: 1 } });
+
         const links = await Link.find({
             userId: user._id,
             isActive: true,
@@ -88,6 +90,7 @@ export const getPublicProfile = async (req, res) => {
             bio: user.bio, // <- 🚀 ADD THIS
             isVerified: user.isVerified,
             createdAt: user.createdAt,
+            profileViews: user.profileViews + 1,
         };
 
         res.status(200).json({

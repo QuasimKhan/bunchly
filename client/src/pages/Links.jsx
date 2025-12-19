@@ -39,6 +39,7 @@ import { PreviewModal } from "../components/preview/PreviewModal";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_LIMITS } from "../lib/planLimits.js";
 import { useNavigate } from "react-router-dom";
+import PaywallCard from "../components/paywall/PaywallCaed.jsx";
 
 const Links = () => {
     const [links, setLinks] = useState([]);
@@ -247,16 +248,11 @@ const Links = () => {
             </div>
             <div className="flex justify-center items-center mb-2">
                 {isFreeLimitReached && (
-                    <p className="text-xs text-neutral-400 mt-1">
-                        Free plan allows up to {PLAN_LIMITS.free.maxLinks}{" "}
-                        links.
-                        <span
-                            onClick={() => navigate("/upgrade")}
-                            className="ml-1 text-indigo-500 cursor-pointer hover:underline"
-                        >
-                            Upgrade to Pro
-                        </span>
-                    </p>
+                    <PaywallCard
+                        title="Link limit reached"
+                        description={`Free plan allows up to ${PLAN_LIMITS.free.maxLinks} links.`}
+                        ctaText="Upgrade to Pro for unlimited links"
+                    />
                 )}
             </div>
 

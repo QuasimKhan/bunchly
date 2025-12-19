@@ -88,6 +88,11 @@ const userSchema = new mongoose.Schema(
             lastActiveAt: { type: Date, default: null },
         },
 
+        profileViews: {
+            type: Number,
+            default: 0,
+        },
+
         // 🔹 PREFERENCES (for themes, language, etc.)
         preferences: {
             theme: {
