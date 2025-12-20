@@ -92,10 +92,10 @@ const Navbar = () => {
                             className="absolute right-4 top-[72px] w-48 bg-white dark:bg-gray-900 p-6 rounded-xl 
                                         shadow-2xl flex flex-col items-center gap-4 animate-scaleIn border"
                         >
-                            <NavItem to="/features" label="Features" />
-                            <NavItem to="/pricing" label="Pricing" />
-                            <NavItem to="/templates" label="Templates" />
-                            <NavItem to="/support" label="Support" />
+                            <NavItem to="#features" label="Features" />
+                            <NavItem to="#pricing" label="Pricing" />
+                            <NavItem to="#preview" label="Preview" />
+                            <NavItem to="#cta" label="Get Started" />
                             <ThemeToggle />
                         </div>
                     </div>
