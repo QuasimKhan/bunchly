@@ -12,8 +12,10 @@ import linkRouter from "./routes/link.routes.js";
 import { redirectLink } from "./controllers/link.controller.js";
 import analyticsRouter from "./routes/analytics.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
+import { startCronJobs } from "./cron.js";
 
 const app = express();
+startCronJobs();
 
 //middlewares
 app.use(helmet());

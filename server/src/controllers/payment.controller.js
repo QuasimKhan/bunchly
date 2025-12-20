@@ -2,6 +2,9 @@ import razorpay from "../config/razorpay.js";
 import { PRICING } from "../config/pricing.js";
 import User from "../models/User.js";
 import crypto from "crypto";
+import { proReceiptEmail } from "../utils/proReceiptEmail.js";
+import { sendEmail } from "../utils/brevoEmail.js";
+import { generateInvoicePdf } from "../utils/generateInvoicePdf.js";
 
 export const createProOrder = async (req, res) => {
     try {
@@ -85,6 +88,58 @@ export const verifyProPayment = async (req, res) => {
                 status: "active",
             },
         });
+
+        const invoiceNumber = `INV-${Date.now()}`;
+
+        const pdfDoc = generateInvoicePdf({
+            invoiceNumber,
+            name: req.user.name,
+            email: req.user.email,
+            plan: "Pro (Monthly)",
+            amount: 19900,
+            paymentId: razorpay_payment_id,
+            orderId: razorpay_order_id,
+            date: new Date().toDateString(),
+        });
+
+        const getPdfBuffer = (doc) =>
+            new Promise((resolve, reject) => {
+                const buffers = [];
+                doc.on("data", buffers.push.bind(buffers));
+                doc.on("end", () => resolve(Buffer.concat(buffers)));
+                doc.on("error", reject);
+                doc.end();
+            });
+
+        const pdfBuffer = await getPdfBuffer(pdfDoc);
+
+        const emailPayload = proReceiptEmail({
+            name: req.user.name,
+            email: req.user.email,
+            paymentId: razorpay_payment_id,
+            orderId: razorpay_order_id,
+            amount: 19900,
+            date: new Date().toDateString(),
+        });
+        try {
+            await sendEmail({
+                to: req.user.email,
+                subject: emailPayload.subject,
+                html: emailPayload.html,
+                attachments: [
+                    {
+                        filename: `Bunchly-Invoice-${invoiceNumber}.pdf`,
+                        content: pdfBuffer,
+                        contentType: "application/pdf",
+                    },
+                ],
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message || "Failed to send recipt on email",
+            });
+        }
 
         return res.status(200).json({
             success: true,
