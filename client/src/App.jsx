@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 
@@ -21,17 +21,30 @@ import SettingsDashboard from "./pages/SettingsDashboard.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Upgrade from "./pages/Upgrade.jsx";
 import Billing from "./pages/Billing.jsx";
+import { useCookieConsent } from "./hooks/useCookieConsent.js";
+import { loadAnalytics } from "./lib/analytics.js";
+import ConsentBanner from "./components/ConsentBanner.jsx";
+import Privacy from "./pages/Privacy.jsx";
 
 const App = () => {
     const { user } = useAuth();
+    const { consent } = useCookieConsent();
+
+    useEffect(() => {
+        if (consent === "accepted") {
+            loadAnalytics();
+        }
+    }, [consent]);
     return (
         <>
+            <ConsentBanner />
             <Toaster richColors position="top-center" />
 
             <Routes>
                 {/* Public Route (open for all like Linktree) */}
                 <Route path="/" element={<Home />} />
                 <Route path="/u/:username" element={<PublicProfilePage />} />
+                <Route path="/privacy" element={<Privacy />} />
 
                 {/* Guest-only Routes (user must be logged OUT) */}
                 <Route element={<GuestRoute />}>
