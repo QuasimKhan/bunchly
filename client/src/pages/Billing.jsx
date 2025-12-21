@@ -103,7 +103,7 @@ const Billing = () => {
                             rounded-xl
                             border
                             border-indigo-200 dark:border-indigo-900
-                            bg-gradient-to-br from-indigo-50 to-indigo-100/40
+                            bg-linear-to-br from-indigo-50 to-indigo-100/40
                             dark:from-indigo-900/10 dark:to-indigo-900/5
                             p-4
                         "

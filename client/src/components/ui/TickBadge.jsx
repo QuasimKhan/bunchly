@@ -8,8 +8,8 @@ export default function TickBadge({ tier = "free", className = "" }) {
                 w-4 h-4 rounded-full 
                 ${
                     isPaid
-                        ? "bg-gradient-to-br from-yellow-400 to-amber-600"
-                        : "bg-gradient-to-br from-blue-400 to-blue-600"
+                        ? "bg-linear-to-br from-yellow-400 to-amber-600"
+                        : "bg-linear-to-br from-blue-400 to-blue-600"
                 }
                 shadow-md 
                 ring-2 ring-white/50 dark:ring-white/10

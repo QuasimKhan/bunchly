@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Loader2, Globe, Link2, ShieldCheck } from "lucide-react";
 import { PreviewPage } from "../components/preview/PreviewModal";
 import Button from "../components/ui/Button";
+import { useSEO } from "../hooks/useSEO";
+import { buildUrl } from "../lib/seo";
 
 /**
  * PublicProfilePage (Premium / SaaS-grade)
@@ -22,6 +24,18 @@ const PublicProfilePage = () => {
     const [links, setLinks] = useState([]);
 
     const navigate = useNavigate();
+
+    useSEO({
+        title: user
+            ? `${user.name} (@${user.username}) – Bunchly`
+            : "Profile – Bunchly",
+
+        description: user?.bio ? user.bio : "View digital profiles on Bunchly.",
+
+        image: user?.avatar || "/og-image.png",
+
+        url: buildUrl(`/u/${username}`),
+    });
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -76,13 +90,13 @@ const PublicProfilePage = () => {
     }
 
     return (
-        <div className="relative min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900">
+        <div className="relative min-h-screen bg-linear-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900">
             {/* ---------------- Top Branding Bar ---------------- */}
             <header
                 className="
          fixed top-4 left-4 z-50
         sm:top-6 sm:left-6
-        bg-white/70 dark:bg-black/40
+    
         backdrop-blur-md
         rounded-xl
         p-2

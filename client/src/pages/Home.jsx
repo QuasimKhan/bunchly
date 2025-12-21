@@ -11,12 +11,15 @@ import Pricing from "../components/landing/Pricing";
 import CTA from "../components/landing/CTA";
 
 import { useSEO } from "../hooks/useSEO";
+import { buildUrl } from "../lib/seo";
 
 const Home = () => {
     useSEO({
-        title: "Bunchly – One Link for Your Digital Identity",
+        title: "Bunchly – One Link. Every Identity.",
         description:
-            "A premium bio-link platform for creators, professionals, and brands.",
+            "One link to represent your entire digital identity. Built for creators, professionals, and brands.",
+        image: "/og-image.png",
+        url: buildUrl("/"),
     });
 
     return (

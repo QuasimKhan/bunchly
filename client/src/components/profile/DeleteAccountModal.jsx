@@ -22,7 +22,7 @@ export default function DeleteAccountModal({
     return (
         <div
             className="
-        fixed inset-0 z-[999]
+        fixed inset-0 z-999
         flex items-end justify-center
         bg-black/60 backdrop-blur-sm animate-fadeIn
         p-4

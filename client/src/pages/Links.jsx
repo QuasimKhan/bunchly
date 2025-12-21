@@ -38,7 +38,6 @@ import InputField from "../components/ui/InputField";
 import { PreviewModal } from "../components/preview/PreviewModal";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_LIMITS } from "../lib/planLimits.js";
-import { useNavigate } from "react-router-dom";
 import PaywallCard from "../components/paywall/PaywallCard.jsx";
 
 const Links = () => {
@@ -72,9 +71,6 @@ const Links = () => {
 
     // user
     const { user } = useAuth();
-
-    const navigate = useNavigate();
-
     // Fetch links
     const fetchLinks = async () => {
         try {
@@ -169,7 +165,7 @@ const Links = () => {
                     setLinks(res.data.data);
                 }
             } catch (err) {
-                toast.error("Failed to save ordering — reverting");
+                toast.error(err.message);
                 // revert to server state (safe)
                 fetchLinks();
             }
@@ -327,7 +323,8 @@ const Links = () => {
                                                 )
                                             );
                                             toast.error(
-                                                "Failed to update link visibility"
+                                                "Failed to update link visibility" |
+                                                    error.message
                                             );
                                         }
                                     }}
@@ -390,7 +387,7 @@ const Links = () => {
                         fullWidth
                         size="md"
                         loading={creating}
-                        className="!bg-indigo-600 hover:!bg-indigo-700 text-white 
+                        className="bg-indigo-600! hover:bg-indigo-700! text-white 
                             shadow-lg shadow-indigo-500/20"
                         disabled={creating}
                         tooltip="Submit"

@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import ThemeToggle from "../components/ThemeToggle";
+import { useSEO } from "../hooks/useSEO";
+import { buildUrl } from "../lib/seo";
 
 const Login = () => {
     const [form, setForm] = useState({ email: "", password: "" });
@@ -81,6 +83,13 @@ const Login = () => {
             import.meta.env.VITE_API_URL
         }/api/auth/google`;
     };
+
+    useSEO({
+        title: "Login – Bunchly",
+        description: "Login to your Bunchly account securely.",
+        noIndex: true,
+        url: buildUrl("/login"),
+    });
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2 relative">

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Lock, X } from "lucide-react";
 import Button from "../ui/Button";
 import InputField from "../ui/InputField";
@@ -36,7 +36,7 @@ export default function ChangePasswordModal({
 
     return (
         <div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4"
+            className="fixed inset-0 z-999 flex items-center justify-center bg-black/50 px-4"
             onClick={onClose}
         >
             <div
