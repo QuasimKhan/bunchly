@@ -20,6 +20,7 @@ import { useAuth } from "./context/AuthContext.jsx";
 import SettingsDashboard from "./pages/SettingsDashboard.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Upgrade from "./pages/Upgrade.jsx";
+import Billing from "./pages/Billing.jsx";
 
 const App = () => {
     const { user } = useAuth();
@@ -55,6 +56,7 @@ const App = () => {
                         />
                         <Route path="/analytics" element={<Analytics />} />
                         <Route path="/upgrade" element={<Upgrade />} />
+                        <Route path="/billing" element={<Billing />} />
 
                         <Route
                             path="/settings"

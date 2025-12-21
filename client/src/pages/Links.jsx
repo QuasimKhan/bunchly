@@ -39,7 +39,7 @@ import { PreviewModal } from "../components/preview/PreviewModal";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_LIMITS } from "../lib/planLimits.js";
 import { useNavigate } from "react-router-dom";
-import PaywallCard from "../components/paywall/PaywallCaed.jsx";
+import PaywallCard from "../components/paywall/PaywallCard.jsx";
 
 const Links = () => {
     const [links, setLinks] = useState([]);

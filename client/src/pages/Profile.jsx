@@ -179,7 +179,8 @@ export default function Profile({ user }) {
                             {new Date(profile.createdAt).toLocaleDateString()}
                         </p>
                         <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                            Login Method · <b>{profile.authProvider}</b>
+                            Login Method ·{" "}
+                            <b>{profile.authProvider.toUpperCase()}</b>
                         </p>
                     </div>
                 </div>
@@ -212,7 +213,7 @@ export default function Profile({ user }) {
                 />
                 <EditProfileField
                     label="Plan"
-                    value={profile.plan}
+                    value={profile.plan.toUpperCase()}
                     editable={false}
                 />
                 <EditProfileField

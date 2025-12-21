@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { proReceiptEmail } from "../utils/proReceiptEmail.js";
 import { sendEmail } from "../utils/brevoEmail.js";
 import { generateInvoicePdf } from "../utils/generateInvoicePdf.js";
+import Payment from "../models/Payment.js";
 
 export const createProOrder = async (req, res) => {
     try {
@@ -90,6 +91,19 @@ export const verifyProPayment = async (req, res) => {
         });
 
         const invoiceNumber = `INV-${Date.now()}`;
+
+        //payment saved in database
+        await Payment.create({
+            userId: userId,
+            plan: "pro",
+            amount: 19900,
+            currency: "INR",
+            provider: "razorpay",
+            orderId: razorpay_order_id,
+            paymentId: razorpay_payment_id,
+            invoiceNumber,
+            status: "paid",
+        });
 
         const pdfDoc = generateInvoicePdf({
             invoiceNumber,
