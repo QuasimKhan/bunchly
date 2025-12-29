@@ -5,7 +5,7 @@ import { ENV } from "./config/env.js";
 const startServer = async () => {
     await connectDB();
 
-    app.listen(ENV.PORT, () => {
+    app.listen(ENV.PORT, "0.0.0.0", () => {
         console.log(`Server running on port http://localhost:${ENV.PORT}`);
     });
 };
