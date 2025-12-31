@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            // ⚠️ not using select:false to avoid breaking your existing login logic
         },
         isVerified: {
             type: Boolean,
@@ -51,7 +50,6 @@ const userSchema = new mongoose.Schema(
         },
 
         // 🔹 PLAN / SAAS
-        // You already use: "free" and "pro" → keep fully compatible
         plan: {
             type: String,
             enum: ["free", "pro"],

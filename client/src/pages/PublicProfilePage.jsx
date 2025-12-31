@@ -1,22 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Loader2, Globe, Link2, ShieldCheck } from "lucide-react";
+import { Link2, Share2 } from "lucide-react";
 import { PreviewPage } from "../components/preview/PreviewModal";
 import Button from "../components/ui/Button";
 import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
 import PublicProfileNotFound from "../components/PublicProfileNotFound";
-
-/**
- * PublicProfilePage (Premium / SaaS-grade)
- * --------------------------------------
- * ✔ Clean branding header
- * ✔ Clickable logo → Home
- * ✔ Public trust indicators
- * ✔ Mobile-first centered layout
- * ✔ Premium typography & spacing
- * ✔ Graceful loading & empty states
- */
+import { toast } from "sonner";
+import SmartSkeleton from "../components/ui/SmartSkeleton";
 
 const PublicProfilePage = () => {
     const { username } = useParams();
@@ -26,16 +17,15 @@ const PublicProfilePage = () => {
 
     const navigate = useNavigate();
 
+    const profileUrl = `${window.location.origin}/${username}`;
+
     useSEO({
         title: user
             ? `${user.name} (@${user.username}) – Bunchly`
             : "Profile – Bunchly",
-
-        description: user?.bio ? user.bio : "View digital profiles on Bunchly.",
-
-        image: user?.avatar || "/og-image.png",
-
-        url: buildUrl(`/u/${username}`),
+        description: user?.bio || "View digital profiles on Bunchly.",
+        image: user?.image || "/og-image.png",
+        url: buildUrl(`/${username}`),
     });
 
     useEffect(() => {
@@ -65,12 +55,29 @@ const PublicProfilePage = () => {
         fetchProfile();
     }, [username]);
 
-    /* ---------------- Loading State ---------------- */
+    /* ---------------- Share Handler ---------------- */
+    const handleShare = async () => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: `${user.name} on Bunchly`,
+                    text: `Check out ${user.name}'s profile on Bunchly`,
+                    url: profileUrl,
+                });
+            } else {
+                await navigator.clipboard.writeText(profileUrl);
+                toast.success("Profile link copied");
+            }
+        } catch {
+            toast.error("Unable to share profile");
+        }
+    };
+
+    /* ---------------- Loading ---------------- */
     if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center text-neutral-500">
-                <Loader2 className="w-6 h-6 animate-spin" />
-                <p className="mt-3 text-sm">Loading profile…</p>
+                <SmartSkeleton variant="profile" />
             </div>
         );
     }
@@ -82,65 +89,45 @@ const PublicProfilePage = () => {
 
     return (
         <div className="relative min-h-screen bg-linear-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900">
-            {/* ---------------- Top Branding Bar ---------------- */}
-            <header
-                className="
-         fixed top-4 left-4 z-50
-        sm:top-6 sm:left-6
-    
-        backdrop-blur-md
-        rounded-xl
-        p-2
-    "
-            >
-                <Link
-                    to="/"
-                    className="block select-none"
-                    aria-label="Bunchly Home"
-                >
-                    {/* Light Mode Logo */}
+            {/* ---------------- Branding ---------------- */}
+            <header className="fixed top-4 left-4 z-50 backdrop-blur-md rounded-xl p-2">
+                <Link to="/" aria-label="Bunchly Home">
                     <img
                         src="/img/Bunchly-light.png"
+                        className="block dark:hidden w-28 sm:w-36"
                         alt="Bunchly"
-                        className="
-                block dark:hidden
-                w-28 sm:w-36 md:w-44
-                transition-all duration-200
-            "
                     />
-
-                    {/* Dark Mode Logo */}
                     <img
                         src="/img/Bunchly-dark.png"
+                        className="hidden dark:block w-28 sm:w-36"
                         alt="Bunchly"
-                        className="
-                hidden dark:block
-                w-28 sm:w-36 md:w-44
-                transition-all duration-200
-            "
                     />
                 </Link>
             </header>
 
-            {/* ---------------- Profile Preview ---------------- */}
-            <main className="flex justify-center px-4 pt-10 pb-16">
-                <div className="w-full max-w-md">
+            {/* ---------------- Content ---------------- */}
+            <main className="flex justify-center px-4 pt-12 pb-20">
+                <div className="w-full max-w-md space-y-6">
                     <PreviewPage user={user} links={links} mode="public" />
 
-                    {/* Do you want to join user on bunchly  */}
-
-                    <div className="flex justify-center">
+                    {/* ---------------- Actions ---------------- */}
+                    <div className="flex items-center justify-center gap-3">
                         <Button
                             text={`Join ${user.username} on Bunchly`}
                             onClick={() => navigate("/signup")}
                         />
+                        <Button
+                            variant="secondary"
+                            icon={Share2}
+                            onClick={handleShare}
+                        />
                     </div>
 
-                    {/* ---------------- Footer Branding ---------------- */}
-                    <div className="mt-8 text-center">
+                    {/* ---------------- Footer ---------------- */}
+                    <div className="pt-6 text-center">
                         <p className="text-xs text-neutral-500 flex items-center justify-center gap-1">
                             <Link2 className="w-3 h-3" />
-                            This page is powered by
+                            Powered by
                             <Link
                                 to="/"
                                 className="font-medium text-indigo-600 hover:underline"

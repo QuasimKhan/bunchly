@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import Button from "../components/ui/Button";
-import { BarChart3, TrendingUp, Lock } from "lucide-react";
+import { BarChart3, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import ProPaywall from "../components/paywall/ProPaywall";
+import SmartSkeleton from "../components/ui/SmartSkeleton";
 
 const Analytics = () => {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
@@ -45,96 +40,114 @@ const Analytics = () => {
         fetchAnalytics();
     }, []);
 
-    /* -------------------- Loading -------------------- */
+    /* ---------------- LOADING ---------------- */
     if (loading) {
         return (
-            <div className="p-6 space-y-6">
-                <Skeleton />
-                <Skeleton />
+            <div className="p-6">
+                <SmartSkeleton variant="analytics" />
             </div>
         );
     }
 
-    /* -------------------- Pro Required -------------------- */
+    /* ---------------- PAYWALL ---------------- */
     if (error === "PRO_REQUIRED") {
         return (
             <ProPaywall
                 title="Analytics is a Pro feature"
-                description="Get detailed insights on profile views and link clicks."
+                description="Understand how people interact with your profile and links."
             />
         );
     }
 
-    /* -------------------- Main View -------------------- */
+    /* ---------------- MAIN ---------------- */
     return (
-        <div className="p-6 max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto px-4 pb-20 space-y-12">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
-                <BarChart3 className="w-6 h-6 text-indigo-600" />
-                <h1 className="text-2xl font-semibold">Analytics</h1>
-            </div>
+            <header className="space-y-1">
+                <div className="flex items-center gap-2">
+                    <BarChart3 className="w-6 h-6 text-indigo-600" />
+                    <h1 className="text-2xl font-semibold">Analytics</h1>
+                </div>
+                <p className="text-sm text-neutral-500">
+                    Insights into how your profile is performing
+                </p>
+            </header>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-                <StatCard label="Profile Views" value={data.profileViews} />
-                <StatCard label="Total Link Clicks" value={data.totalClicks} />
-            </div>
+            {/* KPI Row */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <KpiCard
+                    label="Profile Views"
+                    value={data.profileViews}
+                    hint="Total visits to your profile"
+                />
+                <KpiCard
+                    label="Link Clicks"
+                    value={data.totalClicks}
+                    hint="Total clicks across all links"
+                />
+            </section>
 
             {/* Top Links */}
-            <div>
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <section className="space-y-4">
+                <div className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-indigo-600" />
-                    Top Links
-                </h2>
+                    <h2 className="text-lg font-semibold">
+                        Top performing links
+                    </h2>
+                </div>
 
                 {data.topLinks.length === 0 ? (
-                    <p className="text-neutral-500 text-sm">
-                        No clicks yet. Share your page to start tracking.
-                    </p>
+                    <EmptyState />
                 ) : (
-                    <div className="space-y-3">
+                    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                         {data.topLinks.map((link) => (
-                            <div
-                                key={link._id}
-                                className="
-                                    flex justify-between items-center
-                                    p-4 rounded-xl
-                                    bg-white dark:bg-neutral-900
-                                    border border-gray-200 dark:border-gray-800
-                                "
-                            >
-                                <span className="font-medium">
-                                    {link.title}
-                                </span>
-                                <span className="text-sm text-neutral-500">
-                                    {link.clicks} clicks
-                                </span>
-                            </div>
+                            <LinkRow key={link._id} link={link} />
                         ))}
                     </div>
                 )}
-            </div>
+            </section>
         </div>
     );
 };
 
 export default Analytics;
 
-/* -------------------- Components -------------------- */
+/* ================= COMPONENTS ================= */
 
-const StatCard = ({ label, value }) => (
-    <div
-        className="
-            p-6 rounded-2xl
-            bg-white dark:bg-neutral-900
-            border border-gray-200 dark:border-gray-800
-        "
-    >
+const KpiCard = ({ label, value, hint }) => (
+    <div className="rounded-2xl border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 p-6">
         <p className="text-sm text-neutral-500">{label}</p>
-        <p className="mt-2 text-3xl font-bold">{value}</p>
+        <p className="mt-2 text-3xl font-semibold">{value}</p>
+        <p className="mt-1 text-xs text-neutral-500">{hint}</p>
     </div>
 );
 
-const Skeleton = () => (
-    <div className="h-24 rounded-xl bg-gray-200 dark:bg-neutral-800 animate-pulse" />
+const LinkRow = ({ link }) => (
+    <div
+        className="
+            flex items-center justify-between
+            px-5 py-4
+            border-b last:border-b-0
+            border-neutral-200 dark:border-neutral-800
+            bg-white dark:bg-neutral-900
+        "
+    >
+        <div className="min-w-0">
+            <p className="font-medium truncate">{link.title}</p>
+            <p className="text-xs text-neutral-500 truncate">{link.url}</p>
+        </div>
+
+        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            {link.clicks} clicks
+        </span>
+    </div>
+);
+
+const EmptyState = () => (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-8 text-center">
+        <p className="font-medium mb-1">No activity yet</p>
+        <p className="text-sm text-neutral-500">
+            Share your profile link to start tracking views and clicks.
+        </p>
+    </div>
 );
