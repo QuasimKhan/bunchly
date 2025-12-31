@@ -78,7 +78,7 @@ const Privacy = () => {
                         <p>
                             Your public Bunchly profile (for example
                             <code className="mx-1 px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 text-xs">
-                                /u/username
+                                /username
                             </code>
                             ) is publicly accessible. You control what
                             information appears on your public page.

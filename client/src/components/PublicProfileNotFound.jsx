@@ -8,7 +8,7 @@ const PublicProfileNotFound = ({ username }) => {
     return (
         <div
             className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden
-            bg-gradient-to-br
+            bg-linear-to-br
             from-[#f5f7ff] via-[#eef1ff] to-[#e9ecff]
             dark:from-[#0b0d14] dark:via-[#0e1018] dark:to-[#12131d]"
         >
@@ -28,12 +28,12 @@ const PublicProfileNotFound = ({ username }) => {
             >
                 {/* Brand */}
                 <img
-                    src="/img/Bunchly-dark.png"
+                    src="/img/Bunchly-light.png"
                     alt="Bunchly"
                     className="mx-auto mb-6 w-28 dark:hidden"
                 />
                 <img
-                    src="/img/Bunchly-light.png"
+                    src="/img/Bunchly-dark.png"
                     alt="Bunchly"
                     className="mx-auto mb-6 w-28 hidden dark:block"
                 />

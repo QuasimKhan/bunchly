@@ -135,7 +135,7 @@ const Upgrade = () => {
                 <PlanCard
                     highlighted
                     title="Pro"
-                    price="₹199 / month"
+                    price="₹49 / month"
                     subtitle="For creators & professionals"
                     badge="Most Popular"
                     icon={<Crown className="w-5 h-5 text-indigo-600" />}

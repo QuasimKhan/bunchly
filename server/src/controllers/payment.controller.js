@@ -96,7 +96,7 @@ export const verifyProPayment = async (req, res) => {
         await Payment.create({
             userId: userId,
             plan: "pro",
-            amount: 19900,
+            amount: 4900,
             currency: "INR",
             provider: "razorpay",
             orderId: razorpay_order_id,
@@ -110,7 +110,7 @@ export const verifyProPayment = async (req, res) => {
             name: req.user.name,
             email: req.user.email,
             plan: "Pro (Monthly)",
-            amount: 19900,
+            amount: 4900,
             paymentId: razorpay_payment_id,
             orderId: razorpay_order_id,
             date: new Date().toDateString(),
@@ -132,7 +132,7 @@ export const verifyProPayment = async (req, res) => {
             email: req.user.email,
             paymentId: razorpay_payment_id,
             orderId: razorpay_order_id,
-            amount: 19900,
+            amount: 4900,
             date: new Date().toDateString(),
         });
         try {
