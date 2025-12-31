@@ -229,7 +229,7 @@ function BillingSection({ user, navigate }) {
 
                 <Button
                     text="Open Billing"
-                    onClick={() => navigate("/billing")}
+                    onClick={() => navigate("/dashboard/billing")}
                 />
             </div>
         </div>
