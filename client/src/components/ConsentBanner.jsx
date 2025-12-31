@@ -13,24 +13,24 @@ const ConsentBanner = () => {
     const [dismissed, setDismissed] = useState(false);
 
     /* -------------------------------------------------
-       Do NOT show on public profile pages (/u/:username)
+       Show ONLY on Home Page
     -------------------------------------------------- */
-    const isPublicProfile = location.pathname.startsWith("/u/");
+    const isHomePage = location.pathname === "/";
 
     /* -------------------------------------------------
        Entrance animation
     -------------------------------------------------- */
     useEffect(() => {
-        if (ready && needsConsent && !dismissed && !isPublicProfile) {
-            const t = setTimeout(() => setVisible(true), 150);
+        if (ready && needsConsent && !dismissed && isHomePage) {
+            const t = setTimeout(() => setVisible(true), 200);
             return () => clearTimeout(t);
         }
-    }, [ready, needsConsent, dismissed, isPublicProfile]);
+    }, [ready, needsConsent, dismissed, isHomePage]);
 
     /* -------------------------------------------------
        Guards
     -------------------------------------------------- */
-    if (!ready || !needsConsent || dismissed || isPublicProfile) {
+    if (!ready || !needsConsent || dismissed || !isHomePage) {
         return null;
     }
 
@@ -51,22 +51,27 @@ const ConsentBanner = () => {
                 className="
                     relative
                     rounded-2xl
-                    border border-neutral-200 dark:border-neutral-800
-                    bg-white dark:bg-neutral-900
-                    shadow-xl
+                    backdrop-blur-xl
+                    bg-white/80 dark:bg-neutral-900/80
+                    border border-black/5 dark:border-white/10
+                    shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)]
                     px-5 py-4
                     flex flex-col sm:flex-row
                     gap-4
                 "
             >
-                {/* Close button (does NOT save consent) */}
+                {/* Subtle brand glow */}
+                <div className="absolute -top-6 -left-6 w-32 h-32 bg-indigo-500/10 blur-2xl rounded-full pointer-events-none" />
+
+                {/* Close (dismiss only) */}
                 <button
                     onClick={() => setDismissed(true)}
                     className="
                         absolute top-3 right-3
-                        p-1 rounded-md
+                        p-1.5 rounded-md
                         text-neutral-400 hover:text-neutral-700
                         dark:hover:text-neutral-300
+                        transition
                     "
                     aria-label="Close cookie banner"
                 >
@@ -75,7 +80,7 @@ const ConsentBanner = () => {
 
                 {/* Text */}
                 <div className="flex-1 pr-6">
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                    <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
                         We use cookies to improve your experience and understand
                         how Bunchly is used. Essential cookies are always
                         enabled.
@@ -83,14 +88,14 @@ const ConsentBanner = () => {
 
                     <a
                         href="/privacy"
-                        className="inline-block mt-1 text-xs text-indigo-600 hover:underline"
+                        className="inline-block mt-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                         Learn more
                     </a>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 items-center justify-end">
+                <div className="flex gap-2 items-center justify-end shrink-0">
                     <Button
                         text="Reject"
                         variant="secondary"
