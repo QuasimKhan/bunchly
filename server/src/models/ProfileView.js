@@ -12,7 +12,7 @@ const profileViewSchema = new mongoose.Schema(
         city: String,
 
         device: {
-            type: String, // mobile | desktop | tablet
+            type: String, // mobile | desktop
         },
         os: String,
         browser: String,
