@@ -1,19 +1,35 @@
-import { useEffect, useState } from "react";
-import { BarChart3, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+    BarChart3,
+    TrendingUp,
+    Globe,
+    Smartphone,
+    Monitor,
+} from "lucide-react";
 import { toast } from "sonner";
 import ProPaywall from "../components/paywall/ProPaywall";
 import SmartSkeleton from "../components/ui/SmartSkeleton";
 
+/* ======================================================
+   ANALYTICS (PRODUCTION – V1)
+====================================================== */
+
 const Analytics = () => {
+    const [range, setRange] = useState(7);
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchAnalytics = async () => {
+            setLoading(true);
+            setError(null);
+
             try {
                 const res = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/analytics`,
+                    `${
+                        import.meta.env.VITE_API_URL
+                    }/api/analytics?range=${range}`,
                     { credentials: "include" }
                 );
 
@@ -23,22 +39,32 @@ const Analytics = () => {
                     if (result.code === "PRO_REQUIRED") {
                         setError("PRO_REQUIRED");
                     } else {
-                        setError("FAILED");
-                        toast.error("Failed to load analytics");
+                        throw new Error();
                     }
                 } else {
                     setData(result.data);
                 }
             } catch {
                 setError("FAILED");
-                toast.error("Something went wrong");
+                toast.error("Failed to load analytics");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchAnalytics();
-    }, []);
+    }, [range]);
+
+    /* ---------------- DERIVED DATA ---------------- */
+    const totalDeviceCount = useMemo(() => {
+        if (!data?.deviceBreakdown) return 0;
+        return data.deviceBreakdown.reduce((sum, d) => sum + d.count, 0);
+    }, [data]);
+
+    const totalBrowserCount = useMemo(() => {
+        if (!data?.browserUsage) return 0;
+        return data.browserUsage.reduce((sum, b) => sum + b.count, 0);
+    }, [data]);
 
     /* ---------------- LOADING ---------------- */
     if (loading) {
@@ -59,60 +85,150 @@ const Analytics = () => {
         );
     }
 
-    /* ---------------- MAIN ---------------- */
+    if (!data) return null;
+
     return (
-        <div className="max-w-6xl mx-auto px-4 pb-20 space-y-12">
-            {/* Header */}
-            <header className="space-y-1">
-                <div className="flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-indigo-600" />
-                    <h1 className="text-2xl font-semibold">Analytics</h1>
+        <div className="max-w-7xl mx-auto px-4 pb-20 space-y-14">
+            {/* ================= HEADER ================= */}
+            <header className="flex items-start justify-between flex-wrap gap-4">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <BarChart3 className="w-6 h-6 text-indigo-600" />
+                        <h1 className="text-2xl font-semibold">Analytics</h1>
+                    </div>
+                    <p className="text-sm text-neutral-500 mt-1">
+                        Insights for your public profile
+                    </p>
                 </div>
-                <p className="text-sm text-neutral-500">
-                    Insights into how your profile is performing
-                </p>
+
+                <DateRangeSelector range={range} onChange={setRange} />
             </header>
 
-            {/* KPI Row */}
+            {/* ================= KPIs ================= */}
             <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <KpiCard
                     label="Profile Views"
                     value={data.profileViews}
-                    hint="Total visits to your profile"
+                    hint={`Last ${range} days`}
                 />
                 <KpiCard
                     label="Link Clicks"
                     value={data.totalClicks}
-                    hint="Total clicks across all links"
+                    hint={`Last ${range} days`}
                 />
             </section>
 
-            {/* Top Links */}
-            <section className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-indigo-600" />
-                    <h2 className="text-lg font-semibold">
-                        Top performing links
-                    </h2>
-                </div>
-
-                {data.topLinks.length === 0 ? (
-                    <EmptyState />
-                ) : (
-                    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+            {/* ================= TOP LINKS ================= */}
+            <Section
+                title="Top performing links"
+                icon={<TrendingUp className="w-5 h-5 text-indigo-600" />}
+            >
+                {data.topLinks?.length ? (
+                    <CardList>
                         {data.topLinks.map((link) => (
-                            <LinkRow key={link._id} link={link} />
+                            <Row
+                                key={link._id}
+                                title={link.title}
+                                subtitle={link.url}
+                                value={`${link.clicks} clicks`}
+                            />
                         ))}
-                    </div>
+                    </CardList>
+                ) : (
+                    <EmptyState text={`No clicks in last ${range} days`} />
                 )}
-            </section>
+            </Section>
+
+            {/* ================= GEO ================= */}
+            <Section
+                title="Top countries"
+                icon={<Globe className="w-5 h-5 text-indigo-600" />}
+            >
+                {data.topCountries?.length ? (
+                    <CardList>
+                        {data.topCountries.map((c) => (
+                            <Row
+                                key={c._id}
+                                title={c._id || "Unknown"}
+                                value={`${c.count} views`}
+                            />
+                        ))}
+                    </CardList>
+                ) : (
+                    <EmptyState text="No location data yet" />
+                )}
+            </Section>
+
+            {/* ================= DEVICES ================= */}
+            <Section
+                title="Devices"
+                icon={<Smartphone className="w-5 h-5 text-indigo-600" />}
+            >
+                {totalDeviceCount ? (
+                    <StatGrid>
+                        {data.deviceBreakdown.map((d) => (
+                            <MiniStat
+                                key={d._id}
+                                label={capitalize(d._id)}
+                                value={`${d.count} (${Math.round(
+                                    (d.count / totalDeviceCount) * 100
+                                )}%)`}
+                            />
+                        ))}
+                    </StatGrid>
+                ) : (
+                    <EmptyState text="No device data yet" />
+                )}
+            </Section>
+
+            {/* ================= BROWSERS ================= */}
+            <Section
+                title="Browsers"
+                icon={<Monitor className="w-5 h-5 text-indigo-600" />}
+            >
+                {totalBrowserCount ? (
+                    <StatGrid>
+                        {data.browserUsage.map((b) => (
+                            <MiniStat
+                                key={b._id}
+                                label={b._id || "Unknown"}
+                                value={`${b.count} (${Math.round(
+                                    (b.count / totalBrowserCount) * 100
+                                )}%)`}
+                            />
+                        ))}
+                    </StatGrid>
+                ) : (
+                    <EmptyState text="No browser data yet" />
+                )}
+            </Section>
         </div>
     );
 };
 
 export default Analytics;
 
-/* ================= COMPONENTS ================= */
+/* ======================================================
+   UI COMPONENTS
+====================================================== */
+
+const DateRangeSelector = ({ range, onChange }) => (
+    <div className="flex items-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-1">
+        {[7, 30].map((r) => (
+            <button
+                key={r}
+                onClick={() => onChange(r)}
+                className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                    range === r
+                        ? "bg-indigo-600 text-white"
+                        : "text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                }`}
+            >
+                Last {r} days
+            </button>
+        ))}
+    </div>
+);
 
 const KpiCard = ({ label, value, hint }) => (
     <div className="rounded-2xl border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 p-6">
@@ -122,32 +238,51 @@ const KpiCard = ({ label, value, hint }) => (
     </div>
 );
 
-const LinkRow = ({ link }) => (
-    <div
-        className="
-            flex items-center justify-between
-            px-5 py-4
-            border-b last:border-b-0
-            border-neutral-200 dark:border-neutral-800
-            bg-white dark:bg-neutral-900
-        "
-    >
-        <div className="min-w-0">
-            <p className="font-medium truncate">{link.title}</p>
-            <p className="text-xs text-neutral-500 truncate">{link.url}</p>
+const Section = ({ title, icon, children }) => (
+    <section className="space-y-4">
+        <div className="flex items-center gap-2">
+            {icon}
+            <h2 className="text-lg font-semibold">{title}</h2>
         </div>
+        {children}
+    </section>
+);
 
+const CardList = ({ children }) => (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+        {children}
+    </div>
+);
+
+const Row = ({ title, subtitle, value }) => (
+    <div className="flex items-center justify-between px-5 py-4 border-b last:border-b-0 border-neutral-200 dark:border-neutral-800">
+        <div className="min-w-0">
+            <p className="font-medium truncate">{title}</p>
+            {subtitle && (
+                <p className="text-xs text-neutral-500 truncate">{subtitle}</p>
+            )}
+        </div>
         <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            {link.clicks} clicks
+            {value}
         </span>
     </div>
 );
 
-const EmptyState = () => (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-8 text-center">
-        <p className="font-medium mb-1">No activity yet</p>
-        <p className="text-sm text-neutral-500">
-            Share your profile link to start tracking views and clicks.
-        </p>
+const StatGrid = ({ children }) => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">{children}</div>
+);
+
+const MiniStat = ({ label, value }) => (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 text-center">
+        <p className="text-sm text-neutral-500">{label}</p>
+        <p className="text-lg font-semibold mt-1">{value}</p>
     </div>
 );
+
+const EmptyState = ({ text }) => (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-8 text-center text-sm text-neutral-500">
+        {text}
+    </div>
+);
+
+const capitalize = (str = "") => str.charAt(0).toUpperCase() + str.slice(1);

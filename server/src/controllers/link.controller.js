@@ -2,6 +2,8 @@ import Link from "../models/Link.js";
 import { detectIconFromUrl } from "../utils/detectIconFromUrl.js";
 import { PLANS } from "../config/plans.js";
 import User from "../models/User.js";
+import LinkClick from "../models/LinkClick.js";
+import { getAnalyticsContext } from "../utils/analyticsContext.js";
 
 // Create a new link
 export const createLink = async (req, res) => {
@@ -241,32 +243,60 @@ export const reorderLinks = async (req, res) => {
 };
 
 export const redirectLink = async (req, res) => {
+    let link;
+
     try {
         const { id } = req.params;
 
-        const link = await Link.findById(id);
-
-        if (!link || !link.isActive) {
-            return res.status(404).json({
-                success: false,
-                message: "Not Found",
-            });
+        // Validate ObjectId early (prevents Mongo errors)
+        if (!id || id.length !== 24) {
+            return res.status(404).send("Not Found");
         }
 
-        await Link.updateOne({ _id: id }, { $inc: { clicks: 1 } });
-        await User.updateOne(
-            { _id: link.userId },
-            {
-                $inc: { "usage.totalClicks": 1 },
-                $set: { "usage.lastActiveAt": new Date() },
-            }
-        );
+        // Fetch link (lean for performance)
+        link = await Link.findById(id).lean();
 
-        res.redirect(link.url);
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message || "Server error",
+        if (!link || !link.isActive) {
+            return res.status(404).send("Not Found");
+        }
+    } catch (err) {
+        // Any DB failure → fail silently
+        console.error("Redirect lookup failed:", err);
+        return res.status(404).send("Not Found");
+    }
+
+    /* -------------------------------------------------
+       Redirect FIRST (UX priority)
+       Analytics must never delay navigation
+    -------------------------------------------------- */
+    res.redirect(302, link.url);
+
+    /* -------------------------------------------------
+       Analytics (fire-and-forget, NON-blocking)
+    -------------------------------------------------- */
+    try {
+        const context = getAnalyticsContext(req);
+
+        // Event-based click tracking
+        await LinkClick.create({
+            userId: link.userId,
+            linkId: link._id,
+            ...context,
         });
+
+        // Lifetime counters (fast UI + legacy)
+        await Promise.all([
+            Link.updateOne({ _id: link._id }, { $inc: { clicks: 1 } }),
+            User.updateOne(
+                { _id: link.userId },
+                {
+                    $inc: { "usage.totalClicks": 1 },
+                    $set: { "usage.lastActiveAt": new Date() },
+                }
+            ),
+        ]);
+    } catch (err) {
+        // Analytics failures must NEVER affect redirect
+        console.error("Link analytics failed:", err);
     }
 };

@@ -5,6 +5,8 @@ import crypto from "crypto";
 import { ENV } from "../config/env.js";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "../utils/email.js";
+import ProfileView from "../models/ProfileView.js";
+import { getAnalyticsContext } from "../utils/analyticsContext.js";
 
 export const deleteUser = async (req, res) => {
     try {
@@ -60,50 +62,90 @@ export const deleteUser = async (req, res) => {
 };
 
 export const getPublicProfile = async (req, res) => {
+    let user;
+
     try {
         const { username } = req.params;
 
-        const user = await User.findOne({ username });
-        if (!user) {
+        if (!username || typeof username !== "string") {
             return res.status(404).json({
                 success: false,
                 message: "User not found",
             });
         }
 
-        await User.updateOne({ _id: user._id }, { $inc: { profileViews: 1 } });
+        // Fetch public user
+        user = await User.findOne({ username }).lean();
 
-        const links = await Link.find({
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+    } catch (err) {
+        console.error("Public profile lookup failed:", err);
+        return res.status(404).json({
+            success: false,
+            message: "User not found",
+        });
+    }
+
+    /* -------------------------------------------------
+       Respond FIRST (UX priority)
+       Analytics must never delay page load
+    -------------------------------------------------- */
+    const publicUser = {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        plan: user.plan,
+        role: user.role,
+        authProvider: user.authProvider,
+        image: user.image,
+        bio: user.bio,
+        isVerified: user.isVerified,
+        createdAt: user.createdAt,
+        profileViews: (user.profileViews || 0) + 1, // optimistic UI
+    };
+
+    let links = [];
+    try {
+        links = await Link.find({
             userId: user._id,
             isActive: true,
-        }).sort({ order: 1 });
+        })
+            .sort({ order: 1 })
+            .lean();
+    } catch (err) {
+        console.error("Public links fetch failed:", err);
+    }
 
-        const publicUser = {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            username: user.username,
-            plan: user.plan,
-            role: user.role,
-            authProvider: user.authProvider,
-            image: user.image,
-            bio: user.bio, // <- 🚀 ADD THIS
-            isVerified: user.isVerified,
-            createdAt: user.createdAt,
-            profileViews: user.profileViews + 1,
-        };
+    // Send response immediately
+    res.status(200).json({
+        success: true,
+        message: "User fetched successfully",
+        user: publicUser,
+        links,
+    });
 
-        res.status(200).json({
-            success: true,
-            message: "User Fetched Successfully",
-            user: publicUser,
-            links,
+    /* -------------------------------------------------
+       Analytics (fire-and-forget, NON-blocking)
+    -------------------------------------------------- */
+    try {
+        const context = getAnalyticsContext(req);
+
+        // Event-based profile view
+        await ProfileView.create({
+            userId: user._id,
+            ...context,
         });
-    } catch (error) {
-        return res.status(400).json({
-            success: false,
-            message: error.message,
-        });
+
+        // Lifetime counter (fast UI + legacy)
+        await User.updateOne({ _id: user._id }, { $inc: { profileViews: 1 } });
+    } catch (err) {
+        // Analytics must NEVER break profile viewing
+        console.error("ProfileView tracking failed:", err);
     }
 };
 
