@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import InputField from "../components/ui/InputField";
 import Button from "../components/ui/Button";
-import { Mail, Lock, User, EyeClosed, Eye, EyeIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, User, EyeClosed, EyeIcon } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
@@ -10,12 +10,20 @@ import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
 
 const Signup = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    /* ---------------- Claim Username ---------------- */
+    const suggestedUsername = location.state?.suggestedUsername || "";
+
+    /* ---------------- Form State ---------------- */
     const [form, setForm] = useState({
         name: "",
         username: "",
         email: "",
         password: "",
     });
+
     const [errors, setErrors] = useState({
         name: "",
         username: "",
@@ -23,22 +31,31 @@ const Signup = () => {
         password: "",
     });
 
-    //username
+    /* ---------------- Username Status ---------------- */
     const [usernameStatus, setUsernameStatus] = useState(null);
-    // null | "checking" | "available" | "taken" | "invalid" | "reserved"
+    // null | checking | available | taken | invalid | reserved
 
-    let usernameTimer = null;
+    const usernameTimer = useRef(null);
 
+    /* ---------------- UI State ---------------- */
     const [showResend, setShowResend] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const { signup, resendVerification, authLoading } = useAuth();
-    const navigate = useNavigate();
 
+    /* ---------------- SEO ---------------- */
+    useSEO({
+        title: "Create Account – Bunchly",
+        description: "Create your Bunchly account.",
+        noIndex: true,
+        url: buildUrl("/signup"),
+    });
+
+    /* ---------------- Username Check ---------------- */
     const checkUsername = async (value) => {
-        if (!value.trim()) {
+        if (!value) {
             setUsernameStatus(null);
             return;
         }
@@ -51,15 +68,14 @@ const Signup = () => {
                     import.meta.env.VITE_API_URL
                 }/api/auth/check-username?username=${value}`
             );
-
             const data = await res.json();
 
-            if (!data.success && data.message.includes("Invalid")) {
+            if (!data.success && data.message?.includes("Invalid")) {
                 setUsernameStatus("invalid");
                 return;
             }
 
-            if (!data.success && data.message.includes("reserved")) {
+            if (!data.success && data.message?.includes("reserved")) {
                 setUsernameStatus("reserved");
                 return;
             }
@@ -70,30 +86,43 @@ const Signup = () => {
         }
     };
 
+    /* ---------------- Prefill Username (SAFE) ---------------- */
+    useEffect(() => {
+        if (suggestedUsername) {
+            const clean = suggestedUsername.toLowerCase();
+            setForm((prev) => ({ ...prev, username: clean }));
+            checkUsername(clean);
+        }
+    }, [suggestedUsername]);
+
+    /* ---------------- Handle Change ---------------- */
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((s) => ({ ...s, [name]: value }));
+        setForm((prev) => ({ ...prev, [name]: value }));
 
         if (name === "username") {
-            clearTimeout(usernameTimer);
+            clearTimeout(usernameTimer.current);
             const clean = value.toLowerCase().trim();
 
-            usernameTimer = setTimeout(() => {
+            usernameTimer.current = setTimeout(() => {
                 checkUsername(clean);
-            }, 500); // debounce
+            }, 500);
         }
     };
 
+    /* ---------------- Submit ---------------- */
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({ name: "", username: "", email: "", password: "" });
         setShowResend(false);
 
         let valid = true;
+
         if (!form.name.trim()) {
             setErrors((p) => ({ ...p, name: "Name is required" }));
             valid = false;
         }
+
         if (!form.username.trim()) {
             setErrors((p) => ({ ...p, username: "Username is required" }));
             valid = false;
@@ -109,10 +138,12 @@ const Signup = () => {
             setErrors((p) => ({ ...p, email: "Email is required" }));
             valid = false;
         }
+
         if (!form.password.trim()) {
             setErrors((p) => ({ ...p, password: "Password is required" }));
             valid = false;
         }
+
         if (!valid) return;
 
         try {
@@ -135,6 +166,7 @@ const Signup = () => {
         }
     };
 
+    /* ---------------- Resend ---------------- */
     const handleResend = async () => {
         try {
             setResendLoading(true);
@@ -152,19 +184,13 @@ const Signup = () => {
         }
     };
 
+    /* ---------------- Google Signup ---------------- */
     const handleGoogleSignup = () => {
         setGoogleLoading(true);
         window.location.href = `${
             import.meta.env.VITE_API_URL
         }/api/auth/google`;
     };
-
-    useSEO({
-        title: "Create Account – Bunchly",
-        description: "Create your Bunchly account.",
-        noIndex: true,
-        url: buildUrl("/signup"),
-    });
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2 relative">

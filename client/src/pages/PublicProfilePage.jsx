@@ -5,6 +5,7 @@ import { PreviewPage } from "../components/preview/PreviewModal";
 import Button from "../components/ui/Button";
 import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
+import PublicProfileNotFound from "../components/PublicProfileNotFound";
 
 /**
  * PublicProfilePage (Premium / SaaS-grade)
@@ -76,17 +77,7 @@ const PublicProfilePage = () => {
 
     /* ---------------- Not Found ---------------- */
     if (!user) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center text-neutral-500">
-                <p className="text-lg font-medium">Profile not found</p>
-                <Link
-                    to="/"
-                    className="mt-4 text-sm text-indigo-600 hover:underline"
-                >
-                    Go back to home
-                </Link>
-            </div>
-        );
+        return <PublicProfileNotFound username={username} />;
     }
 
     return (
