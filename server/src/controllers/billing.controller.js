@@ -43,7 +43,7 @@ export const downloadInvoice = async (req, res) => {
             });
         }
 
-        // 1️⃣ Validate payment ownership
+        // Validate payment ownership
         const payment = await Payment.findOne({
             invoiceNumber,
             userId,
@@ -57,7 +57,7 @@ export const downloadInvoice = async (req, res) => {
             });
         }
 
-        // 2️⃣ Fetch user details
+        // Fetch user details
         const user = await User.findById(userId).select("name email");
 
         if (!user) {
@@ -67,7 +67,7 @@ export const downloadInvoice = async (req, res) => {
             });
         }
 
-        // 3️⃣ Generate PDF on-demand (same as email)
+        // Generate PDF on-demand (same as email)
         const pdfDoc = generateInvoicePdf({
             invoiceNumber: payment.invoiceNumber,
             name: user.name,
@@ -79,7 +79,7 @@ export const downloadInvoice = async (req, res) => {
             date: payment.createdAt.toDateString(),
         });
 
-        // 4️⃣ Stream PDF to browser
+        // Stream PDF to browser
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
             "Content-Disposition",
