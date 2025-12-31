@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { navItems } from "../../constants/navItems";
 import ThemeToggle from "../ThemeToggle";
 
@@ -21,7 +21,7 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
             `}
         >
             {/* Logo (desktop + mobile) */}
-            <div className="flex items-center justify-center mb-10">
+            <Link to={"/"} className="flex items-center justify-center mb-10">
                 <img
                     src="/img/Bunchly-light.png"
                     className="w-40 dark:hidden"
@@ -32,7 +32,7 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
                     className="w-40 hidden dark:block"
                     alt="Bunchly"
                 />
-            </div>
+            </Link>
 
             {/* Navigation */}
             <nav className="flex flex-col gap-2">
@@ -44,7 +44,7 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
                         <NavLink
                             key={item.href}
                             to={item.href}
-                            onClick={closeSidebar} // Close drawer on mobile
+                            onClick={closeSidebar}
                             className="
                                 relative flex items-center gap-3 px-4 py-2
                                 rounded-xl text-gray-800 dark:text-gray-200

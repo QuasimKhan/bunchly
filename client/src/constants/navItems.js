@@ -14,22 +14,22 @@ export const navItems = [
     },
     {
         label: "Links",
-        href: "/links",
+        href: "/dashboard/links",
         icon: LinkIcon,
     },
     {
         label: "Appearance",
-        href: "/appearance",
+        href: "/dashboard/appearance",
         icon: Brush,
     },
     {
         label: "Analytics",
-        href: "/analytics",
+        href: "/dashboard/analytics",
         icon: BarChart2,
     },
     {
         label: "Settings",
-        href: "/settings",
+        href: "/dashboard/settings",
         icon: Settings,
     },
 ];

@@ -11,7 +11,7 @@ export const createProOrder = async (req, res) => {
     try {
         const user = req.user;
 
-        // 🔒 Safety checks
+        //Safety checks
         if (user.plan === "pro") {
             return res.status(400).json({
                 success: false,
@@ -51,7 +51,7 @@ export const verifyProPayment = async (req, res) => {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
             req.body;
 
-        // 1️⃣ Validate input
+        // Validate input
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
             return res.status(400).json({
                 success: false,
@@ -59,7 +59,7 @@ export const verifyProPayment = async (req, res) => {
             });
         }
 
-        // 2️⃣ Generate expected signature
+        // Generate expected signature
         const signBody = `${razorpay_order_id}|${razorpay_payment_id}`;
 
         const expectedSignature = crypto
@@ -67,7 +67,7 @@ export const verifyProPayment = async (req, res) => {
             .update(signBody)
             .digest("hex");
 
-        // 3️⃣ Compare signatures
+        //  Compare signatures
         if (expectedSignature !== razorpay_signature) {
             return res.status(400).json({
                 success: false,
@@ -75,7 +75,7 @@ export const verifyProPayment = async (req, res) => {
             });
         }
 
-        // 4️⃣ Upgrade user to Pro
+        // Upgrade user to Pro
         const expiryDate = new Date();
         expiryDate.setMonth(expiryDate.getMonth() + 1); // 1 month Pro
 

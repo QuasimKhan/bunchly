@@ -43,7 +43,7 @@ const App = () => {
             <Routes>
                 {/* Public Route (open for all like Linktree) */}
                 <Route path="/" element={<Home />} />
-                <Route path="/u/:username" element={<PublicProfilePage />} />
+                <Route path="/:username" element={<PublicProfilePage />} />
                 <Route path="/privacy" element={<Privacy />} />
 
                 {/* Guest-only Routes (user must be logged OUT) */}
@@ -62,17 +62,27 @@ const App = () => {
                 <Route element={<ProtectedRoute />}>
                     <Route element={<DashboardLayout />}>
                         <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/links" element={<Links />} />
                         <Route
-                            path="/profile"
+                            path="/dashboard/upgrade"
+                            element={<Upgrade />}
+                        />
+
+                        <Route path="/dashboard/links" element={<Links />} />
+                        <Route
+                            path="/dashboard/profile"
                             element={<Profile user={user} />}
                         />
-                        <Route path="/analytics" element={<Analytics />} />
-                        <Route path="/upgrade" element={<Upgrade />} />
-                        <Route path="/billing" element={<Billing />} />
+                        <Route
+                            path="/dashboard/analytics"
+                            element={<Analytics />}
+                        />
+                        <Route
+                            path="/dashboard/billing"
+                            element={<Billing />}
+                        />
 
                         <Route
-                            path="/settings"
+                            path="/dashboard/settings"
                             element={<SettingsDashboard user={user} />}
                         />
 

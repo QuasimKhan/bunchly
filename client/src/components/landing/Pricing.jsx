@@ -72,7 +72,7 @@ const Pricing = () => {
                             </p>
 
                             <p className="mt-6 text-4xl font-bold">
-                                ₹199{" "}
+                                ₹49{" "}
                                 <span className="text-base font-normal text-neutral-500">
                                     / month
                                 </span>
@@ -101,7 +101,9 @@ const Pricing = () => {
                                 <Button
                                     text="Upgrade to Pro"
                                     fullWidth
-                                    onClick={() => navigate("/upgrade")}
+                                    onClick={() =>
+                                        navigate("/dashboard/upgrade")
+                                    }
                                 />
                             </div>
                         </div>

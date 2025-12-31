@@ -1,7 +1,7 @@
 export const PRICING = {
     pro: {
         monthly: {
-            amount: 19900, // paise (₹199)
+            amount: 4900, // paise (₹49)
             currency: "INR",
         },
     },

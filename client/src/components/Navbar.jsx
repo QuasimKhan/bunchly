@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,9 +26,9 @@ const Navbar = () => {
     const handleLogin = () => navigate("/login");
 
     const menuItems = [
-        { label: "Profile", action: () => navigate("/profile") },
+        { label: "Profile", action: () => navigate("/dashboard/profile") },
         { label: "Dashboard", action: () => navigate("/dashboard") },
-        { label: "Settings", action: () => navigate("/settings") },
+        { label: "Settings", action: () => navigate("/dashboard/settings") },
         { label: "Logout", action: logout, variant: "danger" },
     ];
 
@@ -108,7 +108,7 @@ const Navbar = () => {
 const NavItem = ({ to, label, onClick }) => {
     const handleClick = (e) => {
         if (to.startsWith("#")) {
-            e.preventDefault(); // 🔴 critical
+            e.preventDefault();
             const target = document.querySelector(to);
 
             if (target) {

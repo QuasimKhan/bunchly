@@ -1,4 +1,3 @@
-import React, { useRef, useState } from "react";
 import { Menu } from "lucide-react";
 import ThemeToggle from "../ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
@@ -12,8 +11,8 @@ const Topbar = ({ toggleSidebar }) => {
 
     const menuItems = [
         { label: "Home", action: () => navigate("/") },
-        { label: "Profile", action: () => navigate("/profile") },
-        { label: "Settings", action: () => navigate("/settings") },
+        { label: "Profile", action: () => navigate("/dashboard/profile") },
+        { label: "Settings", action: () => navigate("/dashboard/settings") },
         { label: "Logout", action: logout, variant: "danger" },
     ];
 
