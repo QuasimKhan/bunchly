@@ -82,11 +82,16 @@ export const signup = async (req, res) => {
 
         const verifyUrl = `${ENV.CLIENT_URL}/verify?token=${rawToken}&uid=${user._id}`;
 
-        await sendVerificationEmail(user.email, verifyUrl);
+        try {
+            await sendVerificationEmail(user.email, verifyUrl);
+        } catch (emailError) {
+            console.error("Verification email failed:", emailError.message);
+        }
 
         res.status(201).json({
             success: true,
-            message: "User Created ! Please verify your email",
+            message:
+                "User created. If you don't receive email, please resend verification.",
         });
     } catch (error) {
         res.status(400).json({
