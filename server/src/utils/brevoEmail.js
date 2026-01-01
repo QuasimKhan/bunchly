@@ -6,7 +6,7 @@ export const sendEmail = async ({ to, subject, html, attachments = [] }) => {
     try {
         const formattedAttachments = attachments.map((file) => ({
             name: file.filename,
-            content: file.content.toString("base64"), // 🔑 REQUIRED
+            content: file.content.toString("base64"),
         }));
 
         await axios.post(
