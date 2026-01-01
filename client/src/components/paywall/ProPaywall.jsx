@@ -1,75 +1,103 @@
 import Button from "../ui/Button";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ProPaywall = ({
-    title = "This is a Pro feature",
-    description = "Upgrade to Pro to unlock this feature and more premium tools.",
+    title = "Upgrade to Bunchly Pro",
+    description = "Unlock powerful tools designed to grow your presence faster.",
     features = [
-        "Advanced analytics",
-        "Unlimited links",
-        "Custom domains",
-        "Premium themes",
+        "Advanced analytics & insights",
+        "Unlimited links & collections",
+        "Custom domains & branding",
+        "Premium themes & layouts",
     ],
     ctaText = "Upgrade to Pro",
 }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="flex justify-center p-6">
+        <section
+            role="region"
+            aria-label="Pro feature paywall"
+            className="flex justify-center px-4 py-10 sm:py-14"
+        >
             <div
                 className="
                     relative
                     w-full max-w-md
                     rounded-2xl
-                    border border-gray-200 dark:border-gray-800
+                    border border-neutral-200 dark:border-neutral-800
                     bg-white dark:bg-neutral-900
-                    shadow-xl
+                    shadow-[0_10px_40px_rgba(0,0,0,0.08)]
+                    dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]
                     overflow-hidden
                 "
             >
-                {/* Glow */}
-                <div className="absolute inset-0 -z-10 flex justify-center">
-                    <div className="w-72 h-72 bg-indigo-600/10 blur-[120px] rounded-full" />
+                {/* Gradient glow */}
+                <div className="pointer-events-none absolute inset-0 -z-10 flex justify-center">
+                    <div className="w-80 h-80 bg-indigo-600/20 dark:bg-indigo-500/20 blur-[140px] rounded-full" />
+                </div>
+
+                {/* Pro badge */}
+                <div className="absolute top-4 right-4">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 text-xs font-medium">
+                        <Crown className="w-3.5 h-3.5" />
+                        PRO
+                    </span>
                 </div>
 
                 {/* Content */}
-                <div className="p-8 text-center">
+                <div className="p-6 sm:p-8 text-center">
                     {/* Icon */}
-                    <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-indigo-600/10 flex items-center justify-center">
-                        <Lock className="w-6 h-6 text-indigo-600" />
+                    <div className="mx-auto mb-5 w-14 h-14 rounded-xl bg-indigo-600/10 flex items-center justify-center">
+                        <Lock className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
                     </div>
 
-                    <h2 className="text-xl font-semibold mb-2">{title}</h2>
+                    <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-2">
+                        {title}
+                    </h2>
 
-                    <p className="text-sm text-neutral-500 mb-6">
+                    <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 mb-8">
                         {description}
                     </p>
 
-                    {/* Feature list */}
-                    <ul className="space-y-3 mb-8 text-left">
-                        {features.map((f) => (
+                    {/* Features */}
+                    <ul className="space-y-4 mb-10 text-left">
+                        {features.map((feature) => (
                             <li
-                                key={f}
-                                className="flex items-center gap-3 text-sm"
+                                key={feature}
+                                className="flex items-start gap-3 text-sm sm:text-base"
                             >
-                                <Sparkles className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-                                <span>{f}</span>
+                                <Sparkles className="mt-0.5 w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                                <span className="text-neutral-700 dark:text-neutral-300">
+                                    {feature}
+                                </span>
                             </li>
                         ))}
                     </ul>
 
+                    {/* CTA */}
                     <Button
                         text={ctaText}
                         size="lg"
                         variant="primary"
-                        onClick={() => navigate("/upgrade")}
                         fullWidth
-                        className="shadow-lg"
+                        className="
+                            shadow-lg
+                            transition-transform
+                            hover:-translate-y-0.5
+                            active:translate-y-0
+                        "
+                        onClick={() => navigate("/dashboard/upgrade")}
                     />
+
+                    {/* Subtext */}
+                    <p className="mt-4 text-xs text-neutral-500 dark:text-neutral-500">
+                        Cancel anytime. No hidden charges.
+                    </p>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 

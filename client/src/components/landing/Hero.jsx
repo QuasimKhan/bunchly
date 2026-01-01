@@ -84,7 +84,7 @@ const Hero = () => {
                             icon={Play}
                             size="lg"
                             variant="outline"
-                            onClick={() => navigate("/u/quasim")}
+                            onClick={() => navigate("/quasim")}
                             className="sm:ws:w-auto"
                         />
                     </div>

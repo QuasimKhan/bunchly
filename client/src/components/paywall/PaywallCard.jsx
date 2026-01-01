@@ -50,7 +50,7 @@ const PaywallCard = ({
                         text={ctaText}
                         size="sm"
                         variant="ghost"
-                        onClick={() => navigate("/upgrade")}
+                        onClick={() => navigate("/dashboard/upgrade")}
                         className="!text-indigo-600 hover:!text-indigo-700"
                     />
                 </div>

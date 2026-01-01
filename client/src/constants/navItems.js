@@ -4,6 +4,7 @@ import {
     Brush,
     BarChart2,
     Settings,
+    ReceiptIndianRupee,
 } from "lucide-react";
 
 export const navItems = [
@@ -26,6 +27,11 @@ export const navItems = [
         label: "Analytics",
         href: "/dashboard/analytics",
         icon: BarChart2,
+    },
+    {
+        label: "Billing",
+        href: "/dashboard/billing",
+        icon: ReceiptIndianRupee,
     },
     {
         label: "Settings",
