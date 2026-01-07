@@ -11,7 +11,7 @@ import ProPaywall from "../components/paywall/ProPaywall";
 import SmartSkeleton from "../components/ui/SmartSkeleton";
 
 /* ======================================================
-   ANALYTICS (PRODUCTION – V1)
+   ANALYTICS
 ====================================================== */
 
 const Analytics = () => {

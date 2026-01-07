@@ -1,13 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Cropper from "react-easy-crop";
-import {
-    X,
-    Loader2,
-    UploadCloud,
-    Check,
-    CheckCircle,
-    XCircle,
-} from "lucide-react";
+import { X, Loader2, UploadCloud, CheckCircle, XCircle } from "lucide-react";
 import Button from "../ui/Button";
 import api from "../../lib/api";
 import getCroppedImg from "../../lib/cropImage.js";
