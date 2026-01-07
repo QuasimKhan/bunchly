@@ -26,6 +26,7 @@ export const useSEO = ({
     image = "/og-image.png",
     url = window.location.href,
     noIndex = false,
+    structuredData = null,
 }) => {
     useEffect(() => {
         document.title = title;
@@ -49,5 +50,23 @@ export const useSEO = ({
         setMeta("twitter:title", title);
         setMeta("twitter:description", description);
         setMeta("twitter:image", image);
-    }, [title, description, image, url, noIndex]);
+
+        // Structured Data (JSON-LD)
+        if (structuredData) {
+            let script = document.querySelector('script[type="application/ld+json"][data-seo="true"]');
+            if (!script) {
+                script = document.createElement("script");
+                script.setAttribute("type", "application/ld+json");
+                script.setAttribute("data-seo", "true");
+                document.head.appendChild(script);
+            }
+            script.textContent = JSON.stringify(structuredData);
+        } else {
+            // Remove if no structured data provided
+            const script = document.querySelector('script[type="application/ld+json"][data-seo="true"]');
+            if (script) {
+                script.remove();
+            }
+        }
+    }, [title, description, image, url, noIndex, structuredData]);
 };

@@ -15,6 +15,7 @@ import paymentRouter from "./routes/payment.routes.js";
 import { startCronJobs } from "./cron.js";
 import billingRouter from "./routes/billing.routes.js";
 import adminRouter from "./routes/admin.routes.js";
+import seoRouter from "./routes/seo.routes.js";
 
 const app = express();
 startCronJobs();
@@ -39,6 +40,7 @@ app.use("/api/analytics", analyticsRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/billing", billingRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api", seoRouter);
 
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;

@@ -404,3 +404,35 @@ export const uploadProfileController = async (req, res) => {
         });
     }
 };
+
+export const uploadBackgroundController = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No image uploaded",
+            });
+        }
+
+        const userId = req.user._id;
+        const imageUrl = req.file.path;
+
+        // Update appearance.bgImage and ensure bgType is set to 'image'
+        await User.findByIdAndUpdate(userId, { 
+            "appearance.bgImage": imageUrl,
+            "appearance.bgType": "image"
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Background updated successfully",
+            bgImage: imageUrl,
+        });
+    } catch (error) {
+        console.error("Background upload error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};

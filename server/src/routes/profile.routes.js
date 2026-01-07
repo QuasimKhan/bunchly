@@ -6,6 +6,7 @@ import {
     getPublicProfile,
     updateProfile,
     uploadProfileController,
+    uploadBackgroundController,
 } from "../controllers/profile.controller.js";
 import uploadProfile from "../middlewares/profileUpload.js";
 
@@ -24,6 +25,12 @@ profileRouter.post(
     requireAuth,
     uploadProfile.single("image"),
     uploadProfileController
+);
+profileRouter.post(
+    "/profile/upload-bg",
+    requireAuth,
+    uploadProfile.single("image"), // Frontend must use formData.append("image", file)
+    uploadBackgroundController
 );
 
 profileRouter.post("/change-password", requireAuth, changePassword);

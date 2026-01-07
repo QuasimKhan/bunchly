@@ -12,8 +12,17 @@ import {
     BarChart,
     Bar 
 } from "recharts";
+import { useSEO } from "../../hooks/useSEO";
+import { buildUrl } from "../../lib/seo";
 
 const AdminDashboard = () => {
+    useSEO({
+        title: "Admin Dashboard – Bunchly",
+        description: "Admin overview.",
+        noIndex: true, // Internal page
+        url: buildUrl("/admin"),
+    });
+
     const [stats, setStats] = useState(null);
     const [charts, setCharts] = useState({ userGrowth: [], revenue: [] });
     const [recentUsers, setRecentUsers] = useState([]);
