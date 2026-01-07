@@ -34,9 +34,11 @@ const Navbar = () => {
 
     return (
         <nav
-            className="w-[85%] mx-auto backdrop-blur-xl border border-white/20 dark:border-white/10 
-                        bg-white/50 dark:bg-black/30 rounded-2xl shadow-lg px-6 py-3 flex justify-between 
-                        items-center sticky top-10 z-50"
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50
+                        w-[90%] md:w-[85%] max-w-5xl
+                        backdrop-blur-xl border border-white/20 dark:border-white/10 
+                        bg-white/70 dark:bg-black/60 rounded-full shadow-xl 
+                        px-6 py-3 flex justify-between items-center transition-all duration-300"
         >
             {/* LOGO */}
             <Link

@@ -12,7 +12,7 @@ export const createLink = async (req, res) => {
         const { title, url, description } = req.body;
         let icon = req.body.icon;
 
-        if (!title || !url) {
+        if (!title || (!url && req.body.type !== "collection")) {
             return res.status(400).json({
                 success: false,
                 message: "Title and URL are required",
@@ -52,10 +52,12 @@ export const createLink = async (req, res) => {
         const link = await Link.create({
             userId,
             title,
-            url,
+            url: url || "", // collections might not have URL
             description: description || "",
             icon: icon || "",
             order,
+            type: req.body.type || "link",
+            parentId: req.body.parentId || null,
         });
 
         res.status(201).json({

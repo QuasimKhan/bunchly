@@ -324,6 +324,15 @@ export const login = async (req, res) => {
             });
         }
 
+        // Ban Check
+        if (user.flags && user.flags.isBanned) {
+            return res.status(403).json({
+                success: false,
+                message: "This account has been banned due to violation of our terms.",
+                isBanned: true
+            });
+        }
+
         if (!user.isVerified) {
             const rawToken = crypto.randomBytes(32).toString("hex");
             const hashedToken = await bcrypt.hash(rawToken, 12);
@@ -441,6 +450,9 @@ export const googleAuthCallback = async (req, res) => {
 
         //case1: already google user
         if (existingUser && existingUser.authProvider === "google") {
+            if (existingUser.flags && existingUser.flags.isBanned) {
+                 return res.redirect(`${ENV.CLIENT_URL}/login?error=account_banned`);
+            }
             req.session.userId = existingUser._id;
             return res.redirect(`${ENV.CLIENT_URL}/oauth/callback`);
         }
@@ -497,6 +509,15 @@ export const getMe = async (req, res) => {
             });
         }
 
+        if (user.flags && user.flags.isBanned) {
+            req.session.destroy(() => {});
+            return res.status(403).json({
+                success: false,
+                message: "Account banned",
+                isBanned: true
+            });
+        }
+
         res.status(200).json({
             success: true,
             message: "User Fetched successfully",
@@ -511,6 +532,7 @@ export const getMe = async (req, res) => {
                 authProvider: user.authProvider,
                 image: user.image,
                 bio: user.bio,
+                appearance: user.appearance,
                 isVerified: user.isVerified,
                 createdAt: user.createdAt,
             },

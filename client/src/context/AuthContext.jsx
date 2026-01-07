@@ -111,6 +111,7 @@ export const AuthProvider = ({ children }) => {
                 resendVerification,
                 logout,
                 fetchMe,
+                setUser, // Expose setUser
             }}
         >
             {children}

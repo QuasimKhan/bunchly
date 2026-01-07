@@ -4,43 +4,47 @@ import { ExternalLink } from "lucide-react";
 import { ICONS, ICON_COLOR } from "../../lib/iconPalette";
 
 const LinkFavicon = ({ url, icon, size = 32 }) => {
-    // ⭐ PRIORITY 1 — Custom Icon from DB (slug → icon component)
+    // ⭐ PRIORITY 0 — Custom Icon (URL)
+    const isCustomIcon = icon && (icon.startsWith("http") || icon.startsWith("data:"));
+
+    if (isCustomIcon) {
+        return (
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 shadow-sm overflow-hidden">
+                <img src={icon} alt="icon" className="w-full h-full object-cover" />
+            </div>
+        )
+    }
+
+    // ⭐ PRIORITY 1 — Icon Helper from Palette (slug)
     if (icon && icon.trim().length > 0) {
         const entry = ICONS.find((i) => i.slug === icon);
-
         if (entry) {
             const IconComp = entry.Comp;
             const color = ICON_COLOR[entry.slug] || "";
-
             return (
-                <div
-                    className="
-                w-8 h-8 sm:w-9 sm:h-9 
-                rounded-lg flex items-center justify-center
-                bg-gray-100 dark:bg-white/10
-                border border-gray-300 dark:border-white/20
-                shadow-sm
-            "
-                >
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 shadow-sm">
                     <IconComp className={`w-5 h-5 ${color}`} />
                 </div>
             );
         }
+    }
 
-        // fallback → if user sets emoji or text
-        <div
-            className="
-                    w-8 h-8 sm:w-9 sm:h-9 
-                    rounded-lg flex items-center justify-center
-                    bg-gray-100 dark:bg-white/10
-                    border border-gray-300 dark:border-white/20
-                    text-gray-700 dark:text-white 
-                    shadow-sm
-                    text-base select-none
-                "
-        >
-            {icon}
-        </div>;
+    // ⭐ PRIORITY 1.5 - Bunchly Icon (Internal)
+    // Supports bunchly.io, bunchly.in, bunchly.app, localhost
+    const isBunchly = url && (
+        url.includes("bunchly.io") || 
+        url.includes("bunchly.in") || 
+        url.includes("bunchly.app") || 
+        url.includes("localhost")
+    );
+    
+    if (isBunchly && !icon) {
+        return (
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-indigo-600 shadow-md shadow-indigo-200 dark:shadow-none text-white overflow-hidden p-1.5">
+                 {/* Use a simple svg or text if image not available, but user likely has logo.png */}
+                 <img src="/logo.png" alt="B" className="w-full h-full object-contain invert brightness-0" onError={(e) => e.target.style.display='none'} />
+            </div>
+        );
     }
 
     // ⭐ PRIORITY 2 — Favicon from URL

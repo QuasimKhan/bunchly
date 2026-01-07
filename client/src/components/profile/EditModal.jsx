@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import { X, Loader2, UploadCloud, CheckCircle, XCircle } from "lucide-react";
 import Button from "../ui/Button";
+import Modal from "../ui/Modal";
 import api from "../../lib/api";
 import getCroppedImg from "../../lib/cropImage.js";
 
@@ -187,36 +188,15 @@ export default function EditModal({
     };
 
     return (
-        <div
-            className="
-                fixed inset-0 z-[2000] 
-                bg-black/60 backdrop-blur-sm
-                flex items-center justify-center
-                p-4
-               overflow-y-auto
-            "
-            onClick={onClose}
-        >
-            {/* MODAL BOX */}
+        <Modal open={open} onClose={onClose}>
             <div
-                onClick={(e) => e.stopPropagation()}
                 className="
-                    w-full max-w-lg 
-                    max-h-[90vh] overflow-y-auto
-                    bg-white dark:bg-neutral-900
-                    border dark:border-neutral-700
-                    rounded-2xl p-5 relative shadow-2xl
+                    w-full 
+                    max-h-[85vh] overflow-y-auto custom-scrollbar
                 "
                 style={{ overscrollBehavior: "contain" }}
             >
-                <button
-                    onClick={onClose}
-                    className="absolute right-4 top-4 text-neutral-500 cursor-pointer hover:text-neutral-900 dark:hover:text-white"
-                >
-                    <X size={22} />
-                </button>
-
-                <h2 className="text-xl font-semibold mb-4 text-neutral-900 dark:text-white">
+                <h2 className="text-xl font-semibold mb-6 text-neutral-900 dark:text-white">
                     {label}
                 </h2>
 
@@ -233,15 +213,16 @@ export default function EditModal({
                                 document.getElementById("uploadInput")?.click()
                             }
                             className="
-                                w-full rounded-lg border-2 border-dashed 
+                                w-full rounded-xl border-2 border-dashed 
                                 border-neutral-300 dark:border-neutral-700
-                                bg-neutral-50 dark:bg-neutral-800
-                                py-6 px-3 flex flex-col items-center gap-3
+                                bg-neutral-50 dark:bg-neutral-800/50
+                                py-8 px-4 flex flex-col items-center gap-3
                                 cursor-pointer text-center
+                                hover:border-indigo-500/50 hover:bg-indigo-50/10 transition-all
                             "
                         >
-                            <UploadCloud className="w-10 h-10 opacity-70" />
-                            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                            <UploadCloud className="w-10 h-10 opacity-50" />
+                            <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
                                 Drag & drop or click to choose an image
                             </p>
                             <p className="text-xs text-neutral-400">
@@ -261,7 +242,7 @@ export default function EditModal({
                         {src && (
                             <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {/* Cropper */}
-                                <div className="md:col-span-2 w-full h-64 md:h-72 bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden relative">
+                                <div className="md:col-span-2 w-full h-64 md:h-72 bg-neutral-200 dark:bg-neutral-800 rounded-xl overflow-hidden relative border border-neutral-200 dark:border-neutral-700">
                                     <Cropper
                                         image={src}
                                         crop={crop}
@@ -276,7 +257,7 @@ export default function EditModal({
                                 {/* Controls */}
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm text-neutral-700 dark:text-neutral-300">
+                                        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                             Zoom
                                         </label>
                                         <input
@@ -292,11 +273,11 @@ export default function EditModal({
                                     </div>
 
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm text-neutral-700 dark:text-neutral-300">
+                                        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                             Aspect Ratio
                                         </label>
                                         <select
-                                            className="border p-2 rounded-md dark:bg-neutral-800 dark:border-neutral-600"
+                                            className="border p-2 rounded-lg bg-white dark:bg-neutral-800 dark:border-neutral-700 text-sm"
                                             value={aspect}
                                             onChange={(e) =>
                                                 setAspect(+e.target.value)
@@ -309,42 +290,23 @@ export default function EditModal({
                                             <option value={16 / 9}>16:9</option>
                                         </select>
                                     </div>
-
-                                    {/* Preview */}
-                                    {/* <div className="text-center">
-                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                            Preview
-                                        </p>
-                                        <div className="w-32 h-32 mx-auto mt-2 border rounded-lg overflow-hidden">
-                                            {previewUrl ? (
-                                                <img
-                                                    src={previewUrl}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-neutral-400">
-                                                    No preview
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div> */}
                                 </div>
                             </div>
                         )}
 
                         {/* Progress */}
                         {isUploading && (
-                            <div className="mt-5 bg-neutral-300 dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
+                            <div className="mt-5 bg-neutral-200 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                                 <div
                                     style={{ width: `${progress}%` }}
-                                    className="h-full bg-indigo-600 transition-all"
+                                    className="h-full bg-indigo-600 transition-all rounded-full"
                                 />
                             </div>
                         )}
 
                         {/* Buttons */}
-                        <div className="mt-5 flex justify-center items-center gap-3">
-                            <Button text="Cancel" onClick={onClose} />
+                        <div className="mt-6 flex justify-end items-center gap-3">
+                            <Button text="Cancel" variant="ghost" onClick={onClose} />
                             <Button
                                 text={
                                     isUploading
@@ -353,7 +315,7 @@ export default function EditModal({
                                 }
                                 onClick={handleSubmit}
                                 loading={isUploading}
-                                variant="danger"
+                                className="!bg-indigo-600 hover:!bg-indigo-700 text-white"
                                 disabled={!fileInputFile || !croppedAreaPixels}
                             />
                         </div>
@@ -369,9 +331,10 @@ export default function EditModal({
                             className="
                                 w-full px-4 py-3 rounded-xl 
                                 border border-neutral-300 dark:border-neutral-700
-                                bg-white dark:bg-neutral-800 
+                                bg-white dark:bg-neutral-900 
                                 text-neutral-900 dark:text-white
-                                focus:ring-2 ring-indigo-500 outline-none
+                                focus:ring-2 ring-indigo-500/50 outline-none
+                                transition-all
                             "
                         />
 
@@ -384,19 +347,19 @@ export default function EditModal({
                                     </span>
                                 )}
                                 {usernameStatus === "available" && (
-                                    <span className="flex text-green-600">
-                                        <CheckCircle className="w-10" />{" "}
+                                    <span className="flex text-emerald-600 items-center gap-1">
+                                        <CheckCircle className="w-4 h-4" />{" "}
                                         <span>Username available</span>
                                     </span>
                                 )}
                                 {usernameStatus === "taken" && (
-                                    <span className="flex text-red-500">
-                                        <XCircle className="w-10" />{" "}
+                                    <span className="flex text-red-500 items-center gap-1">
+                                        <XCircle className="w-4 h-4" />{" "}
                                         <span>Already taken</span>
                                     </span>
                                 )}
                                 {usernameStatus === "invalid" && (
-                                    <span className="text-yellow-600">
+                                    <span className="text-amber-500">
                                         Invalid username
                                     </span>
                                 )}
@@ -406,14 +369,14 @@ export default function EditModal({
                         <div className="flex justify-end gap-3 mt-6">
                             <Button
                                 text="Cancel"
+                                variant="ghost"
                                 onClick={onClose}
-                                className="!bg-neutral-300 dark:!bg-neutral-700"
                             />
                             <Button
                                 text="Save"
                                 loading={loading}
                                 onClick={handleSubmit}
-                                className="!bg-indigo-600 text-white"
+                                className="!bg-indigo-600 hover:!bg-indigo-700 text-white"
                                 disabled={
                                     field === "username" &&
                                     ["invalid", "taken", "checking"].includes(
@@ -425,6 +388,6 @@ export default function EditModal({
                     </>
                 )}
             </div>
-        </div>
+        </Modal>
     );
 }

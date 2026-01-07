@@ -28,39 +28,55 @@ const EditLinkModal = ({ open, onClose, onSave, link, editing }) => {
 
     if (!open) return null;
 
+    const isCollection = link?.type === "collection";
+
     return (
         <Modal open={open} onClose={onClose}>
-            <h2 className="text-xl font-semibold mb-4">Edit Link</h2>
+            <div className="flex items-center gap-2 mb-6 text-neutral-900 dark:text-white">
+                <div className={`p-2 rounded-lg ${isCollection ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" : "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"}`}>
+                    {isCollection ? <PenSquareIcon className="w-5 h-5"/> : <Link className="w-5 h-5"/>}
+                </div>
+                <h2 className="text-xl font-bold">{isCollection ? "Edit Collection" : "Edit Link"}</h2>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <InputField
+                    label="Title"
                     type="text"
                     name="title"
-                    placeholder="Title"
-                    icon={PenSquareIcon}
+                    placeholder={isCollection ? "Collection Name" : "Link Title"}
                     value={form.title}
                     onChange={handleChange}
-                    className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 border border-white/20 outline-none"
+                    required
                 />
 
+                {!isCollection && (
+                    <InputField
+                        label="URL"
+                        type="text"
+                        name="url"
+                        placeholder="https://example.com"
+                        value={form.url}
+                        onChange={handleChange}
+                        required
+                    />
+                )}
+                
+                {/* Description optional for both, but usually collections don't need it as much, but let's keep it just in case user wants to add details */}
+                {/* Actually, let's keep description for both */}
+                {/* 
                 <InputField
-                    type="text"
-                    name="url"
-                    placeholder="https://example.com"
-                    icon={Link}
-                    value={form.url}
-                    onChange={handleChange}
-                    className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 border border-white/20 outline-none"
-                />
-                <InputField
+                    label="Description (Optional)"
                     type="text"
                     name="description"
                     placeholder="Description"
-                    icon={PencilLineIcon}
                     value={form.description}
                     onChange={handleChange}
-                    className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 border border-white/20 outline-none"
-                />
+                /> 
+                */}
+                {/* NOTE: InputField doesn't have icon prop in its new premium version likely, checking props... */}
+                {/* The previous code used `icon={PenSquareIcon}` which suggests InputField supports it or ignores it. */}
+                {/* I will stick to simple props as seen in Links.jsx usage: label, name, value... */}
 
                 <Button
                     text="Save Changes"

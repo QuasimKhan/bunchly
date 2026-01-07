@@ -1,4 +1,4 @@
-// src/pages/Links.jsx
+
 import React, { useEffect, useState } from "react";
 import {
     getLinks,
@@ -12,21 +12,23 @@ import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import LinkCard from "../components/link-card/LinkCard";
 import SortableLink from "../components/links/SortableLink";
+import CollectionItem from "../components/links/CollectionItem";
 import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
 import EditLinkModal from "../components/links/EditLinkModal";
 
 import { toast } from "sonner";
-import { Eye, Link, ListPlus, PencilLineIcon, SquarePen } from "lucide-react";
+import { Eye, Link as LinkIcon, Plus, LayoutGrid, Type, FolderPlus, Smartphone, X } from "lucide-react";
 
 import IconPickerDrawer from "../components/icon-picker/IconPickerDrawer";
 
-// Drag & Drop imports
+// Drag & Drop
 import {
     DndContext,
     closestCenter,
     PointerSensor,
     useSensor,
     useSensors,
+    DragOverlay
 } from "@dnd-kit/core";
 
 import {
@@ -35,17 +37,19 @@ import {
     arrayMove,
 } from "@dnd-kit/sortable";
 import InputField from "../components/ui/InputField";
-import { PreviewModal } from "../components/preview/PreviewModal";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_LIMITS } from "../lib/planLimits.js";
+import LivePreview from "../components/preview/LivePreview";
 import PaywallCard from "../components/paywall/PaywallCard.jsx";
 
 const Links = () => {
     const [links, setLinks] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // MODALS
+    const [addMenuOpen, setAddMenuOpen] = useState(false); // New "Add" dropdown/modal
     const [openModal, setOpenModal] = useState(false);
-    const [form, setForm] = useState({ title: "", url: "", description: "" });
+    const [form, setForm] = useState({ title: "", url: "", description: "", type: "link", parentId: null });
     const [error, setError] = useState("");
     const [creating, setCreating] = useState(false);
 
@@ -57,391 +61,350 @@ const Links = () => {
     const [editData, setEditData] = useState(null);
     const [editing, setEditing] = useState(false);
 
-    // ICON PICKER state
+    // ICON PICKER
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
-    const [iconPickerFor, setIconPickerFor] = useState(null); // link object
+    const [iconPickerFor, setIconPickerFor] = useState(null); 
 
-    //PREVIEW LINK
-    const [previewModalOpen, setPreviewModalOpen] = useState(false);
+    // MOBILE PREVIEW TOGGLE
+    const [showMobilePreview, setShowMobilePreview] = useState(false);
 
-    // DND Sensors
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-    );
-
-    // user
     const { user } = useAuth();
-    // Fetch links
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+    const [activeDragItem, setActiveDragItem] = useState(null);
+
+    // FETCH
     const fetchLinks = async () => {
         try {
             setLoading(true);
             const data = await getLinks();
             setLinks(data);
         } catch {
-            toast.error("Failed to fetch links");
+            toast.error("Failed to load content");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchLinks();
-    }, []);
+    useEffect(() => { fetchLinks(); }, []);
 
-    // Handle Add Form changes
+    // TOGGLE ACTIVE
+    const handleToggle = async (id, checked) => {
+        // Optimistic
+        setLinks(prev => prev.map(l => l._id === id ? { ...l, isActive: checked } : l));
+        try {   
+            await updateLink(id, { isActive: checked }); 
+        } catch {
+            setLinks(prev => prev.map(l => l._id === id ? { ...l, isActive: !checked } : l)); // Revert
+            toast.error("Failed to update");
+        }
+    };
+
+    // HANDLE FORM CHANGE
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    // Create new link
-    const handleCreateLink = async (e) => {
+    // CREATE
+    const handleCreate = async (e) => {
         e.preventDefault();
-
         setCreating(true);
         setError("");
-
-        if (!form.title.trim() || !form.url.trim()) {
-            setError("Title and URL are required");
-            return;
+        
+        if (form.type === 'link' && (!form.title.trim() || !form.url.trim())) {
+            setError("Title and URL are required"); setCreating(false); return;
+        }
+        if (form.type === 'collection' && !form.title.trim()) {
+             setError("Collection title is required"); setCreating(false); return;
         }
 
         try {
             await createLink(form);
-            toast.success("Link created successfully");
+            toast.success(`${form.type === 'collection' ? 'Collection' : 'Link'} created`);
             setOpenModal(false);
-            setForm({ title: "", url: "", description: "" });
             fetchLinks();
-        } catch (error) {
-            if (error.response.data.code === "PLAN_LIMIT_REACHED") {
-                toast.error(
-                    error.response.data.message || "Plan limit reached"
-                );
-            } else {
-                toast.error("Failed to create link");
-            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to create");
         } finally {
             setCreating(false);
         }
     };
 
-    // Confirm delete
-    const confirmDelete = async () => {
-        setDeleting(true);
-        try {
-            await deleteLink(deleteId);
-            toast.success("Link deleted");
-            fetchLinks();
-        } catch {
-            toast.error("Failed to delete link");
-        } finally {
-            setDeleting(false);
-            setDeleteModalOpen(false);
-            setDeleteId(null);
-        }
+    // REORDER
+    const handleDragStart = (event) => {
+        const { active } = event;
+        setActiveDragItem(links.find(l => l._id === active.id));
     };
 
-    // Handle drag-drop sorting
     const handleDragEnd = async ({ active, over }) => {
-        if (!over) return;
+        setActiveDragItem(null);
+        if (!over || active.id === over.id) return;
 
-        if (active.id !== over.id) {
-            const oldIndex = links.findIndex((l) => l._id === active.id);
-            const newIndex = links.findIndex((l) => l._id === over.id);
+        const oldIndex = links.findIndex((l) => l._id === active.id);
+        const newIndex = links.findIndex((l) => l._id === over.id);
+        
+        // Safety check
+        if (oldIndex === -1 || newIndex === -1) return;
 
-            const newOrder = arrayMove(links, oldIndex, newIndex);
+        // Perform reorder in memory
+        const newOrder = arrayMove(links, oldIndex, newIndex);
+        setLinks(newOrder); // Optimistic UI update
 
-            // update UI instantly
-            setLinks(newOrder);
-
-            // prepare orderedIds as strings (defensive)
-            const orderedIds = newOrder.map((l) => String(l._id));
-
-            // send to backend and handle errors by reverting UI
-            try {
-                const res = await reorderLinks(orderedIds);
-
-                // Optional: if backend returns canonical ordered list, sync it
-                if (res?.data?.data) {
-                    setLinks(res.data.data);
-                }
-            } catch (err) {
-                toast.error(err.message);
-                // revert to server state (safe)
-                fetchLinks();
-            }
-        }
-    };
-
-    // -----------------------
-    // Icon Picker helpers
-    // -----------------------
-    const openIconPicker = (link) => {
-        setIconPickerFor(link);
-        setIconPickerOpen(true);
-    };
-
-    const closeIconPicker = () => {
-        setIconPickerFor(null);
-        setIconPickerOpen(false);
-    };
-
-    const handleIconSelect = async (slug) => {
-        if (!iconPickerFor) return;
-        const id = iconPickerFor._id;
         try {
-            await updateLink(id, { icon: slug });
-            toast.success("Icon updated");
-            closeIconPicker();
-            // update local state optimistically or refetch
-            // we choose to update local list quickly:
-            setLinks((prev) =>
-                prev.map((l) => (l._id === id ? { ...l, icon: slug } : l))
-            );
+            // Send the entire list of IDs to backend. 
+            // The backend sets order: i+1 for each ID.
+            // Since newOrder reflects the exact state of the UI (which respects nesting via parentId),
+            // this "one-dimensional" reorder works perfectly for both Root and Nested items visually.
+            const orderedIds = newOrder.map(l => String(l._id));
+            await reorderLinks(orderedIds);
         } catch {
-            toast.error("Failed to update icon");
+            setLinks(links); // Revert on failure
+            toast.error("Failed to reorder");
         }
     };
 
-    const isFreeLimitReached =
-        user.plan === "free" && links.length >= PLAN_LIMITS.free.maxLinks;
+    // UTILS
+    const openCreateModal = (type, parentId = null) => {
+        setForm({ title: "", url: "", description: "", type, parentId });
+        setOpenModal(true);
+        setAddMenuOpen(false);
+    };
+
+    const isFreeLimitReached = user.plan === "free" && links.length >= PLAN_LIMITS.free.maxLinks;
+
+    // RENDER HELPERS
+    const rootLinks = links.filter(l => !l.parentId);
 
     return (
-        <div className="max-w-3xl mx-auto px-4">
-            {/* HEADER */}
-            <div className="flex justify-between items-center mb-6 mt-4">
-                <h1 className="text-3xl font-bold">Your Links</h1>
+        <div className="flex h-[calc(100vh-80px)] overflow-hidden">
+            
+            {/* LEFT PANEL: EDITOR */}
+            <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 lg:p-10 pb-32">
+                 <div className="max-w-2xl mx-auto space-y-8">
+                     
+                     {/* Header */}
+                     <header className="flex items-center justify-between">
+                         <h1 className="text-3xl font-bold font-heading text-neutral-900 dark:text-white">Content</h1>
+                         
+                         {/* Mobile Preview Toggle */}
+                         <button 
+                            className="lg:hidden p-2 text-neutral-500 hover:text-indigo-600 transition-colors"
+                            onClick={() => setShowMobilePreview(true)}
+                        >
+                             <Eye className="w-6 h-6" />
+                         </button>
+                     </header>
 
-                <div className="flex gap-4">
-                    <Button
-                        icon={Eye}
-                        size="md"
-                        text="Preview"
-                        tooltip="Preview"
-                        onClick={() => setPreviewModalOpen(true)}
-                    />
+                    {/* Add Buttons */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            disabled={isFreeLimitReached}
+                            onClick={() => openCreateModal('link')}
+                            className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Plus className="w-6 h-6" />
+                            </div>
+                            <span className="font-semibold text-neutral-900 dark:text-neutral-100">Add Link</span>
+                        </button>
 
-                    <Button
-                        icon={ListPlus}
-                        size="md"
-                        tooltip={
-                            isFreeLimitReached
-                                ? "Upgrade to Pro to add more links"
-                                : "Add Link"
-                        }
-                        onClick={() => {
-                            if (isFreeLimitReached) return;
-                            setError("");
-                            setOpenModal(true);
-                        }}
-                        disabled={isFreeLimitReached}
-                        className="
-        bg-indigo-600! hover:bg-indigo-700! text-white 
-        shadow-lg shadow-indigo-500/20
-        disabled:opacity-50 disabled:cursor-not-allowed
-    "
-                    />
-                </div>
-            </div>
-            <div className="flex justify-center items-center mb-2">
-                {isFreeLimitReached && (
-                    <PaywallCard
-                        title="Link limit reached"
-                        description={`Free plan allows up to ${PLAN_LIMITS.free.maxLinks} links.`}
-                        ctaText="Upgrade to Pro for unlimited links"
-                    />
-                )}
-            </div>
-
-            {/* LOADING */}
-            {loading && (
-                <p className="text-gray-500 text-center">
-                    Loading your links...
-                </p>
-            )}
-
-            {/* EMPTY STATE */}
-            {!loading && links.length === 0 && (
-                <div className="text-center mt-10">
-                    <p className="text-gray-500">
-                        You haven't added any links yet.
-                    </p>
-                </div>
-            )}
-
-            {/* LIST + DRAG & DROP */}
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-            >
-                <SortableContext
-                    items={links.map((l) => l._id)}
-                    strategy={verticalListSortingStrategy}
-                >
-                    <div className="flex flex-col gap-4">
-                        {links.map((link) => (
-                            <SortableLink key={link._id} id={link._id}>
-                                <LinkCard
-                                    link={link}
-                                    onToggle={async (id, checked) => {
-                                        const previous = links.find(
-                                            (l) => l._id === id
-                                        )?.isActive;
-
-                                        // Optimistic UI update
-                                        setLinks((prev) =>
-                                            prev.map((l) =>
-                                                l._id === id
-                                                    ? {
-                                                          ...l,
-                                                          isActive: checked,
-                                                      }
-                                                    : l
-                                            )
-                                        );
-
-                                        try {
-                                            await updateLink(id, {
-                                                isActive: checked,
-                                            });
-                                            toast.success(
-                                                checked
-                                                    ? "Link is now active"
-                                                    : "Link is now hidden"
-                                            );
-                                        } catch (error) {
-                                            // Revert on error
-                                            setLinks((prev) =>
-                                                prev.map((l) =>
-                                                    l._id === id
-                                                        ? {
-                                                              ...l,
-                                                              isActive:
-                                                                  previous,
-                                                          }
-                                                        : l
-                                                )
-                                            );
-                                            toast.error(
-                                                "Failed to update link visibility" |
-                                                    error.message
-                                            );
-                                        }
-                                    }}
-                                    onEdit={(item) => {
-                                        setEditData(item);
-                                        setEditModalOpen(true);
-                                    }}
-                                    onDelete={(id) => {
-                                        setDeleteId(id);
-                                        setDeleteModalOpen(true);
-                                    }}
-                                    onOpenIconPicker={(l) => openIconPicker(l)}
-                                />
-                            </SortableLink>
-                        ))}
+                        <button
+                            onClick={() => openCreateModal('collection')}
+                            className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-all group"
+                        >
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <FolderPlus className="w-6 h-6" />
+                            </div>
+                            <span className="font-semibold text-neutral-900 dark:text-neutral-100">Add Collection</span>
+                        </button>
                     </div>
-                </SortableContext>
-            </DndContext>
 
-            {/* ADD LINK MODAL */}
+                    {/* Limit Warning */}
+                    {isFreeLimitReached && (
+                        <PaywallCard 
+                            title="Limit Reached" 
+                            description="Upgrade to Pro to add unlimited links and unlock advanced features." 
+                            compact
+                        />
+                    )}
+
+                    {/* Content List */}
+                    <div className="space-y-4 min-h-[200px]">
+                        {loading ? (
+                             <div className="flex justify-center p-10"><span className="loading loading-spinner loading-md"></span></div>
+                        ) : links.length === 0 ? (
+                            <div className="text-center py-12 text-neutral-500">
+                                <TypingPlaceholder />
+                                <p className="mt-4">Start by adding your first link or collection.</p>
+                            </div>
+                        ) : (
+                            <DndContext 
+                                sensors={sensors} 
+                                collisionDetection={closestCenter} 
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext items={rootLinks.map(l => l._id)} strategy={verticalListSortingStrategy}>
+                                    <div className="flex flex-col gap-4">
+                                        {rootLinks.map((link) => (
+                                            <SortableLink key={link._id} id={link._id}>
+                                                {link.type === 'collection' ? (
+                                                    <CollectionItem
+                                                        link={link}
+                                                        childrenLinks={links.filter(l => l.parentId === link._id)}
+                                                        onToggle={handleToggle}
+                                                        onEdit={(item) => { setEditData(item); setEditModalOpen(true); }}
+                                                        onDelete={(id) => { setDeleteId(id); setDeleteModalOpen(true); }}
+                                                        onAddChild={(pid) => openCreateModal('link', pid)}
+                                                        onOpenIconPicker={(l) => { setIconPickerFor(l); setIconPickerOpen(true); }}
+                                                    />
+                                                ) : (
+                                                    <LinkCard 
+                                                        link={link}
+                                                        onToggle={handleToggle}
+                                                        onEdit={(item) => { setEditData(item); setEditModalOpen(true); }}
+                                                        onDelete={(id) => { setDeleteId(id); setDeleteModalOpen(true); }}
+                                                        onOpenIconPicker={(l) => { setIconPickerFor(l); setIconPickerOpen(true); }}
+                                                    />
+                                                )}
+                                            </SortableLink>
+                                        ))}
+                                    </div>
+                                </SortableContext>
+                                <DragOverlay>
+                                    {activeDragItem ? (
+                                         <div className="opacity-90 scale-105">
+                                             {/* Simplified Drag Preview */}
+                                             <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl shadow-xl border border-indigo-500">
+                                                 {activeDragItem.title}
+                                             </div>
+                                         </div>
+                                    ) : null}
+                                </DragOverlay>
+                            </DndContext>
+                        )}
+                    </div>
+
+                 </div>
+            </div>
+
+            {/* RIGHT PANEL: LIVE PREVIEW (Desktop) */}
+            {/* RIGHT PANEL: LIVE PREVIEW (Desktop) */}
+<div className="hidden lg:flex w-[420px] border-l border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0F0F14] justify-center pt-10 overflow-y-auto custom-scrollbar">
+    <div className="sticky top-10 h-fit scale-[0.9] xl:scale-[0.85] 2xl:scale-[0.8] transition-transform">
+        
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-4 py-1.5 rounded-full shadow-sm text-xs font-medium text-neutral-500 z-10">
+            Live Preview
+        </div>
+
+        {/* Phone Mockup */}
+        <div className="bg-neutral-900 rounded-[2.75rem] border-[6px] border-neutral-900 p-2 shadow-2xl h-[560px] w-[320px] mx-auto overflow-hidden relative ring-1 ring-white/10">
+            
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6 bg-neutral-900 rounded-b-2xl z-20" />
+
+            {/* Screen */}
+            <div className="w-full h-full bg-white dark:bg-neutral-950 rounded-[2.3rem] overflow-hidden">
+                <LivePreview user={user} links={links} />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+            {/* MOBILE PREVIEW MODAL */}
+            {showMobilePreview && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowMobilePreview(false)}>
+                     <div className="relative w-full max-w-sm h-[80vh] bg-white dark:bg-neutral-900 rounded-3xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                         <button onClick={() => setShowMobilePreview(false)} className="absolute top-4 right-4 z-50 p-2 bg-black/50 text-white rounded-full"><X className="w-5 h-5"/></button>
+                         <LivePreview user={user} links={links} />
+                     </div>
+                </div>
+            )}
+
+            {/* --- MODALS --- */}
+
+            {/* Create/Add Modal */}
             <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                <h2 className="text-xl font-semibold mb-4">Add New Link</h2>
-
-                {error && <p className="text-red-500 mb-2">{error}</p>}
-
-                <form onSubmit={handleCreateLink} className="space-y-4">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                    {form.type === 'collection' ? <FolderPlus className="w-6 h-6 text-indigo-500"/> : <LinkIcon className="w-6 h-6 text-indigo-500"/> }
+                    {form.type === 'collection' ? 'New Collection' : 'New Link'} 
+                    {form.parentId && <span className="text-sm font-normal text-neutral-400 ml-2">(Inside Collection)</span>}
+                </h2>
+                
+                <form onSubmit={handleCreate} className="space-y-4">
                     <InputField
-                        type="text"
-                        name="title"
-                        placeholder="Title"
-                        icon={SquarePen}
-                        value={form.title}
-                        onChange={handleChange}
-                        className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 
-                            border border-white/20 outline-none"
+                         label="Title"
+                         name="title"
+                         value={form.title}
+                         onChange={handleChange}
+                         placeholder={form.type === 'collection' ? "e.g. My Music" : "e.g. My Portfolio"}
+                         required
                     />
-
-                    <InputField
-                        type="text"
-                        name="url"
-                        placeholder="https://example.com"
-                        icon={Link}
-                        value={form.url}
-                        onChange={handleChange}
-                        className="w-full p-3 rounded-xl bg-white/10 dark:bg-white/5 
-                            border border-white/20 outline-none"
-                    />
-                    <InputField
-                        type="text"
-                        name="description"
-                        placeholder="Description (optional)"
-                        icon={PencilLineIcon}
-                        value={form.description}
-                        onChange={handleChange}
-                    />
-
-                    <Button
-                        text="Create Link"
-                        type="submit"
-                        fullWidth
-                        size="md"
-                        loading={creating}
-                        className="bg-indigo-600! hover:bg-indigo-700! text-white 
-                            shadow-lg shadow-indigo-500/20"
-                        disabled={creating}
-                        tooltip="Submit"
-                    />
+                    
+                    {form.type !== 'collection' && (
+                        <InputField
+                            label="URL"
+                            name="url"
+                            value={form.url}
+                            onChange={handleChange}
+                            placeholder="https://"
+                            required
+                        />
+                    )}
+                    
+                    <div className="flex justify-end gap-3 mt-6">
+                         <Button text="Cancel" variant="ghost" onClick={() => setOpenModal(false)} />
+                         <Button text="Create" type="submit" loading={creating} variant="primary" />
+                    </div>
                 </form>
             </Modal>
 
-            {/* DELETE MODAL */}
-            <DeleteConfirmModal
+            <EditLinkModal 
+                open={editModalOpen} 
+                link={editData} 
+                onClose={() => setEditModalOpen(false)} 
+                onSave={async (updated) => {
+                     setEditing(true);
+                     try { await updateLink(editData._id, updated); fetchLinks(); setEditModalOpen(false); toast.success("Updated"); }
+                     catch { toast.error("Failed"); } finally { setEditing(false); }
+                }}
+            />
+
+            <DeleteConfirmModal 
                 open={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
+                onConfirm={async () => {
+                     setDeleting(true);
+                     try { await deleteLink(deleteId); fetchLinks(); toast.success("Deleted"); }
+                     catch { toast.error("Failed"); } finally { setDeleting(false); setDeleteModalOpen(false); }
+                }}
                 deleting={deleting}
             />
 
-            {/* EDIT MODAL */}
-            <EditLinkModal
-                open={editModalOpen}
-                link={editData}
-                onClose={() => setEditModalOpen(false)}
-                onSave={async (updated) => {
-                    setEditing(true);
-                    try {
-                        await updateLink(editData._id, updated);
-                        toast.success("Link updated");
-                        setEditModalOpen(false);
-                        fetchLinks();
-                    } catch {
-                        toast.error("Failed to update link");
-                    } finally {
-                        setEditing(false);
-                    }
-                }}
-                editing={editing}
-                onOpenIconPicker={(link) => openIconPicker(link)} // optional integration
-            />
-
-            {/* ICON PICKER DRAWER */}
-            <IconPickerDrawer
+            <IconPickerDrawer 
                 open={iconPickerOpen}
-                initial={iconPickerFor?.icon}
-                onClose={closeIconPicker}
-                onSelect={handleIconSelect}
+                onClose={() => setIconPickerOpen(false)}
+                onSelect={async (slug) => {
+                    if (!iconPickerFor) return;
+                    try { 
+                        setLinks(prev => prev.map(l => l._id === iconPickerFor._id ? { ...l, icon: slug } : l));
+                        await updateLink(iconPickerFor._id, { icon: slug }); 
+                        setIconPickerOpen(false); 
+                    } catch { toast.error("Failed to set icon"); fetchLinks(); }
+                }}
             />
 
-            {/* Preview modal  */}
-            <PreviewModal
-                isOpen={previewModalOpen}
-                onClose={() => setPreviewModalOpen(false)}
-                user={user}
-                links={links}
-            />
         </div>
     );
 };
+
+// Simple placeholder
+const TypingPlaceholder = () => (
+    <div className="flex gap-1 justify-center opacity-30">
+        <div className="w-2 h-2 bg-black dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+        <div className="w-2 h-2 bg-black dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+        <div className="w-2 h-2 bg-black dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+    </div>
+)
 
 export default Links;

@@ -117,6 +117,49 @@ export const getAnalytics = async (req, res) => {
             { $sort: { count: -1 } },
         ]);
 
+        /* ---------------- CLICKS OVER TIME ---------------- */
+        const clicksOverTime = await LinkClick.aggregate([
+            {
+                $match: {
+                    userId,
+                    createdAt: { $gte: fromDate },
+                },
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+
+        /* ---------------- OS BREAKDOWN ---------------- */
+        const osBreakdown = await LinkClick.aggregate([
+            { $match: { userId, createdAt: { $gte: fromDate } } },
+            { $group: { _id: "$os", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+        ]);
+
+        /* ---------------- REFERRER BREAKDOWN ---------------- */
+        const referrerBreakdown = await LinkClick.aggregate([
+            { $match: { userId, createdAt: { $gte: fromDate } } },
+            { $group: { _id: "$referrer", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+        ]);
+
+         /* ---------------- CITY BREAKDOWN ---------------- */
+         // Using LinkClick or ProfileView? Context has city in LinkClick now.
+         // Let's use LinkClick for stronger signal.
+         const cityBreakdown = await LinkClick.aggregate([
+            { $match: { userId, createdAt: { $gte: fromDate } } },
+            { $group: { _id: "$city", count: { $sum: 1 } } },
+            { $match: { _id: { $ne: "Unknown" } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+        ]);
+
         return res.status(200).json({
             success: true,
             data: {
@@ -127,6 +170,10 @@ export const getAnalytics = async (req, res) => {
                 topCountries,
                 deviceBreakdown,
                 browserUsage,
+                clicksOverTime,
+                osBreakdown,       // Added
+                referrerBreakdown, // Added
+                cityBreakdown,     // Added
             },
         });
     } catch (error) {

@@ -25,6 +25,14 @@ import { useCookieConsent } from "./hooks/useCookieConsent.js";
 import { loadAnalytics } from "./lib/analytics.js";
 import ConsentBanner from "./components/ConsentBanner.jsx";
 import Privacy from "./pages/Privacy.jsx";
+import AdminRoute from "./components/auth/AdminRoute.jsx";
+import AdminLayout from "./layouts/AdminLayout.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import AdminUsers from "./pages/admin/AdminUsers.jsx";
+import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
+
+import Appearance from "./pages/Appearance.jsx";
+import AdminPayments from "./pages/admin/AdminPayments.jsx";
 
 const App = () => {
     const { user } = useAuth();
@@ -69,6 +77,10 @@ const App = () => {
 
                         <Route path="/dashboard/links" element={<Links />} />
                         <Route
+                            path="/dashboard/appearance"
+                            element={<Appearance />}
+                        />
+                        <Route
                             path="/dashboard/profile"
                             element={<Profile user={user} />}
                         />
@@ -85,8 +97,16 @@ const App = () => {
                             path="/dashboard/settings"
                             element={<SettingsDashboard user={user} />}
                         />
+                    </Route>
 
-                        {/* Later add: Links, Appearance, Analytics, Settings */}
+                    {/* Admin Routes */}
+                    <Route element={<AdminRoute />}>
+                        <Route element={<AdminLayout />}>
+                            <Route path="/admin" element={<AdminDashboard />} />
+                            <Route path="/admin/users" element={<AdminUsers />} />
+                            <Route path="/admin/users/:id" element={<AdminUserDetail />} />
+                            <Route path="/admin/payments" element={<AdminPayments />} />
+                        </Route>
                     </Route>
                 </Route>
 

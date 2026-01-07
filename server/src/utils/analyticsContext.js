@@ -17,5 +17,6 @@ export const getAnalyticsContext = (req) => {
         device: ua.device.type || "desktop", // mobile / tablet / desktop
         os: ua.os.name || "Unknown",
         browser: ua.browser.name || "Unknown",
+        referrer: req.headers["referer"] || "Direct",
     };
 };

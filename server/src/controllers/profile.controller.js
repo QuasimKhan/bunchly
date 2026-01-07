@@ -83,6 +83,15 @@ export const getPublicProfile = async (req, res) => {
                 message: "User not found",
             });
         }
+
+        // Banned Check (Treat as 404 or Suspended)
+        if (user.flags && user.flags.isBanned) {
+            return res.status(404).json({
+                success: false,
+                message: "This account has been suspended due to policy violations.",
+                isBanned: true
+            });
+        }
     } catch (err) {
         console.error("Public profile lookup failed:", err);
         return res.status(404).json({
@@ -107,6 +116,7 @@ export const getPublicProfile = async (req, res) => {
         isVerified: user.isVerified,
         createdAt: user.createdAt,
         profileViews: (user.profileViews || 0) + 1, // optimistic UI
+        appearance: user.appearance,
     };
 
     let links = [];
@@ -270,6 +280,15 @@ export const updateProfile = async (req, res) => {
 
         if (updates.plan !== undefined) {
             user.plan = updates.plan;
+        }
+
+        // update appearance
+        if (updates.appearance !== undefined) {
+            // merge existing appearance with updates to avoid overwriting missing keys
+            user.appearance = {
+                ...user.appearance,
+                ...updates.appearance,
+            };
         }
 
         await user.save();

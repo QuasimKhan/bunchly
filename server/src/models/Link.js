@@ -27,7 +27,7 @@ const linkSchema = new mongoose.Schema(
 
         url: {
             type: String,
-            required: true,
+            default: "", // Changed from required: true to support collections
             trim: true,
         },
         order: {
@@ -41,6 +41,17 @@ const linkSchema = new mongoose.Schema(
         clicks: {
             type: Number,
             default: 0,
+        },
+        type: {
+            type: String,
+            enum: ["link", "collection"],
+            default: "link",
+        },
+        parentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Link",
+            default: null,
+            index: true,
         },
     },
     { timestamps: true }

@@ -19,6 +19,7 @@ const linkClickSchema = new mongoose.Schema(
         device: String,
         os: String,
         browser: String,
+        referrer: String, // Source of the click (e.g. instagram, twitter)
     },
     { timestamps: true }
 );

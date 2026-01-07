@@ -1,100 +1,117 @@
 import AnimateOnScroll from "../AnimateOnScroll";
 import Button from "../ui/Button";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import dashboardMockup from "../../assets/premium_dashboard.png";
 
 const Hero = () => {
     const navigate = useNavigate();
 
     return (
-        <section className="relative pt-28 sm:pt-36  px-5 sm:px-6 text-center overflow-hidden">
-            {/* Subtle background glow (softer on mobile) */}
-            <div className="absolute inset-0 -z-10 flex justify-center">
-                <div
-                    className="
-                        w-[420px] h-[420px]
-                        sm:w-[600px] sm:h-[600px]
-                        bg-indigo-500/10
-                        blur-[100px]
-                        rounded-full
-                    "
-                />
+        <section className="relative pt-24 pb-12 sm:pt-40 sm:pb-32 px-5 sm:px-6 text-center overflow-hidden">
+            {/* Premium Aurora Background */}
+            <div className="absolute inset-0 -z-10 bg-white dark:bg-[#050505]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] sm:h-[800px] opacity-40 dark:opacity-20 pointer-events-none">
+                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/20 via-purple-500/10 to-transparent blur-3xl" />
+                </div>
+                 {/* Orbs - reduced size on mobile */}
+                <div className="absolute top-[10%] left-[10%] w-48 h-48 sm:w-72 sm:h-72 bg-indigo-500/30 rounded-full blur-[80px] sm:blur-[100px] mix-blend-screen animate-float" />
+                <div className="absolute top-[20%] right-[10%] w-60 h-60 sm:w-96 sm:h-96 bg-purple-500/20 rounded-full blur-[90px] sm:blur-[120px] mix-blend-screen animate-float" style={{ animationDelay: "2s" }} />
             </div>
 
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-7xl mx-auto flex flex-col items-center">
+                {/* Badge */}
                 <AnimateOnScroll>
-                    <h1
-                        className="
-                            text-[2.4rem] leading-tight
-                            sm:text-5xl md:text-6xl
-                            font-extrabold tracking-tight
-                            bg-gradient-to-r
-                            from-indigo-600 via-purple-600 to-pink-500
-                            bg-clip-text text-transparent
-                        "
-                    >
-                        One Link.
-                        <span className="block sm:inline">
-                            {" "}
-                            Every Identity.
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm backdrop-blur-sm mb-6 sm:mb-8 transition-transform hover:scale-105 cursor-default">
+                        <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                        <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
+                             v2.0 is now live
                         </span>
-                    </h1>
+                    </div>
                 </AnimateOnScroll>
 
                 <AnimateOnScroll delay={0.1}>
-                    <p
+                    <h1
                         className="
-                            mt-5 sm:mt-6
-                            text-base sm:text-lg md:text-xl
-                            text-gray-600 dark:text-gray-300
-                            max-w-xl sm:max-w-2xl
-                            mx-auto
-                            leading-relaxed
+                            text-4xl sm:text-6xl md:text-7xl lg:text-8xl
+                            font-bold tracking-tight
+                            text-gray-900 dark:text-white
+                            max-w-5xl mx-auto
+                            leading-[1.1]
+                            mb-4 sm:mb-6
                         "
                     >
-                        Bunchly helps creators, professionals, and brands share
-                        everything they do through a single, beautifully crafted
-                        link page.
-                    </p>
+                        One Link. <br className="hidden sm:block" />
+                        <span className="text-gradient-premium block sm:inline mt-1 sm:mt-0">Every Identity.</span>
+                    </h1>
                 </AnimateOnScroll>
 
                 <AnimateOnScroll delay={0.2}>
-                    <div
+                    <p
                         className="
-                            mt-10 sm:mt-12
-                            flex flex-col sm:flex-row
-                            items-center justify-center
-                            gap-4 sm:gap-4
-
+                            text-base sm:text-xl md:text-2xl
+                            text-gray-600 dark:text-gray-400
+                            max-w-2xl mx-auto
+                            leading-relaxed
+                            mb-8 sm:mb-10
+                            px-2
                         "
                     >
-                        {/* Primary CTA */}
+                        Bunchly is the premium link-in-bio built for professionals. 
+                        Share your world with a stunning, customizable page.
+                    </p>
+                </AnimateOnScroll>
+
+                <AnimateOnScroll delay={0.3}>
+                    <div
+                        className="
+                            flex flex-col sm:flex-row
+                            items-center justify-center
+                            gap-3 sm:gap-4 w-full sm:w-auto
+                        "
+                    >
                         <Button
-                            text="Get Started Free"
+                            text="Claim your link"
                             icon={ArrowRight}
                             size="lg"
                             variant="primary"
                             onClick={() => navigate("/signup")}
-                            className="sm:w-auto shadow-lg"
+                            className="w-full sm:w-auto shadow-xl shadow-indigo-500/20 transition-all"
                         />
 
-                        {/* Secondary CTA */}
                         <Button
                             text="View Demo"
                             icon={Play}
                             size="lg"
                             variant="outline"
                             onClick={() => navigate("/quasim")}
-                            className="sm:ws:w-auto"
+                            className="w-full sm:w-auto bg-white/50 dark:bg-white/5 backdrop-blur-md border-gray-200 dark:border-gray-800"
                         />
                     </div>
                 </AnimateOnScroll>
 
-                {/* Trust hint */}
-                <AnimateOnScroll delay={0.3}>
-                    <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-                        Free forever · No credit card required
-                    </p>
+                 {/* Premium Dashboard Preview - Reduced size/margin on mobile */}
+                <AnimateOnScroll delay={0.4} className="w-full mt-12 sm:mt-20 relative perspective-1000 px-2 sm:px-0">
+                     <div className="relative group mx-auto max-w-5xl">
+                        {/* Glow behind image */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 hidden sm:block" />
+                        
+                        <div className="relative rounded-xl sm:rounded-2xl bg-gray-900/5 dark:bg-white/5 border border-black/10 dark:border-white/10 backdrop-blur-sm p-1.5 sm:p-4 ring-1 ring-white/20 shadow-xl sm:shadow-2xl overflow-hidden glass-panel">
+                             <img 
+                                src={dashboardMockup} 
+                                alt="Bunchly Dashboard Interface" 
+                                className="w-full h-auto rounded-lg sm:rounded-xl shadow-inner bg-gray-900" 
+                            />
+                        </div>
+                     </div>
+                </AnimateOnScroll>
+                
+                <AnimateOnScroll delay={0.5}>
+                    <div className="mt-8 sm:mt-12 flex items-center justify-center gap-8 opacity-60">
+                        <p className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-widest">
+                            Trusted by 10,000+ Creators
+                        </p>
+                    </div>
                 </AnimateOnScroll>
             </div>
         </section>

@@ -5,57 +5,65 @@ export default function EditProfileField({
     value,
     editable = true,
     onEdit = () => {},
+    icon: Icon,
+    helperText,
+    fullWidth = false
 }) {
     const empty = !value || value.trim() === "";
 
     return (
-        <div
-            className="
-                relative p-5 rounded-2xl 
-                bg-white/60 dark:bg-neutral-900/40 
-                backdrop-blur-xl shadow-lg 
-                border border-white/40 dark:border-neutral-800 
-                transition hover:shadow-xl hover:bg-white/70 
-                dark:hover:bg-neutral-900/60
-            "
+        <div 
+            className={`
+                group relative p-4 rounded-xl 
+                bg-white dark:bg-neutral-900 
+                border border-neutral-200 dark:border-neutral-800 
+                transition-all duration-200
+                hover:border-indigo-300 dark:hover:border-indigo-700
+                hover:shadow-md
+                ${fullWidth ? 'col-span-1 md:col-span-2' : ''}
+            `}
         >
-            {/* Label */}
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                {label}
-            </h4>
-
-            {/* Value */}
-            <p className="mt-1 text-neutral-900 dark:text-neutral-200 break-words leading-relaxed">
-                {empty ? (
-                    <span className="text-neutral-400 italic">
-                        Not added yet
-                    </span>
-                ) : (
-                    value
-                )}
-            </p>
-
-            {/* EDIT / ADD BUTTON */}
-            {editable && (
-                <button
-                    onClick={onEdit}
-                    className="
-                        absolute right-4 top-4 p-2 rounded-xl
-                        bg-white/80 dark:bg-neutral-800/80
-                        border border-neutral-300 dark:border-neutral-700
-                        shadow-sm 
-                        hover:shadow-md hover:scale-110 
-                        active:scale-95
-                        transition-all duration-200
-                    "
-                >
-                    {empty ? (
-                        <Plus className="w-4 h-4 text-indigo-600" />
-                    ) : (
-                        <Pencil className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 flex-1 min-w-0">
+                    {Icon && (
+                        <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 mt-0.5">
+                            <Icon size={18} />
+                        </div>
                     )}
-                </button>
-            )}
+                    
+                    <div className="break-all min-w-0 flex-1">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-500 mb-1.5">
+                            {label}
+                        </h4>
+                        
+                        <p className={`text-sm md:text-base font-medium leading-relaxed ${empty ? 'text-neutral-400 italic' : 'text-neutral-900 dark:text-white'}`}>
+                            {empty ? 'Not added yet' : value}
+                        </p>
+                        
+                        {helperText && (
+                            <p className="text-xs text-neutral-400 mt-1.5 flex items-center gap-1">
+                                {helperText}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {editable && (
+                    <button
+                        onClick={onEdit}
+                        className="
+                            relative p-2 rounded-lg
+                            text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400
+                            hover:bg-indigo-50 dark:hover:bg-indigo-900/20
+                            transition-colors
+                            opacity-100 sm:opacity-0 sm:group-hover:opacity-100
+                        "
+                        aria-label={`Edit ${label}`}
+                    >
+                        {empty ? <Plus size={18} /> : <Pencil size={18} />}
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

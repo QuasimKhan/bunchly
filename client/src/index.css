@@ -2,7 +2,16 @@
 /* 01) GLOBAL FONT IMPORTS — MUST ALWAYS BE FIRST                             */
 /* ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&family:Manrope:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap");
+
+.texture-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ========================================================================== */
+/* 02) TAILWIND + PLUGINS                                                     */
+/* ========================================================================== */
 
 /* ========================================================================== */
 /* 02) TAILWIND + PLUGINS                                                     */
@@ -22,12 +31,19 @@
     --font-sans: "Inter", "Plus Jakarta Sans", "Manrope", ui-sans-serif,
         system-ui, sans-serif;
 
-    --font-heading: "Poppins", "Plus Jakarta Sans", ui-sans-serif, system-ui,
+    --font-heading: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui,
         sans-serif;
+        
+    --color-primary: #6366f1; /* Indigo 500 - brighter/richer */
+    --color-primary-hover: #4f46e5; /* Indigo 600 */
 }
 
 :root {
     font-family: var(--font-sans);
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-page: #ffffff; /* Pure white for higher contrast */
+    --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 /* ========================================================================== */
@@ -35,33 +51,78 @@
 /* ========================================================================== */
 
 html,
+body,
+#root {
+    height: 100%;
+}
+
 body {
-    @apply bg-gray-100 text-gray-900 transition-colors duration-300
-        antialiased;
+    background-color: var(--bg-page);
+    color: #0f172a; /* Slate 900 - More premium than pure black/gray */
+    transition: background-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.4s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Dark Mode */
-html.dark,
 html.dark body {
-    @apply bg-gray-900 text-gray-100;
+    background-color: #050505; /* Near pitch black for depth */
+    color: #f8fafc; /* Slate 50 */
+    --bg-page: #050505;
 }
 
 /* Smooth Theme Transition */
-* {
-    transition: background-color 0.25s ease, border-color 0.25s ease,
-        color 0.25s ease;
+*, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
 }
 
 /* ========================================================================== */
-/* 05) PREMIUM HEADINGS                                                       */
+/* 05) PREMIUM UTILITIES                                                      */
 /* ========================================================================== */
 
-h1,
-h2,
-h3,
-h4 {
+h1,h2,h3,h4,h5,h6 {
     font-family: var(--font-heading);
-    @apply font-semibold tracking-tight;
+    letter-spacing: -0.03em; /* Tighter for modern headings */
+}
+
+/* Refined Glass Panel */
+.glass-panel {
+    @apply bg-white/60 dark:bg-[#111]/60 backdrop-blur-2xl border border-white/20 dark:border-white/10;
+}
+
+/* Premium Shadows */
+.premium-shadow {
+    box-shadow: 0 4px 40px -2px rgba(99, 102, 241, 0.1), 0 2px 10px -1px rgba(0, 0, 0, 0.02);
+}
+
+.dark .premium-shadow {
+    box-shadow: 0 4px 40px -2px rgba(0, 0, 0, 0.5), 0 2px 10px -1px rgba(255, 255, 255, 0.02);
+}
+
+/* Text Gradient */
+.text-gradient-premium {
+    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent;
+}
+
+/* Spotlight Effect Helper */
+.spotlight-card {
+    position: relative;
+    overflow: hidden;
+}
+.spotlight-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%);
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    z-index: 1;
+}
+.spotlight-card:hover::before {
+    opacity: 1;
 }
 
 /* ========================================================================== */
@@ -70,152 +131,39 @@ h4 {
 
 /* Fade In */
 @keyframes fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in {
-    animation: fade-in 0.7s ease-out forwards;
-}
+.animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-/* Slide Up */
-@keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-.animate-slide-up {
-    animation: slide-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-/* Soft Pulse */
-@keyframes pulse-slow {
-    0% {
-        opacity: 0.4;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0.4;
-    }
-}
-.animate-pulse-slow {
-    animation: pulse-slow 5s ease-in-out infinite;
-}
-
-/* Floating Effect (hero / cards) */
+/* Float Animation */
 @keyframes float {
-    0%,
-    100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
-.animate-float {
-    animation: float 4.5s ease-in-out infinite;
-}
+.animate-float { animation: float 6s ease-in-out infinite; }
 
-/* Theme Pop-in */
-@keyframes theme-in {
-    from {
-        opacity: 0;
-        transform: scale(0.75) rotate(-6deg);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) rotate(0deg);
-    }
-}
-.animate-theme-in {
-    animation: theme-in 0.25s ease-out forwards;
+/* Aurora Background (Simple CSS Version) */
+.aurora-bg {
+    background: 
+        radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.08), transparent 25%), 
+        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+    filter: blur(40px);
+    z-index: -1;
 }
 
 /* Modal Zoom */
 @keyframes scaleIn {
-    0% {
-        transform: scale(0.92);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
+    from { transform: scale(0.96); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
-.animate-scaleIn {
-    animation: scaleIn 0.18s ease-out;
-}
-
-/* Tooltip Fade */
-@keyframes tooltip-fade {
-    0% {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-.animate-tooltip-fade {
-    animation: tooltip-fade 0.18s ease-out;
-}
-
-/* Premium Tooltip Scale + Slide */
-@keyframes tooltip-enter {
-    0% {
-        opacity: 0;
-        transform: translateY(6px) scale(0.96);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-.animate-tooltip-enter {
-    animation: tooltip-enter 0.2s ease-out;
-}
+.animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 
 /* Slide Up (Bunchly Custom) */
 @keyframes bunchlySlideUp {
-    0% {
-        transform: translateY(35px) scale(0.95);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
+    0% { transform: translateY(20px) scale(0.98); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
 }
-.animate-bunchlySlideUp {
-    animation: bunchlySlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
+.animate-bunchlySlideUp { animation: bunchlySlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-/* Slide From Right */
-@keyframes bunchlySlideIn {
-    from {
-        transform: translateX(80px);
-    }
-    to {
-        transform: translateX(0);
-    }
-}
-.animate-bunchlySlideIn {
-    animation: bunchlySlideIn 0.25s ease-out forwards;
-}
-
-html {
-    scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }

@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema(
         subscription: {
             provider: {
                 type: String,
-                enum: ["razorpay"],
+                enum: ["razorpay", "manual"],
                 default: null,
             },
             orderId: { type: String, default: null },
@@ -107,6 +107,29 @@ const userSchema = new mongoose.Schema(
                 isPublic: { type: Boolean, default: true },
                 showEmail: { type: Boolean, default: false },
             },
+        },
+
+        // 🔹 APPEARANCE (New SaaS Feature)
+        appearance: {
+            theme: { type: String, default: 'custom' }, // 'custom', 'air-snow', 'mineral-blue', 'noir', etc.
+            bgType: {
+                type: String,
+                enum: ["color", "gradient", "image"],
+                default: "color",
+            },
+            bgColor: { type: String, default: "#ffffff" },
+            bgGradient: { type: String, default: "from-indigo-500 to-purple-600" },
+            bgImage: { type: String, default: "" },
+            buttonStyle: {
+                type: String,
+                enum: ["fill", "outline", "soft", "shadow", "hard-shadow"],
+                default: "fill",
+            },
+            buttonColor: { type: String, default: "#171717" },
+            buttonFontColor: { type: String, default: "#ffffff" },
+            fontFamily: { type: String, default: "Inter" },
+            fontColor: { type: String, default: "#171717" },
+            layout: { type: String, default: "classic" },
         },
 
         // 🔹 FLAGS / STATUS

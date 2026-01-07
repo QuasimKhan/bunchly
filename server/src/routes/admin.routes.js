@@ -1,0 +1,34 @@
+import express from "express";
+import { requireAuth, requireAdmin } from "../middlewares/auth.middleware.js";
+import { 
+    getAdminStats, 
+    getUsers, 
+    updateUserStatus, 
+    deleteUser,
+    getPayments,
+    processRefund,
+    getUserDetails,
+    updateUserPlan,
+    deleteUserLink
+} from "../controllers/admin.controller.js";
+
+const router = express.Router();
+
+// All routes require Admin privileges
+router.use(requireAuth, requireAdmin);
+
+router.get("/stats", getAdminStats);
+router.get("/users", getUsers);
+router.patch("/users/:userId", updateUserStatus);
+router.delete("/users/:userId", deleteUser);
+
+// User Deep Inspection & Control
+router.get("/users/:id/details", getUserDetails);
+router.patch("/users/:id/plan", updateUserPlan);
+router.delete("/links/:linkId", deleteUserLink);
+
+// Payment Routes
+router.get("/payments", getPayments);
+router.post("/payments/:id/refund", processRefund);
+
+export default router;

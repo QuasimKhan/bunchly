@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import Button from "../components/ui/Button";
-import TickBadge from "../components/ui/TickBadge";
 import { useAuth } from "../context/AuthContext";
 import SmartSkeleton from "../components/ui/SmartSkeleton";
 import { buildUrl } from "../lib/seo";
 import { useSEO } from "../hooks/useSEO";
+import { WelcomeHeader, QuickStats, RecentLinks } from "../components/dashboard/DashboardWidgets";
+import LivePreview from "../components/preview/LivePreview";
+import { getLinks } from "../services/linkService";
+import { ArrowRight, Sparkles, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
     useSEO({
@@ -15,191 +18,140 @@ const Dashboard = () => {
     });
 
     const { user } = useAuth();
-    const isPro = user?.plan === "pro";
-
     const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
+    
+    const [links, setLinks] = useState([]);
+    const [analytics, setAnalytics] = useState(null);
 
     useEffect(() => {
-        const t = setTimeout(() => setLoading(false), 700);
-        return () => clearTimeout(t);
+        const loadData = async () => {
+            try {
+                // Parallel fetch
+                const [linksData, analyticsRes] = await Promise.allSettled([
+                    getLinks(),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/analytics?range=30`, { credentials: 'include' }).then(r => r.json())
+                ]);
+
+                if (linksData.status === 'fulfilled') {
+                    setLinks(linksData.value);
+                }
+
+                if (analyticsRes.status === 'fulfilled' && analyticsRes.value.success) {
+                    setAnalytics(analyticsRes.value.data);
+                }
+            } catch (err) {
+                console.error("Dashboard fetch error", err);
+            } finally {
+                setLoading(false);
+                setStatsLoading(false);
+            }
+        };
+
+        loadData();
     }, []);
 
     if (loading) {
-        return <SmartSkeleton variant="dashboard" />;
+        return (
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                <SmartSkeleton variant="dashboard" />
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 pb-20 space-y-14">
-            {/* ================= HEADER ================= */}
-            <header className="space-y-1">
-                <h1 className="text-3xl font-semibold text-neutral-900 dark:text-white">
-                    Welcome, {user.name?.split(" ")[0]}
-                </h1>
-                <p className="text-sm text-neutral-500">
-                    Manage your profile, links, and account settings
-                </p>
-            </header>
+        <div className="max-w-7xl mx-auto px-4 pb-20 pt-6">
+            
+            {/* 1. Header Area */}
+            <WelcomeHeader user={user} />
 
-            {/* ================= SUMMARY ================= */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <SummaryCard
-                    label="Plan"
-                    value={user.plan}
-                    badge={<TickBadge tier={user.plan} />}
-                    description={
-                        isPro
-                            ? "You’re on the Pro plan"
-                            : "Upgrade to unlock advanced features"
-                    }
-                >
-                    {!isPro && (
-                        <Button
-                            text="Upgrade"
-                            size="sm"
-                            onClick={() =>
-                                (window.location.href = "/dashboard/upgrade")
-                            }
+            <div className="flex flex-col lg:flex-row gap-8">
+                
+                {/* 2. Main Content (Left) */}
+                <div className="flex-1 space-y-8">
+                    
+                    {/* Stats Row */}
+                    <section>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <Zap className="w-5 h-5 text-amber-500" />
+                            Performance <span className="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">Last 30 Days</span>
+                        </h2>
+                        <QuickStats analytics={analytics} loading={statsLoading} />
+                    </section>
+
+                    {/* Action Grid */}
+                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <ActionCard 
+                            title="Customize Appearance"
+                            desc="Make your page pop with themes & colors."
+                            icon="🎨"
+                            to="/dashboard/appearance"
+                            color="bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400"
                         />
-                    )}
-                </SummaryCard>
+                         <ActionCard 
+                            title="Upgrade Plan"
+                            desc="Unlock verified checkmark & remove ads."
+                            icon="💎"
+                            to="/dashboard/upgrade"
+                            color="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                        />
+                    </section>
+                    
+                    {/* Recent Content */}
+                    <RecentLinks links={links} />
 
-                <SummaryCard
-                    label="Profile"
-                    value={user.isVerified ? "Verified" : "Unverified"}
-                    description={`@${user.username}`}
-                >
-                    <Button
-                        text="Edit Profile"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() =>
-                            (window.location.href = "/dashboard/profile")
-                        }
-                    />
-                </SummaryCard>
-
-                <SummaryCard
-                    label="Analytics"
-                    value={isPro ? "Enabled" : "Locked"}
-                    description={
-                        isPro ? "Track views & clicks" : "Available on Pro"
-                    }
-                >
-                    <Button
-                        text={isPro ? "View" : "Unlock"}
-                        size="sm"
-                        onClick={() =>
-                            (window.location.href = isPro
-                                ? "/dashboard/analytics"
-                                : "/dashboard/upgrade")
-                        }
-                    />
-                </SummaryCard>
-            </section>
-
-            {/* ================= NEXT STEPS ================= */}
-            <section className="rounded-3xl border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 p-8">
-                <h2 className="text-lg font-semibold mb-6">
-                    Get the most out of Bunchly
-                </h2>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <ActionCard
-                        title="Add links"
-                        description="Share everything with one smart profile."
-                        action="Manage Links"
-                        onClick={() =>
-                            (window.location.href = "/dashboard/links")
-                        }
-                    />
-
-                    <ActionCard
-                        title="Customize profile"
-                        description="Personalize appearance and branding."
-                        action="Customize"
-                        onClick={() =>
-                            (window.location.href = "/dashboard/appearance")
-                        }
-                    />
-
-                    <ActionCard
-                        title="Track performance"
-                        description="Understand what your audience clicks."
-                        action={isPro ? "View Analytics" : "Upgrade"}
-                        onClick={() =>
-                            (window.location.href = isPro
-                                ? "/dashboard/analytics"
-                                : "/dashboard/upgrade")
-                        }
-                    />
                 </div>
-            </section>
 
-            {/* ================= QUICK ACTIONS ================= */}
-            <section className="space-y-4">
-                <h2 className="text-lg font-semibold">Quick actions</h2>
+                {/* 3. Live Preview (Right) - Sticky Desktop */}
+                <div className="lg:w-[400px] shrink-0">
+                    <div className="sticky top-24">
+                        <div className="flex items-center justify-between mb-4 px-2">
+                             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-indigo-500" />
+                                Live Preview
+                            </h2>
+                            <a href={`/${user.username}`} target="_blank" rel="noreferrer" className="text-xs font-medium text-indigo-600 hover:underline">
+                                Open Page
+                            </a>
+                        </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Button
-                        text="Add Link"
-                        onClick={() =>
-                            (window.location.href = "/dashboard/links")
-                        }
-                    />
-                    <Button
-                        text="Billing"
-                        variant="secondary"
-                        onClick={() =>
-                            (window.location.href = "/dashboard/billing")
-                        }
-                    />
-                    <Button
-                        text="Settings"
-                        variant="secondary"
-                        onClick={() =>
-                            (window.location.href = "/dashboard/settings")
-                        }
-                    />
+                        {/* iPhone Frame */}
+                        <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
+                            <div className="h-[32px] w-[3px] bg-gray-800 absolute -left-[17px] top-[72px] rounded-l-lg"></div>
+                            <div className="h-[46px] w-[3px] bg-gray-800 absolute -left-[17px] top-[124px] rounded-l-lg"></div>
+                            <div className="h-[46px] w-[3px] bg-gray-800 absolute -left-[17px] top-[178px] rounded-l-lg"></div>
+                            <div className="h-[64px] w-[3px] bg-gray-800 absolute -right-[17px] top-[142px] rounded-r-lg"></div>
+                            
+                            <div className="rounded-[2rem] overflow-hidden w-full h-full bg-white dark:bg-black relative">
+                                <LivePreview user={user} links={links} />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </section>
+
+            </div>
         </div>
     );
 };
 
-export default Dashboard;
-
-/* ================= REUSABLE CARDS ================= */
-
-function SummaryCard({ label, value, badge, description, children }) {
+function ActionCard({ title, desc, icon, to, color }) {
     return (
-        <div className="rounded-2xl border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 p-6 space-y-2">
-            <p className="text-sm text-neutral-500">{label}</p>
-
-            <div className="flex items-center gap-2">
-                <span className="text-xl font-semibold capitalize">
-                    {value}
-                </span>
-                {badge}
+        <Link 
+            to={to} 
+            className={`block p-6 rounded-2xl border border-neutral-100 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-lg ${color}`}
+        >
+            <div className="flex items-start justify-between">
+                <div className="space-y-3">
+                    <span className="inline-block text-2xl">{icon}</span>
+                    <div>
+                        <h3 className="font-bold">{title}</h3>
+                        <p className="text-sm opacity-80 leading-relaxed mt-1">{desc}</p>
+                    </div>
+                </div>
+                <ArrowRight className="w-5 h-5 opacity-50" />
             </div>
-
-            <p className="text-xs text-neutral-500">{description}</p>
-
-            {children}
-        </div>
+        </Link>
     );
 }
 
-function ActionCard({ title, description, action, onClick }) {
-    return (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6 space-y-3 bg-neutral-50 dark:bg-neutral-900/40">
-            <h3 className="font-medium">{title}</h3>
-            <p className="text-sm text-neutral-500">{description}</p>
-            <Button
-                text={action}
-                variant="secondary"
-                size="sm"
-                onClick={onClick}
-            />
-        </div>
-    );
-}
+export default Dashboard;

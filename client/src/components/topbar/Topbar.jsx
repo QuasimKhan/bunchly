@@ -1,64 +1,67 @@
-import { Menu } from "lucide-react";
-import ThemeToggle from "../ThemeToggle";
-import { useAuth } from "../../context/AuthContext";
+import { Menu, Share2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { navItems } from "../../constants/navItems";
 import Button from "../ui/Button";
-import { useNavigate } from "react-router-dom";
-import UserMenu from "../ui/UserMenu";
 
 const Topbar = ({ toggleSidebar }) => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
-
-    const menuItems = [
-        { label: "Home", action: () => navigate("/") },
-        { label: "Profile", action: () => navigate("/dashboard/profile") },
-        { label: "Settings", action: () => navigate("/dashboard/settings") },
-        { label: "Logout", action: logout, variant: "danger" },
-    ];
+    const location = useLocation();
+    
+    // Determine current page title
+    const currentItem = navItems.find(item => item.href === location.pathname);
+    const title = currentItem ? currentItem.label : "Dashboard";
 
     return (
         <header
             className="
                 sticky top-0 z-30
-                w-full px-6 py-3
-                bg-white/10 dark:bg-black/20
-                backdrop-blur-xl border-b border-white/10
+                w-full px-8 py-4
+                bg-[#F5F6FA]/80 dark:bg-[#0F0F14]/80
+                backdrop-blur-xl border-b border-transparent
                 flex items-center justify-between
-                shadow-sm
             "
         >
             {/* Left side */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
                 {/* Hamburger for mobile */}
-                <Button
-                    className="
-                        lg:hidden p-2 rounded-lg 
-                        bg-white/10 dark:bg-white/5 
-                        backdrop-blur-md border border-white/10
-                    "
+                <button
+                    className="lg:hidden p-2 -ml-2 text-neutral-600 dark:text-neutral-300"
                     onClick={toggleSidebar}
-                    text={
-                        <Menu className="w-6 h-6 text-gray-900 dark:text-gray-100" />
-                    }
-                />
+                >
+                    <Menu className="w-6 h-6" />
+                </button>
 
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Dashboard
-                </h1>
+                <div>
+                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
+                        {title}
+                    </h1>
+                </div>
             </div>
 
-            {/* Right side */}
-            <div className="flex items-center gap-4">
-                <div className="hidden lg:block">
-                    <ThemeToggle />
-                </div>
-
-                {/* User Menu */}
-
-                {user && <UserMenu user={user} items={menuItems} />}
+            {/* Right side Actions (Contextual) */}
+            <div className="flex items-center gap-3">
+                 <a 
+                    href={`/${useAuth().user?.username}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="
+                        hidden sm:flex items-center gap-2 px-4 py-2 
+                        bg-white dark:bg-neutral-900 
+                        border border-neutral-200 dark:border-neutral-800 
+                        rounded-full text-sm font-semibold
+                        text-neutral-700 dark:text-neutral-300
+                        hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400
+                        transition-all shadow-sm
+                    "
+                 >
+                    <span>My Bunchly</span>
+                    <Share2 className="w-3.5 h-3.5" />
+                 </a>
             </div>
         </header>
     );
 };
+
+// Start import in replacement
+import { useAuth } from "../../context/AuthContext";
 
 export default Topbar;

@@ -22,6 +22,16 @@ export const requireAuth = async (req, res, next) => {
             });
         }
 
+        // Check if user is banned
+        if (user.flags && user.flags.isBanned) {
+            req.session.destroy(() => {});
+            return res.status(403).json({
+                success: false,
+                message: "This account has been banned. Please contact support.",
+                isBanned: true
+            });
+        }
+
         // Attach to request (this is the correct thing)
         req.user = user;
         next();
@@ -31,4 +41,15 @@ export const requireAuth = async (req, res, next) => {
             message: "Internal server error",
         });
     }
+};
+
+export const requireAdmin = async (req, res, next) => {
+    // This expects requireAuth to be run BEFORE it
+    if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({
+            success: false,
+            message: "Access Denied: Admins only",
+        });
+    }
+    next();
 };
