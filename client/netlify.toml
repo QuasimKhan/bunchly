@@ -1,4 +1,12 @@
+# Proxy Sitemap to Backend
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+  from = "/sitemap.xml"
+  to = "https://api.bunchly.in/api/sitemap.xml"
+  status = 200
+  force = true
+
+# SPA Fallback (Must be last)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

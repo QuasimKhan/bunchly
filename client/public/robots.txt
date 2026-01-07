@@ -3,4 +3,4 @@ Allow: /
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /settings
-Sitemap: https://bunchly.in/api/sitemap.xml
+Sitemap: https://bunchly.in/sitemap.xml
