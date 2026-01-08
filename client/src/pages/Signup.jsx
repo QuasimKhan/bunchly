@@ -35,8 +35,9 @@ const Signup = () => {
     });
 
     /* ---------------- Username Status ---------------- */
-    const [usernameStatus, setUsernameStatus] = useState(null);
+    const [usernameStatus, setUsernameStatus] = useState(null); // null, "checking", "available", "taken", "reserved", "invalid"
     const usernameTimer = useRef(null);
+    const abortController = useRef(null);
 
     /* ---------------- UI State ---------------- */
     const [showResend, setShowResend] = useState(false);
@@ -112,6 +113,11 @@ const Signup = () => {
 
     /* ---------------- Username Check ---------------- */
     const checkUsername = async (value) => {
+        // Cancel previous request
+        if (abortController.current) {
+            abortController.current.abort();
+        }
+
         if (!value) {
             setUsernameStatus(null);
             return;
@@ -119,9 +125,13 @@ const Signup = () => {
 
         setUsernameStatus("checking");
 
+        // Create new controller
+        abortController.current = new AbortController();
+
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/auth/check-username?username=${value}`
+                `${import.meta.env.VITE_API_URL}/api/auth/check-username?username=${value}`,
+                { signal: abortController.current.signal }
             );
             const data = await res.json();
 
@@ -136,7 +146,8 @@ const Signup = () => {
             }
 
             setUsernameStatus(data.available ? "available" : "taken");
-        } catch {
+        } catch (error) {
+            if (error.name === "AbortError") return; // Ignore aborted requests
             setUsernameStatus("invalid");
         }
     };
@@ -185,6 +196,9 @@ const Signup = () => {
         if (!form.username.trim()) {
             setErrors((p) => ({ ...p, username: "Username is required" }));
             valid = false;
+        } else if (usernameStatus === "checking") {
+            setErrors((p) => ({ ...p, username: "Checking availability..." }));
+            valid = false;
         } else if (usernameStatus !== "available") {
             setErrors((p) => ({ ...p, username: "Choose a valid available username" }));
             valid = false;
@@ -211,16 +225,21 @@ const Signup = () => {
         if (!valid) return;
 
         try {
-            await signup({
+            const data = await signup({
                 name: form.name,
                 username: form.username,
                 email: form.email,
                 password: form.password,
-                confirmPassword: form.confirmPassword, // Send this for backend check
+                confirmPassword: form.confirmPassword, // Pass confirmPassword
             });
 
-            toast.success("Account created! Please verify your email");
-            navigate(`/verify-email-sent?email=${encodeURIComponent(form.email.trim())}`);
+            if (data.success) {
+                navigate(
+                    `/verify-email-sent?email=${encodeURIComponent(
+                        form.email
+                    )}`
+                );
+            }
         } catch (err) {
             toast.error(err?.message || "Signup failed");
             if (err?.unverified) setShowResend(true);
@@ -550,8 +569,8 @@ const Signup = () => {
 
                     <p className="mt-8 text-center text-sm text-neutral-500">
                         Already have an account?{" "}
-                        <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline transition-colors">
-                            Sign in
+                        <Link to={`/login${location.search}`} className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline transition-colors">
+                            Sign In
                         </Link>
                     </p>
                 </motion.div>

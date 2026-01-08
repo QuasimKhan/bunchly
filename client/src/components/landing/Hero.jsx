@@ -2,7 +2,7 @@ import AnimateOnScroll from "../AnimateOnScroll";
 import Button from "../ui/Button";
 import { ArrowRight, Play, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import dashboardMockup from "../../assets/premium_dashboard.png";
+
 
 const Hero = () => {
     const navigate = useNavigate();
@@ -25,7 +25,7 @@ const Hero = () => {
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm backdrop-blur-sm mb-6 sm:mb-8 transition-transform hover:scale-105 cursor-default">
                         <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
                         <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
-                             v2.0 is now live
+                             v2.0
                         </span>
                     </div>
                 </AnimateOnScroll>
@@ -90,21 +90,7 @@ const Hero = () => {
                     </div>
                 </AnimateOnScroll>
 
-                 {/* Premium Dashboard Preview - Reduced size/margin on mobile */}
-                <AnimateOnScroll delay={0.4} className="w-full mt-12 sm:mt-20 relative perspective-1000 px-2 sm:px-0">
-                     <div className="relative group mx-auto max-w-5xl">
-                        {/* Glow behind image */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 hidden sm:block" />
-                        
-                        <div className="relative rounded-xl sm:rounded-2xl bg-gray-900/5 dark:bg-white/5 border border-black/10 dark:border-white/10 backdrop-blur-sm p-1.5 sm:p-4 ring-1 ring-white/20 shadow-xl sm:shadow-2xl overflow-hidden glass-panel">
-                             <img 
-                                src={dashboardMockup} 
-                                alt="Bunchly Dashboard Interface" 
-                                className="w-full h-auto rounded-lg sm:rounded-xl shadow-inner bg-gray-900" 
-                            />
-                        </div>
-                     </div>
-                </AnimateOnScroll>
+
                 
                 <AnimateOnScroll delay={0.5}>
                     <div className="mt-8 sm:mt-12 flex items-center justify-center gap-8 opacity-60">

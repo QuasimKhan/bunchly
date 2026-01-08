@@ -35,6 +35,7 @@ import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
 import AdminCoupons from "./pages/admin/AdminCoupons.jsx";
 import Appearance from "./pages/Appearance.jsx";
 import AdminPayments from "./pages/admin/AdminPayments.jsx";
+import AdminMarketing from "./pages/admin/AdminMarketing.jsx";
 
 const App = () => {
     const { user } = useAuth();
@@ -114,6 +115,7 @@ const App = () => {
                         <Route path="users/:id" element={<AdminUserDetail />} />
                         <Route path="payments" element={<AdminPayments />} />
                         <Route path="coupons" element={<AdminCoupons />} />
+                        <Route path="marketing" element={<AdminMarketing />} />
                     </Route>
                 </Route>
                 </Route>

@@ -14,7 +14,16 @@ const Upgrade = () => {
     const handleUpgrade = () => {
         if (loading || isPro) return;
         setLoading(true);
-        navigate('/dashboard/checkout');
+        
+        const params = new URLSearchParams(location.search);
+        const applyOffer = params.get("apply_offer");
+        
+        let target = '/dashboard/checkout';
+        if (applyOffer) {
+            target += '?apply_offer=true';
+        }
+        
+        navigate(target);
     };
 
     return (

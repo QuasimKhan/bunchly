@@ -5,6 +5,7 @@ import Topbar from "../components/topbar/Topbar";
 import { useAuth } from "../context/AuthContext";
 import UpgradeModal from "../components/dashboard/UpgradeModal";
 import ExpirationBanner from "../components/dashboard/ExpirationBanner";
+import SaleBanner from "../components/SaleBanner";
 
 const DashboardLayout = () => {
     const { user } = useAuth();
@@ -76,6 +77,8 @@ const DashboardLayout = () => {
 
             {/* Main Content Area */}
             <div className="flex-1 transition-all overflow-x-hidden lg:ml-64 flex flex-col">
+                <SaleBanner />
+                
                 {/* Expiration Banner shows at the very top of content area or above topbar? 
                     Usually above Topbar is best for visibility. 
                 */}

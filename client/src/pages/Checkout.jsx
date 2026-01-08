@@ -40,8 +40,44 @@ const Checkout = () => {
         if (user?.plan === 'pro') {
             navigate('/dashboard');
         }
-        fetchPublicCoupons();
+        
+        const init = async () => {
+            await fetchPublicCoupons();
+            checkAutoApplyOffer();
+        };
+        init();
     }, [user, navigate]);
+
+    const checkAutoApplyOffer = async () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("apply_offer") === "true") {
+            try {
+                // Fetch settings to get the discount info
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
+                const data = await res.json();
+                
+                if (data.success && data.settings?.saleActive) {
+                    // We need to shape this like a coupon for our existing logic
+                    // Or we modify calculateTotal to handle "saleDiscount" directly?
+                    // The existing frontend logic relies on 'appliedCoupon' state which has { discountType, discountValue, code }
+                    // To keep it "premium" and consistent, let's create a virtual coupon for the sale.
+                    
+                    const saleCoupon = {
+                        code: "SPECIAL OFFER", // Or settings.saleBannerText
+                        discountType: "percent", // Assuming percentage for now based on previous code
+                        discountValue: data.settings.saleDiscount,
+                        description: data.settings.saleBannerText
+                    };
+                    
+                    setAppliedCoupon(saleCoupon);
+                    setCouponCode(saleCoupon.code);
+                    toast.success("Special offer applied! 🎉");
+                }
+            } catch (err) {
+                console.error("Failed to auto-apply offer", err);
+            }
+        }
+    };
 
     const fetchPublicCoupons = async () => {
         try {

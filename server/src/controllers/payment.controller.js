@@ -2,6 +2,7 @@ import razorpay from "../config/razorpay.js";
 import { PRICING } from "../config/pricing.js";
 import User from "../models/User.js";
 import Coupon from "../models/Coupon.js";
+import Settings from "../models/Settings.js";
 import Payment from "../models/Payment.js";
 import crypto from "crypto";
 import { proReceiptEmail } from "../utils/proReceiptEmail.js";
@@ -24,8 +25,20 @@ export const createProOrder = async (req, res) => {
         let appliedCoupon = null;
         let discountAmount = 0;
 
-        // Validate and apply coupon
-        if (couponCode) {
+        // 1. Check Global Sale Settings first
+        const settings = await Settings.findOne();
+        
+        let globalSaleApplied = false;
+        if (settings?.saleActive && couponCode === "SPECIAL OFFER") {
+             // Apply Global Discount
+             console.log(`[Checkout] Applying Global Sale: ${settings.saleDiscount}%`);
+             discountAmount = Math.floor(BASE_PRICE * (settings.saleDiscount / 100));
+             appliedCoupon = { code: "SPECIAL OFFER", discountValue: settings.saleDiscount }; // Mock for notes
+             globalSaleApplied = true;
+        }
+
+        // 2. If no global sale applied, check DB coupons
+        if (!globalSaleApplied && couponCode) {
             console.log(`[Checkout] Validating Code: ${couponCode}`);
             const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
             
@@ -124,7 +137,17 @@ export const verifyProPayment = async (req, res) => {
 
         // Coupon Tracking
         let discountAmount = 0;
-        if (couponCode) {
+        if (couponCode === "SPECIAL OFFER") {
+            // Global Sale - No DB lookup needed, but we should verify settings if we want to be strict.
+            // For now, calculating discount solely for the record based on what was likely paid or just logging it.
+            // Since payment is already done and verified via signature, we trust the amount paid.
+            // However, to fill the 'discountAmount' field:
+             const settings = await Settings.findOne();
+             if (settings) {
+                 const basePrice = PRICING.pro.monthly.amount;
+                 discountAmount = Math.floor(basePrice * (settings.saleDiscount / 100));
+             }
+        } else if (couponCode) {
             console.log(`[Verify] Processing coupon: ${couponCode}`);
             const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
             if (coupon) {

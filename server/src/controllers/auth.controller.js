@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import VerificationToken from "../models/VerificationToken.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { sendVerificationEmail } from "../utils/email.js";
+import { sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
 
 export const signup = async (req, res) => {
     try {
@@ -114,6 +114,19 @@ export const signup = async (req, res) => {
                 "User created. If you don't receive email, please resend verification.",
         });
     } catch (error) {
+        // Handle MongoDB Duplicate Key Error (Race Condition)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            const message = field === "username" 
+                ? "Username already taken" 
+                : "Email already exists";
+                
+            return res.status(409).json({
+                success: false,
+                message: message,
+            });
+        }
+
         res.status(400).json({
             success: false,
             message: error.message,
@@ -247,6 +260,13 @@ export const verifyEmail = async (req, res) => {
         // Mark token as used
         record.used = true;
         await record.save();
+
+        // Send Welcome Email
+        try {
+            await sendWelcomeEmail(user.email, user.name);
+        } catch (err) {
+            console.error("Welcome email failed:", err);
+        }
 
         return res.status(200).json({
             success: true,

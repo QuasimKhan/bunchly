@@ -13,6 +13,8 @@ import CTA from "../components/landing/CTA";
 import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
 
+import SaleBanner from "../components/SaleBanner";
+
 const Home = () => {
     useSEO({
         title: "Bunchly – One Link. Every Identity.",
@@ -24,6 +26,7 @@ const Home = () => {
 
     return (
         <>
+            <SaleBanner className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] md:w-[85%] max-w-5xl rounded-xl shadow-xl z-40 !overflow-visible backdrop-blur-md bg-indigo-600/95" />
             <Navbar />
             <Hero />
             <SocialProof />

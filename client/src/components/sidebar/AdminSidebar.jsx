@@ -9,7 +9,8 @@ import {
     Shield,
     DollarSign,
     Banknote,
-    Tag
+    Tag,
+    Megaphone
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../ThemeToggle";
@@ -32,6 +33,7 @@ const AdminSidebar = ({ sidebarOpen, closeSidebar }) => {
         { label: "User Management", href: "/admin/users", icon: Users },
         { label: "Payments", href: "/admin/payments", icon: DollarSign },
         { label: "Coupons", href: "/admin/coupons", icon: Tag },
+        { label: "Marketing", href: "/admin/marketing", icon: Megaphone },
     ];
 
     return (
