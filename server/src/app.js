@@ -29,20 +29,22 @@ app.use(morgan("dev"));
 app.use(cors(corsOptions));
 app.set("trust proxy", 1);
 
+import { authLimiter, apiLimiter } from "./config/rateLimit.js";
+
 app.use(sessionMiddleware);
 
 //routes
 
-app.use("/api/auth", authRouter);
-app.use("/api/user", profileRouter);
-app.use("/api/links", linkRouter);
+app.use("/api/auth", authLimiter, authRouter);
+app.use("/api/user", apiLimiter, profileRouter);
+app.use("/api/links", apiLimiter, linkRouter);
 app.get("/l/:id", redirectLink);
-app.use("/api/analytics", analyticsRouter);
-app.use("/api/payment", paymentRouter);
-app.use("/api/billing", billingRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api", seoRouter);
-app.use("/api/settings", settingsRouter);
+app.use("/api/analytics", apiLimiter, analyticsRouter);
+app.use("/api/payment", apiLimiter, paymentRouter);
+app.use("/api/billing", apiLimiter, billingRouter);
+app.use("/api/admin", apiLimiter, adminRouter);
+app.use("/api", apiLimiter, seoRouter);
+app.use("/api/settings", apiLimiter, settingsRouter);
 
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;

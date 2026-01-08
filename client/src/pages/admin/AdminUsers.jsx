@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Search, Ban, Trash2, CheckCircle, SlidersHorizontal, MoreHorizontal, ShieldAlert, ShieldCheck, Eye } from "lucide-react";
+import { Search, Ban, Trash2, CheckCircle, SlidersHorizontal, MoreHorizontal, ShieldAlert, ShieldCheck, Eye, Shield } from "lucide-react";
 import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
+import RoleModal from "../../components/admin/RoleModal";
 import SmartSkeleton from "../../components/ui/SmartSkeleton";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
@@ -20,6 +21,7 @@ const AdminUsers = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [actionType, setActionType] = useState(null); // 'ban' | 'delete' | 'unban'
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showRoleModal, setShowRoleModal] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -89,6 +91,26 @@ const AdminUsers = () => {
         } finally {
             setShowConfirmModal(false);
             setSelectedUser(null);
+        }
+    };
+
+    const handleRoleUpdate = async (userId, newRole) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}`, {
+                method: 'PATCH',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: newRole }),
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(`User role updated to ${newRole}`);
+                fetchUsers();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message || "Failed to update role");
         }
     };
 
@@ -209,6 +231,16 @@ const AdminUsers = () => {
                                     >
                                         <Eye className="w-4 h-4" />
                                     </button>
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedUser(user);
+                                            setShowRoleModal(true);
+                                        }}
+                                        className="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors cursor-pointer"
+                                        title="Manage Role"
+                                    >
+                                        <Shield className="w-4 h-4" />
+                                    </button>
                                     <div className="flex gap-1"> 
                                         {user._id !== currentUser._id && (
                                             <>
@@ -290,6 +322,17 @@ const AdminUsers = () => {
                     </div>
                 </div>
             </Modal>
+
+            {/* Role Management Modal */}
+            <RoleModal 
+                user={selectedUser}
+                open={showRoleModal}
+                onClose={() => {
+                    setShowRoleModal(false);
+                    setSelectedUser(null);
+                }}
+                onUpdate={handleRoleUpdate}
+            />
         </div>
     );
 };

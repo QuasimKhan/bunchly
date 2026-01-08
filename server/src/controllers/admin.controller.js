@@ -432,6 +432,11 @@ export const updateUserStatus = async (req, res) => {
         const { userId } = req.params;
         const { isBanned, role } = req.body;
 
+        // Prevent modifying self
+        if (req.user._id.toString() === userId) {
+            return res.status(403).json({ success: false, message: "You cannot modify your own admin status" });
+        }
+
         const updateData = {};
         if (typeof isBanned === 'boolean') updateData['flags.isBanned'] = isBanned;
         if (role) updateData.role = role;
@@ -476,6 +481,43 @@ export const updateUserStatus = async (req, res) => {
                     })
                 });
              }
+        }
+
+        // EMAIL: Role Change
+        if (role) {
+            if (role === 'admin') {
+                await sendEmail({
+                    to: user.email,
+                    subject: "Admin Access Granted - Bunchly",
+                    html: getPremiumEmailHtml({
+                        title: "Admin Access Granted 🛡️",
+                        messageLines: [
+                            `Hi ${user.name},`,
+                            `You have been granted <strong>Administrator</strong> privileges on Bunchly.`,
+                            `You now have access to the Admin Dashboard to manage users, payments, and system settings.`,
+                            `Please use these privileges responsibly.`
+                        ],
+                        actionText: "Go to Admin Dashboard",
+                        actionUrl: `${process.env.CLIENT_URL}/admin`,
+                        accentColor: "#F59E0B" // Amber
+                    })
+                });
+            } else if (role === 'user') {
+                await sendEmail({
+                    to: user.email,
+                    subject: "Admin Access Revoked",
+                    html: getPremiumEmailHtml({
+                        title: "Access Level Updated",
+                        messageLines: [
+                            `Hi ${user.name},`,
+                            `Your Administrator privileges have been revoked.`,
+                            `Your account has been returned to standard user status.`,
+                            `You can still access your personal dashboard and links.`
+                        ],
+                        accentColor: "#6B7280"
+                    })
+                });
+            }
         }
 
         return res.status(200).json({

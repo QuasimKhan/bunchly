@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
     User, Mail, Calendar, Shield, Link as LinkIcon, 
-    CreditCard, AlertTriangle, CheckCircle, Ban, ExternalLink, Trash2, Gift, LogOut, ShieldAlert, Folder, Copy, RotateCcw, DollarSign
+    CreditCard, AlertTriangle, CheckCircle, Ban, ExternalLink, Trash2, Gift, LogOut, ShieldAlert, Folder, Copy, RotateCcw, DollarSign,
+    Monitor, Globe, MapPin, Laptop
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -334,7 +335,7 @@ const AdminUserDetail = () => {
             {/* Scrollable Tabs Navigation */}
             <div className="w-full overflow-x-auto pb-2 no-scrollbar">
                 <div className="flex items-center gap-1 bg-white dark:bg-[#15151A] p-1.5 rounded-xl border border-neutral-200 dark:border-white/5 min-w-max">
-                    {["overview", "links", "payments", "danger"].map(tab => (
+                    {["overview", "devices", "links", "payments", "danger"].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -348,6 +349,7 @@ const AdminUserDetail = () => {
                         >
                             {tab === 'links' && <LinkIcon className="w-4 h-4" />}
                             {tab === 'payments' && <CreditCard className="w-4 h-4" />}
+                            {tab === 'devices' && <Monitor className="w-4 h-4" />}
                             {tab === 'danger' ? <span className="flex items-center gap-1 text-red-500"><ShieldAlert className="w-4 h-4" /> Danger Zone</span> : tab}
                         </button>
                     ))}
@@ -377,11 +379,18 @@ const AdminUserDetail = () => {
                                 value={user.authProvider} 
                                 icon={Shield}
                             />
-                             <InfoRow 
+                            <InfoRow 
                                 label="User ID" 
                                 value={<span className="font-mono text-xs">{user._id}</span>} 
                                 icon={User}
                             />
+                            {user.loginHistory && user.loginHistory.length > 0 && (
+                                <InfoRow 
+                                    label="Last Login" 
+                                    value={`${user.loginHistory[user.loginHistory.length-1].location?.city || 'Unknown'}, ${user.loginHistory[user.loginHistory.length-1].location?.country || ''}`} 
+                                    icon={MapPin}
+                                />
+                            )}
                         </div>
                     </div>
                      <div className="bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-neutral-200 dark:border-white/5 shadow-sm">
@@ -407,6 +416,69 @@ const AdminUserDetail = () => {
                              </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* TAB CONTENT: Devices & Security */}
+            {activeTab === 'devices' && (
+                <div className="bg-white dark:bg-[#15151A] rounded-2xl border border-neutral-200 dark:border-white/5 overflow-hidden shadow-sm animate-fade-in">
+                    {(!user.loginHistory || user.loginHistory.length === 0) ? (
+                        <div className="p-12 text-center text-neutral-500 flex flex-col items-center gap-2">
+                            <Monitor className="w-8 h-8 text-neutral-300" />
+                            <p>No login history available yet.</p>
+                        </div>
+                    ) : (
+                        <div className="w-full overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-neutral-50 dark:bg-white/5">
+                                    <tr className="text-left text-neutral-500">
+                                        <th className="px-6 py-4 whitespace-nowrap">Device / OS</th>
+                                        <th className="px-6 py-4 whitespace-nowrap">Browser</th>
+                                        <th className="px-6 py-4 whitespace-nowrap">Location</th>
+                                        <th className="px-6 py-4 whitespace-nowrap">IP Address</th>
+                                        <th className="px-6 py-4 whitespace-nowrap text-right">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-200 dark:divide-white/5">
+                                    {[...user.loginHistory].reverse().map((log, index) => (
+                                        <tr key={index} className="group hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-neutral-100 dark:bg-white/10 rounded-lg text-neutral-600 dark:text-neutral-400">
+                                                        {log.device.includes('Mobile') ? <span className="text-xs">📱</span> : <Laptop className="w-4 h-4" />}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-neutral-900 dark:text-white">{log.device || "Unknown Device"}</div>
+                                                        <div className="text-xs text-neutral-500">{log.os}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                                                <div className="flex items-center gap-2">
+                                                    <Globe className="w-4 h-4 text-neutral-400" />
+                                                    {log.browser}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                 <div className="flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4 text-red-500" />
+                                                    <span className="font-medium text-neutral-900 dark:text-white">
+                                                        {log.location?.city || "Unknown"}, {log.location?.country || ""}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-mono text-xs text-neutral-500 whitespace-nowrap">
+                                                {log.ip}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-neutral-500">
+                                                {new Date(log.timestamp).toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             )}
 

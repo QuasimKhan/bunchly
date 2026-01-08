@@ -138,6 +138,20 @@ const userSchema = new mongoose.Schema(
             isStaff: { type: Boolean, default: false },
             onboardingCompleted: { type: Boolean, default: false },
         },
+
+        // 🔹 SECURITY & LOGS
+        loginHistory: [{
+            ip: String,
+            device: String, // e.g., "iPhone", "Mac", "Windows"
+            os: String,
+            browser: String,
+            location: {
+                city: String,
+                country: String,
+                timezone: String
+            },
+            timestamp: { type: Date, default: Date.now }
+        }],
     },
     { timestamps: true }
 );

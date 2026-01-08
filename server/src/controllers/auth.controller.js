@@ -4,6 +4,7 @@ import VerificationToken from "../models/VerificationToken.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
+import { getClientInfo } from "../utils/clientInfo.js";
 
 export const signup = async (req, res) => {
     try {
@@ -394,6 +395,17 @@ export const login = async (req, res) => {
                 unverified: true,
             });
         }
+        
+        // 🔹 Record Login History
+        const clientInfo = getClientInfo(req);
+        user.loginHistory.push(clientInfo);
+        
+        // Keep only last 50 entries
+        if (user.loginHistory.length > 50) {
+            user.loginHistory = user.loginHistory.slice(user.loginHistory.length - 50);
+        }
+        await user.save();
+
         req.session.userId = user._id;
         res.status(200).json({
             success: true,
@@ -488,11 +500,19 @@ export const googleAuthCallback = async (req, res) => {
 
         const existingUser = await User.findOne({ email: googleUser.email });
 
-        //case1: already google user
         if (existingUser && existingUser.authProvider === "google") {
             if (existingUser.flags && existingUser.flags.isBanned) {
                  return res.redirect(`${ENV.CLIENT_URL}/login?error=account_banned`);
             }
+            
+            // 🔹 Record Login History (Google)
+            const clientInfo = getClientInfo(req);
+            existingUser.loginHistory.push(clientInfo);
+            if (existingUser.loginHistory.length > 50) {
+                existingUser.loginHistory = existingUser.loginHistory.slice(-50);
+            }
+            await existingUser.save();
+
             req.session.userId = existingUser._id;
             return res.redirect(`${ENV.CLIENT_URL}/oauth/callback`);
         }
@@ -523,6 +543,7 @@ export const googleAuthCallback = async (req, res) => {
             authProvider: "google",
             isVerified: true,
             password: undefined,
+            loginHistory: [getClientInfo(req)]
         });
 
         req.session.userId = newUser._id;
