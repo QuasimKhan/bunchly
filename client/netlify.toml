@@ -5,7 +5,15 @@
   status = 200
   force = true
 
-# Subdomain rewrite: quasim.bunchly.in → /quasim
+# Subdomain ROOT: quasim.bunchly.in → /quasim
+[[redirects]]
+  from = "/"
+  to = "/quasim"
+  status = 200
+  force = true
+  conditions = { Host = ["quasim.bunchly.in"] }
+
+# Subdomain ALL PATHS: quasim.bunchly.in/* → /quasim/*
 [[redirects]]
   from = "/*"
   to = "/quasim/:splat"
