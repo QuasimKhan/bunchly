@@ -7,11 +7,12 @@ import { sendVerificationEmail } from "../utils/email.js";
 
 export const signup = async (req, res) => {
     try {
-        const { name, email, password, username } = req.body;
-        if (!name || !email || !password || !username) {
+        const { name, email, password, confirmPassword, username } = req.body;
+        
+        if (!name || !email || !password || !confirmPassword || !username) {
             return res.status(400).json({
                 success: false,
-                message: "Fields are required",
+                message: "All fields are required",
             });
         }
 
@@ -32,6 +33,25 @@ export const signup = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "This username is reserved. Please choose another.",
+            });
+        }
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match",
+            });
+        }
+
+        // Strong Password Validation
+        // Min 8, 1 Upper, 1 Lower, 1 Number, 1 Special
+        const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        
+        if (!passwordStrengthRegex.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 chars with 1 uppercase, 1 lowercase, 1 number, and 1 special char.",
             });
         }
 

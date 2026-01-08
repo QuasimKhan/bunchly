@@ -29,7 +29,7 @@ const LinkCardContainer = ({ children, dragging, className = "" }) => {
                 /* Gradient Overlay on Hover */
                 before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/0 before:to-white/50 dark:before:to-white/5 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none
 
-                p-4 sm:p-5
+                p-3 sm:p-4
                 ${className}
             `}
         >

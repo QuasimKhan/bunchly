@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import LivePreview from "../components/preview/LivePreview";
 import Button from "../components/ui/Button";
+import UpgradeModal from "../components/dashboard/UpgradeModal";
 
 import { Save, Loader2, Sparkles, TypeIcon, Square, Palette, ImageIcon, Lock, Check, Trash2 } from "lucide-react";
 import axios from "axios";
@@ -10,14 +11,15 @@ import { useNavigate } from "react-router-dom";
 import { THEMES } from "../lib/themes";
 import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
+import { getLinks } from "../services/linkService";
 
 // 🎨 Presets with PRO flagging
 const GRADIENTS = [
-    { value: "from-indigo-500 to-purple-600", isPro: true },
+    { value: "from-indigo-500 to-purple-600", isPro: false },
+    { value: "from-slate-900 to-slate-700", isPro: false },
+    { value: "from-blue-600 to-violet-600", isPro: false },
     { value: "from-rose-400 to-orange-300", isPro: true },
     { value: "from-emerald-400 to-cyan-400", isPro: true },
-    { value: "from-slate-900 to-slate-700", isPro: true },
-    { value: "from-blue-600 to-violet-600", isPro: true },
     { value: "from-fuchsia-500 to-pink-500", isPro: true },
     { value: "from-amber-200 to-yellow-500", isPro: true },
     { value: "from-teal-400 to-gray-800", isPro: true },
@@ -75,6 +77,8 @@ const Appearance = () => {
         theme: "custom", 
     });
 
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
     // Load user appearance on mount
     useEffect(() => {
         if (user?.appearance) {
@@ -82,17 +86,18 @@ const Appearance = () => {
         }
     }, [user]);
 
+    // Pro Check Helper
+    const checkPro = (isProFeature) => {
+        if (isProFeature && user.plan !== "pro") {
+            setShowUpgradeModal(true);
+            return false;
+        }
+        return true;
+    };
+
     // Handle Change
     const handleChange = (key, value, isProFeature = false) => {
-        if (isProFeature && user.plan !== "pro") {
-            toast.error("Upgrade to Pro to unlock this feature", {
-                action: {
-                    label: "Upgrade",
-                    onClick: () => navigate("/dashboard/upgrade")
-                }
-            });
-            return;
-        }
+        if (!checkPro(isProFeature)) return;
         setAppearance((prev) => ({ ...prev, [key]: value }));
     };
 
@@ -124,13 +129,20 @@ const Appearance = () => {
         appearance: appearance,
     };
 
-    // Dummy Links for Preview
-    const previewLinks = [
-        { _id: "1", title: "My Portfolio", url: "#", icon: "globe", isActive: true },
-        { _id: "2", title: "Instagram", url: "#", icon: "instagram", isActive: true },
-        { _id: "3", title: "Music Collection", type: "collection", isActive: true },
-        { _id: "4", title: "Latest Mix", url: "#", icon: "music", isActive: true, parentId: "3" },
-    ];
+    // Real Links for Preview
+    const [previewLinks, setPreviewLinks] = useState([]);
+
+    useEffect(() => {
+        const loadLinks = async () => {
+             try {
+                 const data = await getLinks();
+                 setPreviewLinks(data);
+             } catch (err) {
+                 console.error("Failed to load preview links");
+             }
+        };
+        loadLinks();
+    }, []);
 
     return (
         <div className="min-h-screen p-0 md:p-8 pb-32 md:pb-8">
@@ -180,12 +192,7 @@ const Appearance = () => {
                                         isLocked={user.plan !== "pro"}
                                         isSelected={appearance.theme === t.id}
                                         onSelect={(theme) => {
-                                            if (user.plan !== "pro") {
-                                                toast.error("Upgrade to Pro to unlock this theme", {
-                                                    action: { label: "Upgrade", onClick: () => navigate("/dashboard/upgrade") }
-                                                });
-                                                return;
-                                            }
+                                            if (!checkPro(true)) return;
                                              setAppearance(prev => ({
                                                  ...prev,
                                                  theme: theme.id,
@@ -248,7 +255,7 @@ const Appearance = () => {
                                 <button
                                     key={type}
                                     onClick={() => handleChange("bgType", type, type === "image" && user.plan !== "pro")}
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 cursor-pointer ${
                                         appearance.bgType === type
                                             ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white ring-1 ring-black/5 dark:ring-white/10"
                                             : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
@@ -292,7 +299,7 @@ const Appearance = () => {
                                     return (
                                         <div
                                             key={grad.value}
-                                            onClick={() => { handleChange("bgGradient", grad.value, true); handleChange("theme", "custom"); }}
+                                            onClick={() => { handleChange("bgGradient", grad.value, grad.isPro); handleChange("theme", "custom"); }}
                                             className={`relative aspect-video rounded-xl cursor-pointer bg-gradient-to-br ${grad.value} ring-2 ring-offset-2 dark:ring-offset-neutral-900 transition-all ${
                                                 appearance.bgGradient === grad.value
                                                     ? "ring-indigo-600 scale-[1.02] shadow-lg"
@@ -300,8 +307,9 @@ const Appearance = () => {
                                             }`}
                                         >
                                             {isLocked && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] rounded-xl">
-                                                    <Lock className="w-5 h-5 text-white/90" />
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-20">
+                                                    <Lock className="w-5 h-5 text-white/90 mb-1" />
+                                                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">PRO</span>
                                                 </div>
                                             )}
                                             {appearance.bgGradient === grad.value && (
@@ -443,14 +451,18 @@ const Appearance = () => {
                                             <button
                                                 key={style.value}
                                                 onClick={() => handleChange("buttonStyle", style.value, style.isPro)}
-                                                className={`relative py-4 px-2 rounded-xl text-xs sm:text-sm font-medium border transition-all flex flex-col items-center gap-2 ${
+                                                className={`relative py-4 px-2 rounded-xl text-xs sm:text-sm font-medium border transition-all flex flex-col items-center gap-2 cursor-pointer ${
                                                     appearance.buttonStyle === style.value
                                                         ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-600 shadow-sm"
                                                         : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 text-neutral-600 dark:text-neutral-400 bg-white dark:bg-neutral-800/20"
-                                                }`}
+                                                } ${isLocked ? "opacity-75" : ""}`}
                                             >
                                                 <span>{style.name}</span>
-                                                {isLocked && <Lock className="w-3 h-3 text-neutral-400" />}
+                                                {isLocked && (
+                                                    <div className="absolute inset-0 bg-black/5 dark:bg-black/40 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
+                                                        <Lock className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+                                                    </div>
+                                                )}
                                             </button>
                                         )
                                     })}
@@ -464,7 +476,7 @@ const Appearance = () => {
                                         <button
                                             key={round.value}
                                             onClick={() => handleChange("buttonRoundness", round.value)}
-                                            className={`relative py-3 px-2 rounded-xl text-xs sm:text-sm font-medium border transition-all flex flex-col items-center gap-2 ${
+                                            className={`relative py-3 px-2 rounded-xl text-xs sm:text-sm font-medium border transition-all flex flex-col items-center gap-2 cursor-pointer ${
                                                 appearance.buttonRoundness === round.value
                                                     ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-600 shadow-sm"
                                                     : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 text-neutral-600 dark:text-neutral-400 bg-white dark:bg-neutral-800/20"
@@ -504,16 +516,21 @@ const Appearance = () => {
                                                 key={font.value}
                                                 onClick={() => handleChange("fontFamily", font.value, font.isPro)}
                                                 style={{ fontFamily: font.value }}
-                                                className={`relative p-5 rounded-2xl border text-left transition-all ${
+                                                className={`relative p-5 rounded-2xl border text-left transition-all cursor-pointer overflow-hidden ${
                                                     appearance.fontFamily === font.value
                                                         ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-600 shadow-sm"
                                                         : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-800/20 hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
-                                                }`}
+                                                } ${isLocked ? "opacity-75" : ""}`}
                                             >
                                                 <div className="flex justify-between items-start">
                                                     <span className="text-3xl leading-none opacity-80">Aa</span>
-                                                    {isLocked && <Lock className="w-4 h-4 text-neutral-400" />}
-                                                    {appearance.fontFamily === font.value && !isLocked && <Check className="w-4 h-4 text-indigo-600" />}
+                                                    {isLocked ? (
+                                                        <div className="absolute inset-0 bg-black/5 dark:bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
+                                                            <Lock className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+                                                        </div>
+                                                    ) : (
+                                                        appearance.fontFamily === font.value && <Check className="w-4 h-4 text-indigo-600" />
+                                                    )}
                                                 </div>
                                                 <span className="block text-xs mt-3 opacity-60 font-sans tracking-wider uppercase font-semibold">{font.name}</span>
                                             </button>
@@ -569,6 +586,7 @@ const Appearance = () => {
                     </div>
                 </div>
 
+                <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
             </div>
         </div>
     );
@@ -618,7 +636,7 @@ const ColorPicker = ({ label, value, onChange }) => (
 const ThemeCard = ({ theme, isSelected, isLocked, onSelect }) => (
     <button
         onClick={() => onSelect(theme)}
-        className={`group relative aspect-[3/4] rounded-2xl border-2 transition-all duration-300 overflow-hidden flex flex-col items-center justify-end pb-4 ${
+        className={`group relative aspect-[3/4] rounded-2xl border-2 transition-all duration-300 overflow-hidden flex flex-col items-center justify-end pb-4 cursor-pointer ${
             isSelected
                 ? "border-indigo-600 ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-neutral-900 shadow-lg" 
                 : "border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 shadow-sm"

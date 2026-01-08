@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import InputField from "../components/ui/InputField";
 import Button from "../components/ui/Button";
-import { Mail, Lock, User, EyeClosed, EyeIcon } from "lucide-react";
+import { Mail, Lock, User, EyeClosed, EyeIcon, ArrowRight, Sparkles, Check, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -22,6 +23,7 @@ const Signup = () => {
         username: "",
         email: "",
         password: "",
+        confirmPassword: "",
     });
 
     const [errors, setErrors] = useState({
@@ -29,12 +31,11 @@ const Signup = () => {
         username: "",
         email: "",
         password: "",
+        confirmPassword: "",
     });
 
     /* ---------------- Username Status ---------------- */
     const [usernameStatus, setUsernameStatus] = useState(null);
-    // null | checking | available | taken | invalid | reserved
-
     const usernameTimer = useRef(null);
 
     /* ---------------- UI State ---------------- */
@@ -42,6 +43,62 @@ const Signup = () => {
     const [googleLoading, setGoogleLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showcaseUsers, setShowcaseUsers] = useState([]);
+
+    /* ---------------- Password Strength ---------------- */
+    const [passwordStrength, setPasswordStrength] = useState({
+        score: 0,
+        hasLower: false,
+        hasUpper: false,
+        hasNumber: false,
+        hasSpecial: false,
+    });
+
+    const checkStrength = (pass) => {
+        const hasLower = /[a-z]/.test(pass);
+        const hasUpper = /[A-Z]/.test(pass);
+        const hasNumber = /\d/.test(pass);
+        const hasSpecial = /[@$!%*?&]/.test(pass);
+        const isLongEnough = pass.length >= 8;
+
+        let score = 0;
+        if (isLongEnough) score++;
+        if (hasLower) score++;
+        if (hasUpper) score++;
+        if (hasNumber) score++;
+        if (hasSpecial) score++;
+
+        setPasswordStrength({ score, hasLower, hasUpper, hasNumber, hasSpecial, isLongEnough });
+    };
+
+    /* ---------------- Fetch Showcase ---------------- */
+    useEffect(() => {
+        const fetchShowcase = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/showcase`);
+                const data = await res.json();
+                if (data.success && data.users?.length > 0) {
+                    setShowcaseUsers(data.users);
+                } else {
+                    setShowcaseUsers([
+                        { _id: 1, image: "https://i.pravatar.cc/100?img=10" },
+                        { _id: 2, image: "https://i.pravatar.cc/100?img=11" },
+                        { _id: 3, image: "https://i.pravatar.cc/100?img=12" },
+                        { _id: 4, image: "https://i.pravatar.cc/100?img=13" },
+                    ]);
+                }
+            } catch (err) {
+                 setShowcaseUsers([
+                    { _id: 1, image: "https://i.pravatar.cc/100?img=10" },
+                    { _id: 2, image: "https://i.pravatar.cc/100?img=11" },
+                    { _id: 3, image: "https://i.pravatar.cc/100?img=12" },
+                    { _id: 4, image: "https://i.pravatar.cc/100?img=13" },
+                ]);
+            }
+        };
+        fetchShowcase();
+    }, []);
 
     const { signup, resendVerification, authLoading } = useAuth();
 
@@ -64,9 +121,7 @@ const Signup = () => {
 
         try {
             const res = await fetch(
-                `${
-                    import.meta.env.VITE_API_URL
-                }/api/auth/check-username?username=${value}`
+                `${import.meta.env.VITE_API_URL}/api/auth/check-username?username=${value}`
             );
             const data = await res.json();
 
@@ -86,7 +141,7 @@ const Signup = () => {
         }
     };
 
-    /* ---------------- Prefill Username (SAFE) ---------------- */
+    /* ---------------- Prefill Username ---------------- */
     useEffect(() => {
         if (suggestedUsername) {
             const clean = suggestedUsername.toLowerCase();
@@ -108,12 +163,16 @@ const Signup = () => {
                 checkUsername(clean);
             }, 500);
         }
+
+        if (name === "password") {
+            checkStrength(value);
+        }
     };
 
     /* ---------------- Submit ---------------- */
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrors({ name: "", username: "", email: "", password: "" });
+        setErrors({ name: "", username: "", email: "", password: "", confirmPassword: "" });
         setShowResend(false);
 
         let valid = true;
@@ -127,10 +186,7 @@ const Signup = () => {
             setErrors((p) => ({ ...p, username: "Username is required" }));
             valid = false;
         } else if (usernameStatus !== "available") {
-            setErrors((p) => ({
-                ...p,
-                username: "Choose a valid available username",
-            }));
+            setErrors((p) => ({ ...p, username: "Choose a valid available username" }));
             valid = false;
         }
 
@@ -142,6 +198,14 @@ const Signup = () => {
         if (!form.password.trim()) {
             setErrors((p) => ({ ...p, password: "Password is required" }));
             valid = false;
+        } else if (passwordStrength.score < 5) { // Needs all 5 checks
+             setErrors((p) => ({ ...p, password: "Password is too weak" }));
+             valid = false;
+        }
+
+        if (form.password !== form.confirmPassword) {
+            setErrors((p) => ({ ...p, confirmPassword: "Passwords do not match" }));
+            valid = false;
         }
 
         if (!valid) return;
@@ -152,14 +216,11 @@ const Signup = () => {
                 username: form.username,
                 email: form.email,
                 password: form.password,
+                confirmPassword: form.confirmPassword, // Send this for backend check
             });
 
             toast.success("Account created! Please verify your email");
-            navigate(
-                `/verify-email-sent?email=${encodeURIComponent(
-                    form.email.trim()
-                )}`
-            );
+            navigate(`/verify-email-sent?email=${encodeURIComponent(form.email.trim())}`);
         } catch (err) {
             toast.error(err?.message || "Signup failed");
             if (err?.unverified) setShowResend(true);
@@ -172,11 +233,7 @@ const Signup = () => {
             setResendLoading(true);
             const msg = await resendVerification(form.email.trim());
             toast.success(msg || "Verification link sent");
-            navigate(
-                `/verify-email-sent?email=${encodeURIComponent(
-                    form.email.trim()
-                )}`
-            );
+            navigate(`/verify-email-sent?email=${encodeURIComponent(form.email.trim())}`);
         } catch (err) {
             toast.error(err?.message || "Failed to resend");
         } finally {
@@ -187,263 +244,323 @@ const Signup = () => {
     /* ---------------- Google Signup ---------------- */
     const handleGoogleSignup = () => {
         setGoogleLoading(true);
-        window.location.href = `${
-            import.meta.env.VITE_API_URL
-        }/api/auth/google`;
+        window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
     };
 
+    /* ---------------- Components: Strength Item ---------------- */
+    const StrengthItem = ({ fulfilled, text }) => (
+        <div className={`flex items-center gap-2 text-xs transition-colors duration-300 ${fulfilled ? "text-emerald-500" : "text-neutral-400"}`}>
+            {fulfilled ? <Check className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-neutral-300 dark:border-neutral-600" />}
+            <span>{text}</span>
+        </div>
+    );
+
     return (
-        <div className="min-h-screen grid lg:grid-cols-2 relative">
-            <div className="absolute top-4 right-4 z-20">
+        <div className="min-h-[100dvh] w-full flex flex-col lg:grid lg:grid-cols-2 bg-white dark:bg-black overflow-hidden relative">
+            
+            {/* THEME TOGGLE (Absolute Top Right) */}
+            <div className="absolute top-4 right-4 z-50">
                 <ThemeToggle />
             </div>
 
-            {/* LEFT BRANDING PANEL */}
-            <div className="hidden lg:flex flex-col justify-between relative bg-[#0F0F14] dark:bg-black px-12 py-16 overflow-hidden">
-                {/* Animated Background Glows */}
-                <div className="absolute inset-0">
-                    <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse"></div>
-                    <div className="absolute -bottom-40 -right-40 w-[450px] h-[450px] bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
+            {/* LEFT PANEL (Branding - Hidden on Mobile, Visible on Desktop) */}
+            <div className="hidden lg:flex relative flex-col justify-between bg-[#0F0F14] text-white p-12 overflow-hidden">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 z-0 opacity-40">
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
+                        className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"
+                    />
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.2 }}
+                        className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"
+                    />
+                    <div className="absolute inset-0 bg-[url('/img/grid.svg')] opacity-20"></div>
                 </div>
 
                 {/* Logo */}
-                <div className="relative z-20 flex items-center animate-fade-in">
-                    <img
-                        src="/img/Bunchly-light.png"
-                        alt="Bunchly"
-                        className="w-44 drop-shadow-2xl dark:hidden"
-                    />
-                    <img
-                        src="/img/Bunchly-dark.png"
-                        alt="Bunchly"
-                        className="w-44 drop-shadow-2xl hidden dark:block"
-                    />
-                </div>
+                <Link to="/" className="relative z-10 w-fit">
+                    <img src="/img/Bunchly-dark.png" alt="Bunchly" className="h-10 w-auto" />
+                </Link>
 
-                {/* Main Title + Marketing Highlights */}
-                <div className="flex">
-                    <div className="relative z-20 mt-10 animate-slide-up">
-                        <h1 className="text-4xl font-bold tracking-tight text-white leading-snug">
-                            Build Your <br />
-                            <span className="text-indigo-400">
-                                Smart Profile
-                            </span>
-                            <br />
-                            In Minutes 🚀
-                        </h1>
+                {/* Hero Content */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="relative z-10 max-w-lg mb-20"
+                >
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-md mb-6 text-sm font-medium text-indigo-300">
+                        <Sparkles className="w-4 h-4" />
+                        <span>Join 50,000+ Creators</span>
+                    </div>
+                    
+                    <h1 className="text-5xl font-bold tracking-tight mb-6 leading-[1.15]">
+                        Claim your corner <br/>
+                        of the internet.
+                    </h1>
+                    <p className="text-lg text-neutral-400 leading-relaxed mb-8">
+                        The only link-in-bio tool you'll ever need. Beautiful, fast, and feature-packed profiles designed to convert.
+                    </p>
 
-                        <p className="text-gray-300 text-lg mt-4 max-w-sm">
-                            Showcase your identity with a clean, modern and
-                            powerful Bunchly page.
-                        </p>
-
-                        {/* Marketing Highlights */}
-                        <div className="mt-6 space-y-4">
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <span className="w-2 h-2 bg-indigo-400 rounded-full"></span>
-                                Fully customizable profile & links
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                                Track clicks & audience insights
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                                Share everywhere with one smart link
-                            </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex -space-x-3">
+                            {showcaseUsers.slice(0, 4).map((user, idx) => (
+                                <motion.div 
+                                    key={user._id} 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.5 + (idx * 0.1) }}
+                                    className={`w-10 h-10 rounded-full border-2 border-[#0F0F14] bg-neutral-800 flex items-center justify-center text-xs overflow-hidden`}
+                                >
+                                    <img 
+                                        src={user.image} 
+                                        alt={user.username || "User"} 
+                                        className="w-full h-full object-cover"
+                                    />
+                                </motion.div>
+                            ))}
                         </div>
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
+                            className="text-sm font-medium text-neutral-300"
+                        >
+                            Trusted by top creators
+                        </motion.div>
                     </div>
+                </motion.div>
 
-                    {/* Phone Mockup Preview */}
-                    <div className=" z-20 animate-float">
-                        <img
-                            src="/img/screenshots/mobile.png"
-                            alt="Bunchly Preview"
-                            className="w-64 drop-shadow-2xl rounded-3xl border border-white/10"
-                        />
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="relative z-20 text-gray-400 text-sm mt-auto animate-fade-in">
-                    © {new Date().getFullYear()} Bunchly. All rights reserved.
+                {/* Copyright */}
+                <div className="relative z-10 text-neutral-500 text-sm">
+                    © {new Date().getFullYear()} Bunchly Inc.
                 </div>
             </div>
 
-            <div className="flex items-center justify-center p-6">
-                <div className="w-full max-w-md bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-gray-300 dark:border-gray-700 rounded-2xl p-8 shadow-xl text-center">
-                    <img
-                        src="/img/Bunchly-light.png"
-                        alt="Bunchly"
-                        className="w-28 mx-auto mb-4 block dark:hidden"
-                    />
-                    <img
-                        src="/img/Bunchly-dark.png"
-                        alt="Bunchly"
-                        className="w-28 mx-auto mb-4 hidden dark:block"
-                    />
+            {/* RIGHT PANEL (Form) */}
+            <div className="relative flex-1 flex flex-col justify-center px-4 sm:px-12 py-12 lg:px-20 bg-white dark:bg-neutral-950 overflow-hidden isolate">
+                
+                {/* Background Gradients (Mobile/Dark Mode) */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[100px] animate-pulse dark:block hidden" />
+                    <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] animate-pulse delay-700 dark:block hidden" />
+                </div>
 
-                    <h1 className="text-3xl font-bold mb-2">
-                        Create your account ✨
-                    </h1>
-                    <p className="text-gray-700 dark:text-gray-300 mb-6">
-                        Join Bunchly and build your smart profile
-                    </p>
+                {/* Mobile Header (Brand) */}
+                <div className="lg:hidden flex justify-center mb-8">
+                    <Link to="/">
+                        <img src="/img/Bunchly-light.png" alt="Bunchly" className="h-8 dark:invert" />
+                    </Link>
+                </div>
 
-                    <form className="space-y-4" onSubmit={handleSubmit}>
-                        <InputField
-                            label="Username"
-                            icon={User}
-                            type="text"
-                            name="username"
-                            placeholder="yourusername"
-                            value={form.username}
-                            onChange={handleChange}
-                            error={errors.username}
-                        />
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-full max-w-sm mx-auto"
+                >
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Create account</h2>
+                        <p className="text-neutral-500 dark:text-neutral-400">
+                            Start building your page for free. No credit card required.
+                        </p>
+                    </div>
 
-                        {/* Username Status Messaging (PREMIUM UI) */}
-                        {usernameStatus === "checking" && (
-                            <div
-                                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm 
-                        px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/30 
-                        border border-blue-200 dark:border-blue-800 animate-fade-in"
-                            >
-                                <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-                                Checking availability...
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="relative group">
+                            <InputField
+                                label="Claim Username"
+                                icon={User}
+                                type="text"
+                                name="username"
+                                placeholder="bunchly.in/username"
+                                value={form.username}
+                                onChange={handleChange}
+                                error={errors.username}
+                                className="!pl-10"
+                            />
+                            
+                            {/* Status Indicator */}
+                            <div className="mt-2 min-h-[20px] transition-all">
+                                {usernameStatus === "checking" && (
+                                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-blue-500 flex items-center gap-1.5 font-medium"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"/>Checking...</motion.span>
+                                )}
+                                {usernameStatus === "available" && (
+                                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">✓ Available</motion.span>
+                                )}
+                                {usernameStatus === "taken" && (
+                                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-red-500 flex items-center gap-1.5 font-medium">✗ Taken</motion.span>
+                                )}
+                                {usernameStatus === "reserved" && (
+                                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-purple-500 flex items-center gap-1.5 font-medium">⚠ Reserved</motion.span>
+                                )}
+                                {usernameStatus === "invalid" && (
+                                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">⚠ Invalid format</motion.span>
+                                )}
                             </div>
-                        )}
-
-                        {usernameStatus === "available" && (
-                            <div
-                                className="flex items-center gap-2 text-green-700 dark:text-green-400 text-sm 
-                        px-3 py-1 rounded-lg bg-green-50 dark:bg-green-900/20 
-                        border border-green-200 dark:border-green-800 animate-fade-in"
-                            >
-                                <span>✓</span>
-                                Username is available
-                            </div>
-                        )}
-
-                        {usernameStatus === "taken" && (
-                            <div
-                                className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm 
-                        px-3 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 
-                        border border-red-200 dark:border-red-800 animate-fade-in"
-                            >
-                                <span>✗</span>
-                                Username already taken
-                            </div>
-                        )}
-
-                        {usernameStatus === "invalid" && (
-                            <div
-                                className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 text-sm 
-                        px-3 py-1 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 
-                        border border-yellow-300 dark:border-yellow-800 animate-fade-in"
-                            >
-                                ⚠ Username must be 3–20 characters (letters,
-                                numbers, . _ -)
-                            </div>
-                        )}
-
-                        {usernameStatus === "reserved" && (
-                            <div
-                                className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm 
-                        px-3 py-1 rounded-lg bg-orange-50 dark:bg-orange-900/20 
-                        border border-orange-200 dark:border-orange-800 animate-fade-in"
-                            >
-                                🔒 This username is reserved
-                            </div>
-                        )}
+                        </div>
 
                         <InputField
-                            label="Name"
-                            icon={User}
+                            label="Full Name"
+                            icon={null}
                             type="text"
                             name="name"
-                            placeholder="John Doe"
+                            placeholder="e.g. Alex Smith"
                             value={form.name}
                             onChange={handleChange}
                             error={errors.name}
                         />
+
                         <InputField
                             label="Email"
                             icon={Mail}
                             type="email"
                             name="email"
-                            placeholder="you@example.com"
+                            placeholder="name@example.com"
                             value={form.email}
                             onChange={handleChange}
                             error={errors.email}
                         />
-                        <InputField
-                            label="Password"
-                            icon={Lock}
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            placeholder="••••••••"
-                            value={form.password}
-                            onChange={handleChange}
-                            error={errors.password}
-                            eye={showPassword ? EyeClosed : EyeIcon}
-                            onClick={() => setShowPassword(!showPassword)}
-                        />
+
+                        <div>
+                            <InputField
+                                label="Password"
+                                icon={Lock}
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Create a strong password"
+                                value={form.password}
+                                onChange={handleChange}
+                                error={errors.password}
+                                eye={showPassword ? EyeClosed : EyeIcon}
+                                onClick={() => setShowPassword(!showPassword)}
+                            />
+
+                            {/* Password Strength Meter - Only show if typing */}
+                            <AnimatePresence>
+                                {form.password.length > 0 && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="mt-3 bg-neutral-50 dark:bg-white/5 rounded-lg p-3 overflow-hidden"
+                                    >
+                                        <div className="flex gap-1 mb-2">
+                                            {[1,2,3,4,5].map(step => (
+                                                <div 
+                                                    key={step} 
+                                                    className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                                                        passwordStrength.score >= step 
+                                                            ? (passwordStrength.score < 3 ? 'bg-red-500' : (passwordStrength.score < 5 ? 'bg-amber-500' : 'bg-emerald-500'))
+                                                            : 'bg-neutral-200 dark:bg-neutral-700'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <StrengthItem fulfilled={passwordStrength.isLongEnough} text="8+ Characters" />
+                                            <StrengthItem fulfilled={passwordStrength.hasUpper} text="Uppercase (A-Z)" />
+                                            <StrengthItem fulfilled={passwordStrength.hasLower} text="Lowercase (a-z)" />
+                                            <StrengthItem fulfilled={passwordStrength.hasNumber} text="Number (0-9)" />
+                                            <StrengthItem fulfilled={passwordStrength.hasSpecial} text="Symbol (!@#$)" />
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        <div>
+                            <InputField
+                                label="Confirm Password"
+                                icon={Lock}
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                placeholder="Confirm your password"
+                                value={form.confirmPassword}
+                                onChange={handleChange}
+                                error={errors.confirmPassword}
+                                eye={showConfirmPassword ? EyeClosed : EyeIcon}
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            />
+                            {form.confirmPassword && form.password === form.confirmPassword && (
+                                <motion.p 
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-emerald-500 font-medium mt-1 flex items-center gap-1"
+                                >
+                                    <Check className="w-3 h-3" /> Passwords match
+                                </motion.p>
+                            )}
+                        </div>
+
                         <Button
                             text="Create Account"
                             fullWidth
                             type="submit"
                             loading={authLoading}
+                            className="h-12 text-base active:scale-[0.98] transition-all" // REMOVED SHADOWS
+                            icon={ArrowRight}
                         />
                     </form>
 
-                    {showResend && (
-                        <div className="mt-4 text-center">
-                            <p className="text-red-500 text-sm mb-2">
-                                This email is already registered but not
-                                verified.
+                     {/* Resend Logic */}
+                     {showResend && (
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }} 
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="mt-4 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20 text-center"
+                        >
+                            <p className="text-red-600 dark:text-red-400 text-sm mb-3">
+                                Account exists but not verified.
                             </p>
                             <Button
-                                text="Resend Verification Email"
+                                text="Resend Verification"
                                 fullWidth
                                 size="sm"
+                                variant="outline"
                                 onClick={handleResend}
                                 loading={resendLoading}
+                                className="!border-red-200 !text-red-600 hover:!bg-red-50"
                             />
-                        </div>
+                        </motion.div>
                     )}
 
-                    <div className="my-6 flex items-center justify-center gap-3">
-                        <span className="h-px w-20 bg-gray-300 dark:bg-gray-600" />
-                        <span className="text-gray-600 dark:text-gray-300 text-sm">
-                            Or continue with
-                        </span>
-                        <span className="h-px w-20 bg-gray-300 dark:bg-gray-600" />
+                    <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-neutral-200 dark:border-neutral-800"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-white dark:bg-black text-neutral-500">Or continue with</span>
+                        </div>
                     </div>
 
                     <button
                         onClick={handleGoogleSignup}
-                        className="w-full py-2 rounded-xl bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 flex items-center justify-center gap-3 hover:bg-gray-300 dark:hover:bg-gray-600 transition cursor-pointer"
                         disabled={googleLoading}
+                        className="w-full h-12 flex items-center justify-center gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all active:scale-[0.98] text-neutral-700 dark:text-neutral-200 font-medium disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
                     >
-                        <img
-                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                            className="w-5 h-5"
-                        />
-                        {googleLoading
-                            ? "Redirecting..."
-                            : "Continue with Google"}
+                        {googleLoading ? (
+                             <div className="w-5 h-5 border-2 border-neutral-400 border-t-neutral-900 dark:border-t-white rounded-full animate-spin"/>
+                        ) : (
+                            <>
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                                <span>Google</span>
+                            </>
+                        )}
                     </button>
 
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-6">
-                        Already have an account?
-                        <Link
-                            to="/login"
-                            className="ml-1 text-indigo-500 hover:underline"
-                        >
-                            Log in
+                    <p className="mt-8 text-center text-sm text-neutral-500">
+                        Already have an account?{" "}
+                        <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline transition-colors">
+                            Sign in
                         </Link>
                     </p>
+                </motion.div>
+
+                {/* Mobile Footer Links */}
+                <div className="lg:hidden mt-12 text-center text-xs text-neutral-400 flex justify-center gap-4">
+                    <Link to="/privacy">Privacy</Link>
+                    <span>•</span>
+                    <Link to="/terms">Terms</Link>
                 </div>
             </div>
         </div>

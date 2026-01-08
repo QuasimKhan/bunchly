@@ -30,11 +30,11 @@ const LinkFavicon = ({ url, icon, size = 32 }) => {
     }
 
     // ⭐ PRIORITY 1.5 - Bunchly Icon (Internal)
-    // Supports bunchly.io, bunchly.in, bunchly.app, localhost
+    // Supports bunchly.io, bunchly.in, bunchly.in, localhost
     const isBunchly = url && (
         url.includes("bunchly.io") || 
         url.includes("bunchly.in") || 
-        url.includes("bunchly.app") || 
+        url.includes("bunchly.in") || 
         url.includes("localhost")
     );
     

@@ -7,6 +7,7 @@ import {
     updateProfile,
     uploadProfileController,
     uploadBackgroundController,
+    getShowcaseProfiles,
 } from "../controllers/profile.controller.js";
 import uploadProfile from "../middlewares/profileUpload.js";
 
@@ -15,6 +16,8 @@ const profileRouter = express.Router();
 profileRouter.get("/dashboard", requireAuth, (req, res) => {
     res.send("Dashboard and you are authorized");
 });
+
+profileRouter.get("/showcase", getShowcaseProfiles);
 
 profileRouter.delete("/:userId", requireAuth, deleteUser);
 profileRouter.patch("/update-profile", updateProfile);

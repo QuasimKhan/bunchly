@@ -28,70 +28,50 @@ const UpgradeModal = ({ isOpen, onClose }) => {
 
             {/* Modal */}
             <div className={`
-                relative w-full max-w-lg bg-white dark:bg-[#0A0A0A] rounded-3xl shadow-2xl overflow-hidden border border-white/20 dark:border-white/10
-                transform transition-all duration-500 ease-out
-                ${isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-8"}
+                relative w-full max-w-md mx-4 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-2xl rounded-[2rem] shadow-2xl overflow-hidden border border-white/20 dark:border-white/10
+                transform transition-all duration-500 ease-out flex flex-col
+                ${isOpen ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-8 opacity-0"}
             `}>
                 {/* Decorative gradients */}
-                <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent pointer-events-none" />
+                <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent pointer-events-none" />
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Close Button */}
-                {/* <button 
-                    onClick={onClose}
-                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors z-10"
-                >
-                    <X className="w-5 h-5" />
-                </button> */} 
-                {/* User requested to cut options to close popup, but good UX usually requires it.
-                    However, the user explicitly said "cut options to close pop up".
-                    I will comment it out or make it very subtle/hard to find, or strictly follow "cut options to close".
-                    Actually, if I can't close it, it's a blocker. 
-                    Re-reading: "cut options to close pop up" might mean "remove the 'X' button". 
-                    But usually there's a "Maybe later" button. 
-                    If the user is Free, they should be able to use the free plan. 
-                    Locking them out is valid only if they need to pay. 
-                    "Popup to upgrade" usually implies an upsell, not a lockout.
-                    If I can't close it, the app is unusable.
-                    I will add a "Maybe Later" text button at the bottom for UX safety, 
-                    but remove the top X as requested to make it "cut options".
-                */}
-
-                <div className="relative p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-6 shadow-lg shadow-indigo-500/25">
-                        <Sparkles className="w-8 h-8 text-white" />
+                <div className="relative p-6 sm:p-8 text-center">
+                    <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 mb-6 shadow-lg shadow-indigo-500/30 group">
+                        <div className="absolute inset-0 rounded-2xl bg-white/20 blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <Sparkles className="w-8 h-8 text-white relative z-10" strokeWidth={1.5} />
                     </div>
 
-                    <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 mb-3">
-                        Unlock Your Potential
+                    <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white mb-2 tracking-tight">
+                        Unlock Pro Features
                     </h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-                        Upgrade to Pro to remove branding, access advanced analytics, and use custom domains.
+                    <p className="text-neutral-500 dark:text-neutral-400 mb-8 max-w-[260px] mx-auto text-sm leading-relaxed">
+                        Take your page to the next level with premium themes, analytics, and no branding.
                     </p>
 
-                    <div className="space-y-4 mb-8 text-left max-w-sm mx-auto">
+                    <div className="space-y-3 mb-8 text-left bg-neutral-50/50 dark:bg-white/5 p-4 rounded-2xl border border-neutral-100 dark:border-white/5">
                         {[
                             "Remove Bunchly branding",
                             "Advanced analytics & insights",
-                            "Custom SEO settings",
+                            "Premium themes & gradients",
                             "Priority support"
                         ].map((feature, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center shrink-0">
-                                    <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                                    <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400" strokeWidth={3} />
                                 </div>
-                                <span className="text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
+                                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{feature}</span>
                             </div>
                         ))}
                     </div>
 
                     <div className="flex flex-col gap-3">
                         <Button 
-                            text="Upgrade to Pro" 
+                            text="Upgrade Now" 
                             variant="primary" 
                             size="lg"
-                            className="w-full shadow-xl shadow-indigo-500/20 group justify-center"
+                            className="w-full shadow-xl shadow-indigo-500/20 py-3.5 text-sm font-bold cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
                             icon={ArrowRight}
                             onClick={() => {
                                 navigate("/dashboard/upgrade");
@@ -100,7 +80,7 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                         />
                         <button 
                             onClick={onClose}
-                            className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium transition-colors p-2"
+                            className="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 font-medium transition-colors py-2 cursor-pointer select-none"
                         >
                             Maybe later
                         </button>

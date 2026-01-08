@@ -436,3 +436,25 @@ export const uploadBackgroundController = async (req, res) => {
         });
     }
 };
+
+export const getShowcaseProfiles = async (req, res) => {
+    try {
+        // Fetch top 5 verified users with images
+        const users = await User.find({
+            isVerified: true,
+            image: { $exists: true, $ne: "" },
+        })
+        .sort({ profileViews: -1 })
+        .limit(5)
+        .select("username image name");
+
+        return res.status(200).json({
+            success: true,
+            users,
+        });
+    } catch (error) {
+        console.error("Showcase fetch error:", error);
+        // Fail gracefully
+        return res.status(200).json({ success: true, users: [] });
+    }
+};

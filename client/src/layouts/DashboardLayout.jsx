@@ -85,7 +85,7 @@ const DashboardLayout = () => {
 
                 <Topbar toggleSidebar={toggleSidebar} />
 
-                <main className="p-6 flex-1">
+                <main className="flex-1">
                     <Outlet />
                 </main>
             </div>

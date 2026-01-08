@@ -43,6 +43,7 @@ const PublicProfilePage = () => {
         image: user?.image || "/og-image.png",
         url: buildUrl(`/${username}`),
         structuredData,
+        type: "profile",
     });
 
     useEffect(() => {

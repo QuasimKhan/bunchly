@@ -113,11 +113,11 @@ const AdminDashboard = () => {
                             <AreaChart data={charts?.userGrowth}>
                                 <defs>
                                     <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" strokeOpacity={0.1} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" strokeOpacity={0.05} vertical={false} />
                                 <XAxis 
                                     dataKey="date" 
                                     stroke="#888888" 
@@ -125,25 +125,30 @@ const AdminDashboard = () => {
                                     tickLine={false} 
                                     axisLine={false} 
                                     tickFormatter={(val) => new Date(val).getDate()}
+                                    dy={10}
                                 />
                                 <YAxis 
                                     stroke="#888888" 
                                     fontSize={12} 
                                     tickLine={false} 
                                     axisLine={false} 
+                                    dx={-10}
                                 />
                                 <Tooltip 
                                     contentStyle={{ 
-                                        backgroundColor: "#1F2937", 
-                                        borderRadius: "8px", 
-                                        border: "none", 
-                                        color: "#fff" 
+                                        backgroundColor: "rgba(17, 17, 26, 0.9)", 
+                                        borderRadius: "12px", 
+                                        border: "1px solid rgba(255,255,255,0.1)", 
+                                        color: "#fff",
+                                        backdropFilter: "blur(4px)"
                                     }}
+                                    itemStyle={{ color: "#818cf8" }}
                                 />
                                 <Area 
                                     type="monotone" 
                                     dataKey="count" 
                                     stroke="#6366f1" 
+                                    strokeWidth={3}
                                     fillOpacity={1} 
                                     fill="url(#colorUsers)" 
                                 />
@@ -163,7 +168,13 @@ const AdminDashboard = () => {
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={charts?.revenue}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" strokeOpacity={0.1} />
+                                <defs>
+                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8}/>
+                                        <stop offset="100%" stopColor="#22c55e" stopOpacity={0.3}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" strokeOpacity={0.05} vertical={false} />
                                 <XAxis 
                                     dataKey="date" 
                                     stroke="#888888" 
@@ -171,6 +182,7 @@ const AdminDashboard = () => {
                                     tickLine={false} 
                                     axisLine={false}
                                     tickFormatter={(val) => new Date(val).getDate()}
+                                    dy={10}
                                 />
                                 <YAxis 
                                     stroke="#888888" 
@@ -178,18 +190,20 @@ const AdminDashboard = () => {
                                     tickLine={false} 
                                     axisLine={false}
                                     tickFormatter={(val) => `₹${val}`}
+                                    dx={-10}
                                 />
                                 <Tooltip 
-                                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                                    cursor={{fill: 'rgba(255,255,255,0.02)'}}
                                     contentStyle={{ 
-                                        backgroundColor: "#1F2937", 
-                                        borderRadius: "8px", 
-                                        border: "none", 
-                                        color: "#fff" 
+                                        backgroundColor: "rgba(17, 17, 26, 0.9)", 
+                                        borderRadius: "12px", 
+                                        border: "1px solid rgba(255,255,255,0.1)", 
+                                        color: "#fff",
+                                        backdropFilter: "blur(4px)"
                                     }}
                                     formatter={(val) => [`₹${val}`, "Revenue"]}
                                 />
-                                <Bar dataKey="amount" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="amount" fill="url(#colorRevenue)" radius={[6, 6, 0, 0]} barSize={32} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -202,35 +216,36 @@ const AdminDashboard = () => {
                     <div className="p-6 border-b border-neutral-200 dark:border-white/5 flex items-center justify-between">
                         <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Recent Signups</h2>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-neutral-50 dark:bg-white/5">
-                                <tr className="text-left text-neutral-500">
-                                    <th className="px-6 py-4">User</th>
-                                    <th className="px-6 py-4">Email</th>
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-neutral-50/50 dark:bg-white/5 text-xs uppercase font-bold text-neutral-500 tracking-wider">
+                                <tr>
+                                    <th className="px-6 py-4 rounded-tl-xl">User</th>
+                                    <th className="px-6 py-4 hidden sm:table-cell">Email</th>
                                     <th className="px-6 py-4">Plan</th>
-                                    <th className="px-6 py-4">Joined</th>
+                                    <th className="px-6 py-4 hidden sm:table-cell rounded-tr-xl">Joined</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-200 dark:divide-white/5">
+                            <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
                                 {recentUsers.map(user => (
-                                    <tr key={user._id} className="hover:bg-neutral-50 dark:hover:bg-white/[0.02]">
-                                        <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
+                                    <tr key={user._id} className="hover:bg-neutral-50/50 dark:hover:bg-white/[0.02] transition-colors group cursor-default">
+                                        <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                             {user.name}
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-500">
+                                        <td className="px-6 py-4 text-neutral-500 hidden sm:table-cell">
                                             {user.email}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
                                                 user.plan === 'pro' 
-                                                    ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                                                    : 'bg-neutral-100 text-neutral-600 dark:bg-white/10 dark:text-neutral-400'
+                                                    ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800'
+                                                    : 'bg-neutral-50 text-neutral-500 border-neutral-200 dark:bg-white/5 dark:text-neutral-400 dark:border-white/10'
                                             }`}>
+                                                {user.plan === 'pro' && <TrendingUp className="w-3 h-3 mr-1" />}
                                                 {user.plan}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-500">
+                                        <td className="px-6 py-4 text-neutral-400 hidden sm:table-cell font-mono text-xs">
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
                                     </tr>
@@ -284,23 +299,36 @@ const AdminDashboard = () => {
 };
 
 const StatCard = ({ label, value, icon: Icon, color, subtext }) => {
-    const colors = {
-        blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
-        indigo: "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
-        green: "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400",
-        purple: "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400",
+    const styles = {
+        blue: "from-blue-500 to-cyan-500 shadow-blue-500/20",
+        indigo: "from-indigo-500 to-violet-500 shadow-indigo-500/20",
+        green: "from-emerald-500 to-teal-500 shadow-emerald-500/20",
+        purple: "from-fuchsia-500 to-pink-500 shadow-fuchsia-500/20",
+    };
+
+    const iconStyles = {
+        blue: "text-blue-500 bg-blue-50 dark:bg-blue-500/10",
+        indigo: "text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10",
+        green: "text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10",
+        purple: "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-500/10",
     };
 
     return (
-        <div className="bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-neutral-200 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
+        <div className="group bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-neutral-200 dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+            {/* Hover Gradient Effect */}
+            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${styles[color]} opacity-0 group-hover:opacity-10 blur-2xl transition-opacity rounded-full -mr-16 -mt-16 pointer-events-none`}></div>
+
+            <div className="flex items-start justify-between relative z-10">
                 <div>
-                    <p className="text-sm font-medium text-neutral-500 mb-1">{label}</p>
-                    <h3 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">{value}</h3>
-                    {subtext && <p className="text-xs text-neutral-400 mt-1 font-medium">{subtext}</p>}
+                    <p className="text-sm font-semibold text-neutral-500 mb-1.5">{label}</p>
+                    <h3 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tighter">{value}</h3>
+                    {subtext && <p className="text-xs text-neutral-400 mt-2 font-medium flex items-center gap-1.5">
+                        <TrendingUp className="w-3 h-3 text-emerald-500" />
+                        {subtext}
+                    </p>}
                 </div>
-                <div className={`p-3 rounded-xl ${colors[color]} ring-1 ring-inset ring-black/5 dark:ring-white/10`}>
-                    <Icon className="w-6 h-6" />
+                <div className={`p-3.5 rounded-xl ${iconStyles[color]} ring-1 ring-inset ring-black/5 dark:ring-white/5 transition-transform group-hover:scale-110 duration-300`}>
+                    <Icon className="w-6 h-6" strokeWidth={1.5} />
                 </div>
             </div>
         </div>

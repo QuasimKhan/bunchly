@@ -25,6 +25,7 @@ export const useSEO = ({
     description,
     image = "/og-image.png",
     url = window.location.href,
+    type = "website",
     noIndex = false,
     structuredData = null,
 }) => {
@@ -34,19 +35,23 @@ export const useSEO = ({
         // Basic SEO
         setMeta("description", description);
         setMeta("robots", noIndex ? "noindex,nofollow" : "index,follow");
+        setMeta("author", "Bunchly");
 
         // Canonical
         setLink("canonical", url);
 
         // Open Graph
+        setMeta("og:site_name", "Bunchly", "property");
         setMeta("og:title", title, "property");
         setMeta("og:description", description, "property");
         setMeta("og:image", image, "property");
         setMeta("og:url", url, "property");
-        setMeta("og:type", "website", "property");
+        setMeta("og:type", type, "property");
 
         // Twitter
         setMeta("twitter:card", "summary_large_image");
+        setMeta("twitter:site", "@bunchly_app");
+        setMeta("twitter:creator", "@bunchly_app");
         setMeta("twitter:title", title);
         setMeta("twitter:description", description);
         setMeta("twitter:image", image);
@@ -68,5 +73,5 @@ export const useSEO = ({
                 script.remove();
             }
         }
-    }, [title, description, image, url, noIndex, structuredData]);
+    }, [title, description, image, url, type, noIndex, structuredData]);
 };

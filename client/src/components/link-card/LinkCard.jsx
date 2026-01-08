@@ -28,18 +28,18 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete, onOpenIconPicker, ...props
 
     return (
         <LinkCardContainer dragging={props.dragging} className={props.className}>
-            <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
                 {/* Drag Handle + Icon/Favicon */}
                 <div className="flex items-center gap-3 shrink-0">
                     <LinkDragHandle />
                     
                     {/* Collection Icon */}
                     {link.type === "collection" ? (
-                        <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-xl text-indigo-500 border border-indigo-100 dark:border-indigo-500/30">
+                        <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-lg text-indigo-500 border border-indigo-100 dark:border-indigo-500/30">
                             📂
                         </div>
                     ) : (
-                        <LinkFavicon url={link.url} icon={link.icon} size={40} />
+                        <LinkFavicon url={link.url} icon={link.icon} size={36} />
                     )}
                 </div>
 
@@ -49,7 +49,7 @@ const LinkCard = ({ link, onToggle, onEdit, onDelete, onOpenIconPicker, ...props
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
                         {/* Title, URL, Description */}
                         <div>
-                             <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 text-base flex items-center gap-2 leading-tight">
+                             <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 text-sm flex items-center gap-2 leading-tight">
                                 {link.title}
                                 {link.type === "collection" && (
                                     <span className="text-[10px] uppercase tracking-wider font-bold bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-lg text-neutral-500 border border-neutral-200 dark:border-neutral-700">

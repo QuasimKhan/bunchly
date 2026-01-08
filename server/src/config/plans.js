@@ -1,6 +1,7 @@
 export const PLANS = {
     free: {
-        maxLinks: 5,
+        maxLinks: 3,
+        maxCollections: 1,
         analytics: false,
         customThemes: false,
         removeBranding: false,

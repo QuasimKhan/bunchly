@@ -45,6 +45,24 @@ const paymentSchema = new mongoose.Schema(
             required: true,
         },
 
+        couponCode: {
+            type: String,
+        },
+
+        discountAmount: {
+            type: Number,
+            default: 0,
+        },
+
+        subscriptionId: {
+            type: String, // Razorpay Sub ID
+        },
+
+        autoPay: {
+            type: Boolean,
+            default: false,
+        },
+
         status: {
             type: String,
             enum: ["paid", "failed", "refunded"],

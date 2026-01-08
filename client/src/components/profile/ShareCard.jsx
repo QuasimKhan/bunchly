@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Download, X, Share2, Copy } from "lucide-react";
 import { toast } from "sonner";
-import { toPng } from "html-to-image";
+import { toPng, toBlob } from "html-to-image";
 
 const ShareCard = ({ user, onClose }) => {
     const cardRef = useRef(null);
@@ -39,18 +39,49 @@ const ShareCard = ({ user, onClose }) => {
     };
 
     const handleNativeShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: `Check out ${user.username} on Bunchly`,
-                    text: user.bio || "One link for everything.",
-                    url: profileUrl,
+        setGenerating(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            const shareData = {
+                title: `Meet ${user.name || user.username} on Bunchly`,
+                text: `Check out my profile on Bunchly! 🚀\n\n${user.bio ? user.bio + "\n\n" : ""}@${user.username}`,
+                url: profileUrl,
+            };
+
+            if (navigator.canShare && navigator.canShare({ files: [new File([], 'test.png', { type: 'image/png' })] }) && cardRef.current) {
+                 const blob = await toBlob(cardRef.current, { 
+                    cacheBust: true, 
+                    pixelRatio: 2, 
+                    backgroundColor: 'transparent'
                 });
-            } catch (err) {
-               // ignore
+                
+                if (blob) {
+                    const file = new File([blob], `${user.username}-profile.png`, { type: "image/png" });
+                    const fileShareData = { 
+                        ...shareData, 
+                        files: [file],
+                        // Some apps ignore text if files are present, but we send it anyway
+                    };
+                    
+                    if (navigator.canShare(fileShareData)) {
+                        await navigator.share(fileShareData);
+                        return;
+                    }
+                }
             }
-        } else {
-            handleCopyLink();
+
+            // Fallback to link only
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                handleCopyLink();
+            }
+        } catch (err) {
+            console.error(err);
+             // User cancellation or error
+        } finally {
+            setGenerating(false);
         }
     };
 
@@ -101,8 +132,8 @@ const ShareCard = ({ user, onClose }) => {
                                 <QRCodeSVG 
                                     value={profileUrl} 
                                     size={130}
-                                    level="M"
-                                    fgColor="#1e1b4b" // Premium Dark Indigo
+                                    level="H"
+                                    fgColor="#000000"
                                     bgColor="#ffffff"
                                     imageSettings={{
                                         src: "/apple-touch-icon.png",

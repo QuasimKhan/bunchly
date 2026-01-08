@@ -13,16 +13,17 @@ export const getSitemap = async (req, res) => {
             "/privacy",
         ];
 
-        // Fetch valid public users
+        // Fetch valid public users with images
         const users = await User.find({
             "preferences.publicProfile.isPublic": true,
             "flags.isBanned": false,
-            "flags.isStaff": false, // Optional: exclude staff if needed, but usually fine
-        }).select("username updatedAt");
+            "flags.isStaff": false, 
+        }).select("username updatedAt image name");
 
-        // Build XML
+        // Build XML with Image Namespace
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`;
 
         // Add Static Routes
         staticRoutes.forEach(route => {
@@ -34,15 +35,30 @@ export const getSitemap = async (req, res) => {
   </url>`;
         });
 
-        // Add User Profiles
+        // Add User Profiles with Images
         users.forEach(user => {
             if (user.username) {
+                const profileUrl = `${baseUrl}/${user.username}`;
                 xml += `
   <url>
-    <loc>${baseUrl}/${user.username}</loc>
+    <loc>${profileUrl}</loc>
     <lastmod>${new Date(user.updatedAt).toISOString()}</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.9</priority>
+    <priority>0.9</priority>`;
+                
+                // Add Image extension if user has a profile image
+                if (user.image) {
+                     // Sanitize ampersands in URLs just in case
+                     const imgUrl = user.image.replace(/&/g, '&amp;');
+                     const imgTitle = (user.name || user.username).replace(/&/g, '&amp;');
+                     xml += `
+    <image:image>
+      <image:loc>${imgUrl}</image:loc>
+      <image:title>${imgTitle}</image:title>
+    </image:image>`;
+                }
+                
+                xml += `
   </url>`;
             }
         });

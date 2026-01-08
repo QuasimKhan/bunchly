@@ -21,16 +21,18 @@ import SettingsDashboard from "./pages/SettingsDashboard.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Upgrade from "./pages/Upgrade.jsx";
 import Billing from "./pages/Billing.jsx";
+import Checkout from "./pages/Checkout.jsx";
 import { useCookieConsent } from "./hooks/useCookieConsent.js";
 import { loadAnalytics } from "./lib/analytics.js";
 import ConsentBanner from "./components/ConsentBanner.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import AdminRoute from "./components/auth/AdminRoute.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
+import AdminRevenue from "./pages/admin/AdminRevenue";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
 import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
-
+import AdminCoupons from "./pages/admin/AdminCoupons.jsx";
 import Appearance from "./pages/Appearance.jsx";
 import AdminPayments from "./pages/admin/AdminPayments.jsx";
 
@@ -74,6 +76,10 @@ const App = () => {
                             path="/dashboard/upgrade"
                             element={<Upgrade />}
                         />
+                        <Route
+                            path="/dashboard/checkout"
+                            element={<Checkout />}
+                        />
 
                         <Route path="/dashboard/links" element={<Links />} />
                         <Route
@@ -100,14 +106,16 @@ const App = () => {
                     </Route>
 
                     {/* Admin Routes */}
-                    <Route element={<AdminRoute />}>
-                        <Route element={<AdminLayout />}>
-                            <Route path="/admin" element={<AdminDashboard />} />
-                            <Route path="/admin/users" element={<AdminUsers />} />
-                            <Route path="/admin/users/:id" element={<AdminUserDetail />} />
-                            <Route path="/admin/payments" element={<AdminPayments />} />
-                        </Route>
+                    <Route path="/admin" element={<AdminRoute />}>
+                    <Route element={<AdminLayout />}>
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="revenue" element={<AdminRevenue />} />
+                        <Route path="users" element={<AdminUsers />} />
+                        <Route path="users/:id" element={<AdminUserDetail />} />
+                        <Route path="payments" element={<AdminPayments />} />
+                        <Route path="coupons" element={<AdminCoupons />} />
                     </Route>
+                </Route>
                 </Route>
 
                 {/* Fallback route */}

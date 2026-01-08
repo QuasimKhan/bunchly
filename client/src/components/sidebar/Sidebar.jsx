@@ -22,7 +22,7 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
             <aside
                 className={`
                     fixed top-0 left-0 z-50
-                    h-screen w-0 lg:w-64
+                    h-[100dvh] w-0 lg:w-64
                     bg-white dark:bg-[#0F0F14]
                     border-r border-neutral-200 dark:border-white/5
                     flex flex-col

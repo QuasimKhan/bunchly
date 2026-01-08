@@ -18,7 +18,7 @@ const LinkActions = ({
                 icon={Sparkles}
                 size="sm"
                 variant="ghost"
-                className="!p-1.5 sm:!p-2 !bg-white/8 hover:!bg-white/12 text-indigo-300"
+                className="!p-1.5 sm:!p-2 !bg-indigo-50 dark:!bg-indigo-900/20 hover:!bg-indigo-100 dark:hover:!bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 cursor-pointer"
                 onClick={() => onOpenIconPicker(link)}
             />
 
@@ -27,7 +27,7 @@ const LinkActions = ({
                 icon={Pencil}
                 size="sm"
                 variant="ghost"
-                className="!p-1.5 sm:!p-2 !bg-white/8 hover:!bg-white/12 text-gray-200"
+                className="!p-1.5 sm:!p-2 !bg-neutral-100 dark:!bg-neutral-800 hover:!bg-neutral-200 dark:hover:!bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-pointer"
                 onClick={() => onEdit(link)}
             />
 
@@ -36,7 +36,7 @@ const LinkActions = ({
                 icon={Trash2}
                 size="sm"
                 variant="ghost"
-                className="!p-1.5 sm:!p-2 !bg-red-500/10 hover:!bg-red-500/20 text-red-400"
+                className="!p-1.5 sm:!p-2 !bg-red-50 dark:!bg-red-900/10 hover:!bg-red-100 dark:hover:!bg-red-900/20 text-red-600 dark:text-red-400 cursor-pointer"
                 onClick={() => onDelete(link._id)}
             />
 

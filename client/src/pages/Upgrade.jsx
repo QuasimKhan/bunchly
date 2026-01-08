@@ -3,97 +3,18 @@ import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { Crown, Check, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Upgrade = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const isPro = user?.plan === "pro";
     const [loading, setLoading] = useState(false);
 
-    const handleUpgrade = async () => {
+    const handleUpgrade = () => {
         if (loading || isPro) return;
-
-        try {
-            setLoading(true);
-
-            // 1️⃣ Create order
-            const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/payment/create-order`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                }
-            );
-
-            const data = await res.json();
-
-            if (!data.success) {
-                toast.error(data.message || "Unable to create order");
-                setLoading(false);
-                return;
-            }
-
-            const { id, amount, currency } = data.order;
-
-            // 2️⃣ Open Razorpay
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount,
-                currency,
-                name: "Bunchly",
-                description: "Bunchly Pro Subscription",
-                order_id: id,
-
-                handler: async (response) => {
-                    try {
-                        const verifyRes = await fetch(
-                            `${
-                                import.meta.env.VITE_API_URL
-                            }/api/payment/verify`,
-                            {
-                                method: "POST",
-                                credentials: "include",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(response),
-                            }
-                        );
-
-                        const result = await verifyRes.json();
-
-                        if (result.success) {
-                            toast.success("🎉 Pro activated successfully!");
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1200);
-                        } else {
-                            toast.error(
-                                result.message || "Payment verification failed"
-                            );
-                            setLoading(false);
-                        }
-                    } catch {
-                        toast.error("Payment verification error");
-                        setLoading(false);
-                    }
-                },
-
-                modal: {
-                    ondismiss: () => {
-                        setLoading(false);
-                    },
-                },
-
-                theme: {
-                    color: "#6366f1",
-                },
-            };
-
-            new window.Razorpay(options).open();
-        } catch {
-            toast.error("Something went wrong. Please try again.");
-            setLoading(false);
-        }
+        setLoading(true);
+        navigate('/dashboard/checkout');
     };
 
     return (

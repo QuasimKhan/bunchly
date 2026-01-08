@@ -35,14 +35,27 @@ export const createLink = async (req, res) => {
             });
         }
 
-        const currentLinksCount = await Link.countDocuments({ userId });
-
-        if (currentLinksCount >= planRules.maxLinks) {
-            return res.status(403).json({
-                success: false,
-                code: "PLAN_LIMIT_REACHED",
-                message: `Free plan allows up to ${planRules.maxLinks} links. Upgrade to Pro to add more.`,
-            });
+        const isCollection = req.body.type === 'collection';
+        
+        if (isCollection) {
+            const collectionCount = await Link.countDocuments({ userId, type: 'collection' });
+            if (planRules.maxCollections !== undefined && collectionCount >= planRules.maxCollections) {
+                 return res.status(403).json({ 
+                     success: false, 
+                     code: "PLAN_LIMIT_REACHED",
+                     message: `Free plan limit: Max ${planRules.maxCollections} collection. Upgrade to Pro.` 
+                 });
+            }
+        } else {
+            // Count only actual links (ignore collections in this count)
+            const linkCount = await Link.countDocuments({ userId, type: 'link' });
+            if (linkCount >= planRules.maxLinks) {
+                 return res.status(403).json({ 
+                     success: false, 
+                     code: "PLAN_LIMIT_REACHED",
+                     message: `Free plan limit: Max ${planRules.maxLinks} links. Upgrade to Pro.` 
+                 });
+            }
         }
 
         // determine order for new link

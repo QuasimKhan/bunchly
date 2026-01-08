@@ -3,6 +3,7 @@ import { Search, Ban, Trash2, CheckCircle, SlidersHorizontal, MoreHorizontal, Sh
 import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
+import SmartSkeleton from "../../components/ui/SmartSkeleton";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 
@@ -103,7 +104,7 @@ const AdminUsers = () => {
                     <select 
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-4 py-2 bg-white dark:bg-[#15151A] border border-neutral-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2 bg-white dark:bg-[#15151A] border border-neutral-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                     >
                         <option value="all">All Roles</option>
                         <option value="user">Free Users</option>
@@ -127,131 +128,138 @@ const AdminUsers = () => {
                 </div>
             </div>
 
-            {/* Users Table */}
-            <div className="bg-white dark:bg-[#15151A] rounded-2xl border border-neutral-200 dark:border-white/5 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto min-h-[400px]">
-                    <table className="w-full text-sm">
-                        <thead className="bg-neutral-50 dark:bg-white/5 border-b border-neutral-100 dark:border-white/5">
-                            <tr className="text-left text-neutral-500 font-medium">
-                                <th className="px-6 py-4">User</th>
-                                <th className="px-6 py-4">Plan / Role</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Joined</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
-                            {users.map(user => (
-                                <tr key={user._id} className="hover:bg-neutral-50 dark:hover:bg-white/[0.02]">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
-                                                {user.image && <img src={user.image} alt={user.name} className="w-full h-full object-cover" />}
-                                            </div>
-                                            <div>
-                                                <div className="font-medium text-neutral-900 dark:text-white">{user.name}</div>
-                                                <div className="text-xs text-neutral-500">{user.email}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                         <div className="flex gap-2">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                                                user.plan === 'pro' 
-                                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                                                    : 'bg-neutral-100 text-neutral-600 dark:bg-white/10 dark:text-neutral-400'
-                                            }`}>
-                                                {user.plan}
-                                            </span>
-                                            {user.role === 'admin' && (
-                                                <span className="px-2 py-1 rounded text-xs font-bold uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                                                    Admin
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {user.flags?.isBanned ? (
-                                            <span className="inline-flex items-center gap-1 text-red-600 text-xs font-semibold bg-red-50 dark:bg-red-900/10 px-2 py-1 rounded-full">
-                                                <Ban className="w-3 h-3" /> Banned
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 text-green-600 text-xs font-semibold bg-green-50 dark:bg-green-900/10 px-2 py-1 rounded-full">
-                                                <CheckCircle className="w-3 h-3" /> Active
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-neutral-500">
-                                        {new Date(user.createdAt).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button 
-                                                onClick={() => window.open(`/admin/users/${user._id}`, '_self')}
-                                                className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                                                title="View Details"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
+            {/* Users List Data Grid */}
+            {loading ? (
+                <div className="bg-white dark:bg-[#15151A] rounded-2xl border border-neutral-200 dark:border-white/5 p-6">
+                    <SmartSkeleton variant="table" rows={8} />
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-[#15151A] rounded-2xl border border-neutral-200 dark:border-white/5 shadow-sm overflow-hidden">
+                    {/* Desktop Header */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-neutral-50/50 dark:bg-white/5 border-b border-neutral-200 dark:border-white/5 text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                        <div className="col-span-4">User</div>
+                        <div className="col-span-3">Plan / Role</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-2">Joined</div>
+                        <div className="col-span-1 text-right">Actions</div>
+                    </div>
 
-                                            {user._id !== currentUser._id && (
-                                                <>
-                                                    {user.flags?.isBanned ? (
-                                                        <button 
-                                                            onClick={() => handleAction(user, 'unban')}
-                                                            className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                                                            title="Unban User"
-                                                        >
-                                                            <ShieldCheck className="w-4 h-4" />
-                                                        </button>
-                                                    ) : (
-                                                        <button 
-                                                            onClick={() => handleAction(user, 'ban')}
-                                                            className="p-2 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                                            title="Ban User"
-                                                        >
-                                                            <Ban className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                    
-                                                    <button 
-                                                        onClick={() => handleAction(user, 'delete')}
-                                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                        title="Delete User"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {/* Content */}
+                    <div className="divide-y divide-neutral-100 dark:divide-white/5">
+                        {users.map((user) => (
+                            <div key={user._id} className="group p-4 flex flex-col md:grid md:grid-cols-12 gap-4 items-center hover:bg-neutral-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                                {/* User Info */}
+                                <div className="w-full md:col-span-4 flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-white/10 overflow-hidden flex-shrink-0 ring-2 ring-white dark:ring-[#15151A]">
+                                        {user.image ? (
+                                            <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold">
+                                                {user.name?.charAt(0) || "U"}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="font-semibold text-neutral-900 dark:text-white truncate">{user.name}</div>
+                                        <div className="text-xs text-neutral-500 truncate">{user.email}</div>
+                                    </div>
+                                </div>
+                                
+                                {/* Plan & Role (Mobile: Row) */}
+                                <div className="w-full md:col-span-3 flex items-center gap-2 pl-14 md:pl-0">
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
+                                        user.plan === 'pro' 
+                                            ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800'
+                                            : 'bg-neutral-50 text-neutral-500 border-neutral-200 dark:bg-white/5 dark:text-neutral-400 dark:border-white/10'
+                                    }`}>
+                                        {user.plan}
+                                    </span>
+                                    {user.role === 'admin' && (
+                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800">
+                                            Admin
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Status */}
+                                <div className="w-full md:col-span-2 flex items-center pl-14 md:pl-0">
+                                    {user.flags?.isBanned ? (
+                                        <span className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 dark:bg-red-900/10 px-2.5 py-1 rounded-full border border-red-100 dark:border-red-900/20">
+                                            <Ban className="w-3 h-3" /> Banned
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-900/20">
+                                            <CheckCircle className="w-3 h-3" /> Active
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Joined Date */}
+                                <div className="w-full md:col-span-2 text-sm text-neutral-500 pl-14 md:pl-0">
+                                    <span className="md:hidden text-xs text-neutral-400 mr-2">Joined:</span>
+                                    {new Date(user.createdAt).toLocaleDateString()}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="w-full md:col-span-1 flex items-center justify-end gap-1">
+                                    <button 
+                                        onClick={() => window.open(`/admin/users/${user._id}`, '_self')}
+                                        className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors cursor-pointer"
+                                        title="View Details"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                    </button>
+                                    <div className="flex gap-1"> 
+                                        {user._id !== currentUser._id && (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleAction(user, user.flags?.isBanned ? 'unban' : 'ban')}
+                                                    className={`p-2 rounded-lg transition-colors cursor-pointer ${user.flags?.isBanned ? 'text-emerald-500 hover:bg-emerald-50' : 'text-amber-500 hover:bg-amber-50'}`}
+                                                >
+                                                    {user.flags?.isBanned ? <ShieldCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleAction(user, 'delete')}
+                                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        
+                        {users.length === 0 && (
+                            <div className="p-8 text-center text-neutral-500">
+                                No users found matching your search.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 dark:bg-white/5 border-t border-neutral-200 dark:border-white/5">
+                        <button 
+                            disabled={page === 1}
+                            onClick={() => setPage(p => p - 1)}
+                            className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-400 disabled:opacity-50 hover:bg-white dark:hover:bg-white/10 rounded-lg shadow-sm transition-all cursor-pointer border border-neutral-200 dark:border-white/5"
+                        >
+                            Previous
+                        </button>
+                        <span className="text-xs font-medium text-neutral-500">
+                            Page {page} of {totalPages}
+                        </span>
+                        <button 
+                            disabled={page === totalPages}
+                            onClick={() => setPage(p => p + 1)}
+                            className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-400 disabled:opacity-50 hover:bg-white dark:hover:bg-white/10 rounded-lg shadow-sm transition-all cursor-pointer border border-neutral-200 dark:border-white/5"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
-                
-                {/* Pagination */}
-                <div className="flex items-center justify-between p-4 border-t border-neutral-200 dark:border-white/5">
-                    <button 
-                        disabled={page === 1}
-                        onClick={() => setPage(p => p - 1)}
-                        className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 disabled:opacity-50 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-lg"
-                    >
-                        Previous
-                    </button>
-                    <span className="text-sm text-neutral-500">
-                        Page {page} of {totalPages}
-                    </span>
-                    <button 
-                        disabled={page === totalPages}
-                        onClick={() => setPage(p => p + 1)}
-                        className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 disabled:opacity-50 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-lg"
-                    >
-                        Next
-                    </button>
-                </div>
-            </div>
+            )}
 
             {/* Confirmation Modal */}
             <Modal open={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
