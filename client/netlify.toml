@@ -5,6 +5,13 @@
   status = 200
   force = true
 
+# Subdomain rewrite: quasim.bunchly.in → /quasim
+[[redirects]]
+  from = "https://quasim.bunchly.in/*"
+  to = "/quasim/:splat"
+  status = 200
+  force = true
+
 # SPA Fallback (Must be last)
 [[redirects]]
   from = "/*"
