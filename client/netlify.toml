@@ -7,10 +7,11 @@
 
 # Subdomain rewrite: quasim.bunchly.in → /quasim
 [[redirects]]
-  from = "https://quasim.bunchly.in/*"
+  from = "/*"
   to = "/quasim/:splat"
   status = 200
   force = true
+  conditions = { Host = ["quasim.bunchly.in"] }
 
 # SPA Fallback (Must be last)
 [[redirects]]
