@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { UserPlus } from "lucide-react";
 import Button from "./ui/Button";
+import { motion } from "framer-motion";
 
 const PublicProfileNotFound = ({ username }) => {
     const navigate = useNavigate();
@@ -17,7 +18,10 @@ const PublicProfileNotFound = ({ username }) => {
             <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-purple-500/20 dark:bg-purple-500/10 blur-[140px]" />
 
             {/* Glass Card */}
-            <div
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
                 className="relative z-10 w-full max-w-md text-center
                 backdrop-blur-2xl
                 bg-white/70 dark:bg-white/10
@@ -74,7 +78,7 @@ const PublicProfileNotFound = ({ username }) => {
                 <p className="mt-10 text-xs text-neutral-500">
                     Build your digital identity with Bunchly
                 </p>
-            </div>
+            </motion.div>
         </div>
     );
 };

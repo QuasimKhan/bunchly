@@ -6,7 +6,7 @@ import Button from "./ui/Button";
 import ThemeToggle from "./ThemeToggle";
 import UserMenu from "./ui/UserMenu";
 
-const Navbar = () => {
+const Navbar = ({ style }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [openMenu, setOpenMenu] = useState(false);
@@ -34,6 +34,7 @@ const Navbar = () => {
 
     return (
         <nav
+            style={style}
             className="fixed top-6 left-1/2 -translate-x-1/2 z-50
                         w-[90%] md:w-[85%] max-w-5xl
                         backdrop-blur-xl border border-white/20 dark:border-white/10 

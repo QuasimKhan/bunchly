@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -16,6 +17,8 @@ import { buildUrl } from "../lib/seo";
 import SaleBanner from "../components/SaleBanner";
 
 const Home = () => {
+    const [isBannerVisible, setIsBannerVisible] = useState(false);
+
     useSEO({
         title: "Bunchly – One Link. Every Identity.",
         description:
@@ -26,17 +29,29 @@ const Home = () => {
 
     return (
         <>
-            <SaleBanner className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] md:w-[85%] max-w-5xl rounded-xl shadow-xl z-40 !overflow-visible backdrop-blur-md bg-indigo-600/95" />
-            <Navbar />
-            <Hero />
-            <SocialProof />
-            <Features />
-            <LandingPreview />
-            <ComparisonTable />
-            <UseCases />
-            <Pricing />
-            <CTA />
-            <Footer />
+            <SaleBanner 
+                className="z-[100]" // High z-index to stay on top
+                onStatusChange={setIsBannerVisible} 
+            />
+            
+            {/* 
+                Shift Navbar down if banner is visible. 
+                Default top is top-6 (24px). If banner is present (~50px), add 50px offset.
+            */}
+            <Navbar style={{ top: isBannerVisible ? 'calc(1.5rem + 48px)' : '1.5rem' }} />
+            
+            {/* Shift Page Content if banner is visible to prevent overlap */}
+            <div style={{ paddingTop: isBannerVisible ? '48px' : '0', transition: 'padding-top 0.3s ease' }}>
+                <Hero />
+                <SocialProof />
+                <Features />
+                <LandingPreview />
+                <ComparisonTable />
+                <UseCases />
+                <Pricing />
+                <CTA />
+                <Footer />
+            </div>
         </>
     );
 };

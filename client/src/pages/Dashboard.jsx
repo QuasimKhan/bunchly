@@ -81,20 +81,22 @@ const Dashboard = () => {
 
                     {/* Action Grid */}
                     <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <ActionCard 
+                         <ActionCard 
                             title="Customize Appearance"
                             desc="Make your page pop with themes & colors."
                             icon="🎨"
                             to="/dashboard/appearance"
                             color="bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400"
                         />
-                         <ActionCard 
-                            title="Upgrade Plan"
-                            desc="Unlock verified checkmark & remove ads."
-                            icon="💎"
-                            to="/dashboard/upgrade"
-                            color="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
-                        />
+                        {user?.plan !== "pro" && (
+                             <ActionCard 
+                                title="Upgrade Plan"
+                                desc="Unlock verified checkmark & remove ads."
+                                icon="💎"
+                                to="/dashboard/upgrade"
+                                color="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                            />
+                        )}
                     </section>
                     
                     {/* Recent Content */}
