@@ -40,15 +40,12 @@ const LandingPreview = () => {
                                     bg-gray-100 dark:bg-neutral-800
                                     border-[6px] sm:border-[8px] border-white dark:border-neutral-800
                                     shadow-2xl
-                                    w-[260px] h-[520px] sm:w-[300px] sm:h-[600px]
+                                    w-[300px] h-[520px] sm:w-[335px] sm:h-[600px]
                                     overflow-hidden
                                     rotate-0 sm:-rotate-3 hover:rotate-0 transition-transform duration-500
                                 "
                             >
-                                {/* Phone Notch */}
-                                <div className="absolute top-0 inset-x-0 h-5 sm:h-6 bg-white dark:bg-neutral-800 z-20 flex justify-center">
-                                    <div className="w-16 sm:w-20 h-3 sm:h-4 bg-black rounded-b-xl" />
-                                </div>
+                                
                                 
                                 <img
                                     src="/img/screenshots/mobile.png"

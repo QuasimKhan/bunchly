@@ -11,6 +11,8 @@ export const generateInvoicePdf = ({
     paymentId,
     orderId,
     date,
+    title = "Invoice", // Default to "Invoice"
+    itemDescription, // Optional override
 }) => {
     const doc = new PDFDocument({
         size: "A4",
@@ -42,18 +44,18 @@ export const generateInvoicePdf = ({
         INVOICE TITLE + META (RIGHT BLOCK)
     -------------------------------------------------- */
 
-    doc.fontSize(18).fillColor(primaryColor).text("Invoice", 50, 120);
+    doc.fontSize(18).fillColor(primaryColor).text(title, 50, 120);
 
     doc.fontSize(10)
         .fillColor(mutedColor)
-        .text("Invoice Number", 350, 120)
+        .text(`${title} Number`, 350, 120)
         .fillColor(primaryColor)
         .fontSize(11)
         .text(invoiceNumber, 350, 135);
 
     doc.fontSize(10)
         .fillColor(mutedColor)
-        .text("Invoice Date", 350, 155)
+        .text(`${title} Date`, 350, 155)
         .fillColor(primaryColor)
         .fontSize(11)
         .text(date, 350, 170);
@@ -95,7 +97,7 @@ export const generateInvoicePdf = ({
 
     doc.fontSize(11)
         .fillColor(primaryColor)
-        .text(`Bunchly ${plan} Plan (Monthly)`, 50, tableTop + 48)
+        .text(itemDescription || `Bunchly ${plan} Plan (Monthly)`, 50, tableTop + 48)
         .text(`₹${amount / 100}`, 450, tableTop + 48, {
             align: "right",
         });

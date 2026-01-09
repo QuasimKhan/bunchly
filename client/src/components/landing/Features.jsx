@@ -56,8 +56,15 @@ const Features = () => {
             id="features"
             className="py-16 sm:py-32 px-5 sm:px-6 bg-gray-50 dark:bg-black/50 scroll-mt-32 relative"
         >
-            {/* Background elements */}
-            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 dark:opacity-5 pointer-events-none" />
+             {/* Premium Aurora Background */}
+            <div className="absolute inset-0 -z-10 bg-white dark:bg-[#050505]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] sm:h-[800px] opacity-40 dark:opacity-20 pointer-events-none">
+                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/20 via-purple-500/10 to-transparent blur-3xl" />
+                </div>
+                 {/* Orbs - reduced size on mobile */}
+                <div className="absolute top-[10%] left-[10%] w-48 h-48 sm:w-72 sm:h-72 bg-indigo-500/30 rounded-full blur-[80px] sm:blur-[100px] mix-blend-screen animate-float" />
+                <div className="absolute top-[20%] right-[10%] w-60 h-60 sm:w-96 sm:h-96 bg-purple-500/20 rounded-full blur-[90px] sm:blur-[120px] mix-blend-screen animate-float" style={{ animationDelay: "2s" }} />
+            </div>
 
             <div className="max-w-6xl mx-auto relative z-10">
                 <AnimateOnScroll>

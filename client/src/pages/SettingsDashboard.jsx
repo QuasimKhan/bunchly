@@ -260,7 +260,139 @@ function SecuritySection({ authProvider }) {
     );
 }
 
+/* ================= BILLING SECTION ================= */
+
+import RefundModal from "../components/profile/RefundModal";
+import { useEffect } from "react";
+import { RotateCcw, XCircle } from "lucide-react";
+
 function BillingSection({ user, navigate }) {
+    const [refundModal, setRefundModal] = useState(false);
+    const [refundLoading, setRefundLoading] = useState(false);
+    const [latestPayment, setLatestPayment] = useState(null);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+
+    // Fetch billing history to check refund eligibility
+    useEffect(() => {
+        async function fetchHistory() {
+            try {
+                const res = await api.get("/api/billing", { withCredentials: true });
+                if (res.data.success && res.data.data.length > 0) {
+                     // Check for the most recent PRO payment
+                    const lastProPayment = res.data.data.find(p => p.plan === 'pro' && p.status !== 'failed');
+                    setLatestPayment(lastProPayment);
+                }
+            } catch (err) {
+                console.error("Failed to fetch billing", err);
+            } finally {
+                setLoadingHistory(false);
+            }
+        }
+        if (user.plan === "pro") {
+            fetchHistory();
+        } else {
+            setLoadingHistory(false);
+        }
+    }, [user.plan]);
+
+    const handleRequestRefund = async (reason) => {
+        setRefundLoading(true);
+        try {
+            const res = await api.post("/api/billing/refund", 
+                { reason }, 
+                { withCredentials: true }
+            );
+            if (res.data.success) {
+                toast.success("Refund request submitted successfully");
+                setRefundModal(false);
+                // Update local state to reflect change immediately
+                setLatestPayment(prev => ({ ...prev, status: "refund_requested" }));
+            }
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Failed to submit request");
+        } finally {
+            setRefundLoading(false);
+        }
+    };
+
+    const renderRefundStatus = () => {
+        if (!latestPayment) return null;
+
+        // Calculate days since purchase
+        const purchaseDate = new Date(latestPayment.createdAt);
+        const now = new Date();
+        const diffTime = Math.abs(now - purchaseDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const isWithinWindow = diffDays <= 3;
+        
+        const { status, refundRequestStatus } = latestPayment;
+
+        // 1. Approved (Check new field OR if status was somehow updated in old logic)
+        if (refundRequestStatus === "approved" || status === "refunded") {
+             return (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-900/10 dark:bg-white/10 rounded-lg border border-neutral-900/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 text-xs font-bold uppercase tracking-wider mt-4 sm:mt-0 w-full sm:w-auto justify-center">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Refund Processed
+                </div>
+            );
+        }
+
+        // 2. Pending Request
+        if (refundRequestStatus === "requested" || status === "refund_requested") {
+             return (
+                <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 rounded-lg border border-amber-500/20 text-amber-600 dark:text-amber-400 text-sm font-semibold mt-4 sm:ml-auto sm:mt-0 w-full sm:w-auto justify-center cursor-default">
+                    <RotateCcw className="w-4 h-4 animate-spin-slow" />
+                    Refund Applied
+                </div>
+            );
+        }
+
+        // 3. Rejected
+        if (refundRequestStatus === "rejected" || status === "refund_rejected") {
+             // If still within window, allow retry
+            if (isWithinWindow) {
+                return (
+                     <div className="flex flex-col sm:items-end gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
+                        <div className="px-3 py-1 bg-red-500/10 rounded text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider">
+                            Refund Rejected
+                        </div>
+                        <Button 
+                            text="Apply Again" 
+                            variant="soft"
+                            onClick={() => setRefundModal(true)}
+                            className="bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 !py-2 !h-8 text-xs"
+                        />
+                    </div>
+                );
+            } else {
+                 // Window expired
+                 return (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 rounded-lg border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider mt-4 sm:mt-0 w-full sm:w-auto justify-center cursor-not-allowed opacity-70">
+                        <XCircle className="w-4 h-4" />
+                        Refund Rejected
+                    </div>
+                );
+            }
+        }
+
+        // 4. Default: Button available if within window
+        if (status === "paid" && isWithinWindow) {
+             return (
+                <div className="mt-4 sm:mt-0 w-full sm:w-auto">
+                    <button 
+                        onClick={() => setRefundModal(true)}
+                        className="text-white/70 hover:text-white text-xs font-medium underline underline-offset-4 transition-colors cursor-pointer"
+                    >
+                        Request Refund
+                    </button>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
+
     return (
         <div className="space-y-8">
             <SectionHeader
@@ -298,9 +430,14 @@ function BillingSection({ user, navigate }) {
                         </p>
                         
                         {user.plan === "pro" && user.planExpiresAt && (
-                            <div className="flex items-center gap-2 mt-4 text-xs font-mono bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/10">
-                                <CreditCard className="w-3.5 h-3.5 opacity-70" />
-                                <span>Renews on {new Date(user.planExpiresAt).toLocaleDateString()}</span>
+                            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                                <div className="flex items-center gap-2 text-xs font-mono bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/10 text-indigo-100">
+                                    <CreditCard className="w-3.5 h-3.5 opacity-70" />
+                                    <span>Renews on {new Date(user.planExpiresAt).toLocaleDateString()}</span>
+                                </div>
+                                
+                                {/* Refund Status / Button */}
+                                {!loadingHistory && renderRefundStatus()}
                             </div>
                         )}
                     </div>
@@ -314,6 +451,13 @@ function BillingSection({ user, navigate }) {
                     </div>
                 </div>
             </div>
+
+            <RefundModal 
+                open={refundModal}
+                onClose={() => setRefundModal(false)}
+                onConfirm={handleRequestRefund}
+                loading={refundLoading}
+            />
         </div>
     );
 }

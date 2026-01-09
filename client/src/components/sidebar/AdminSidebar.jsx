@@ -11,7 +11,8 @@ import {
     Banknote,
     Tag,
     Megaphone,
-    MessageSquarePlus
+    MessageSquarePlus,
+    RotateCcw
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../ThemeToggle";
@@ -33,6 +34,7 @@ const AdminSidebar = ({ sidebarOpen, closeSidebar }) => {
         { label: "Revenue", href: "/admin/revenue", icon: Banknote },
         { label: "User Management", href: "/admin/users", icon: Users },
         { label: "Payments", href: "/admin/payments", icon: DollarSign },
+        { label: "Refunds", href: "/admin/refunds", icon: RotateCcw },
         { label: "Coupons", href: "/admin/coupons", icon: Tag },
         { label: "Marketing", href: "/admin/marketing", icon: Megaphone },
         { label: "Feedback", href: "/admin/feedback", icon: MessageSquarePlus },

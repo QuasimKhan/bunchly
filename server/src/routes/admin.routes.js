@@ -7,6 +7,7 @@ import {
     deleteUser,
     getPayments,
     processRefund,
+    getRefundRequests,
     getUserDetails,
     updateUserPlan,
     deleteUserLink,
@@ -52,6 +53,7 @@ router.delete("/links/:linkId", deleteUserLink);
 
 // Payment Routes
 router.get("/payments", getPayments);
+router.get("/refunds", getRefundRequests);
 router.post("/payments/:id/refund", processRefund);
 
 export default router;

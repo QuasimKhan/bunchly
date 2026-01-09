@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 import Link from "../models/Link.js";
-import razorpay from "../config/razorpay.js";
+import emailTemplates from "../utils/emailTemplates.js";
 import { sendEmail } from "../utils/brevoEmail.js";
+import Razorpay from "razorpay";
 import { getPremiumEmailHtml } from "../utils/emailTemplates.js";
 
 /* --------------------------------------------------
@@ -229,76 +230,168 @@ export const deleteUserLink = async (req, res) => {
 };
 
 /* --------------------------------------------------
-   PROCESS REFUND
+   GET REFUND REQUESTS
 -------------------------------------------------- */
+export const getRefundRequests = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
+
+        const requests = await Payment.find({ refundRequestStatus: "requested" })
+            .populate("userId", "name email image")
+            .sort({ refundRequestedAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await Payment.countDocuments({ refundRequestStatus: "requested" });
+
+        res.json({
+            success: true,
+            requests,
+            totalPages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        console.error("Error fetching refund requests:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 export const processRefund = async (req, res) => {
     try {
-        const { id } = req.params; // Payment _id (MongoDB ID)
+        const { id } = req.params;
+        const { action, rejectionReason } = req.body; // action: "approve" or "reject"
+        
+        const originalPayment = await Payment.findById(id).populate("userId");
 
-        const payment = await Payment.findById(id).populate("userId");
-        if (!payment) {
+        if (!originalPayment) {
             return res.status(404).json({ success: false, message: "Payment not found" });
         }
 
-        if (payment.status !== "paid") {
-            return res.status(400).json({ 
-                success: false, 
-                message: `Cannot refund. Current status: ${payment.status}` 
-            });
+        if (originalPayment.refundRequestStatus !== "requested") {
+             return res.status(400).json({ success: false, message: "No pending refund request for this payment" });
         }
 
-        // 1. Process Refund via Razorpay
-        try {
-            await razorpay.payments.refund(payment.paymentId, {
-                speed: "normal",
-                notes: {
-                    reason: "Admin initiated refund",
-                    adminId: req.user._id.toString()
-                }
+        const user = originalPayment.userId;
+
+        if (action === "reject") {
+            // Update original payment
+            originalPayment.refundRequestStatus = "rejected";
+            await originalPayment.save();
+
+            // Create NEW "Refund Rejected" Record for History
+            await Payment.create({
+                userId: user._id,
+                plan: originalPayment.plan,
+                amount: 0,
+                currency: originalPayment.currency,
+                provider: originalPayment.provider,
+                orderId: `REF-REJ-${Date.now()}`,
+                paymentId: `REF-REJ-${Date.now()}`,
+                invoiceNumber: `INV-REJ-${Date.now()}`,
+                status: "refund_rejected",
+                refundReason: rejectionReason || "Refund Rejected"
             });
-        } catch (rpError) {
-            console.error("Razorpay Refund Failed:", rpError);
-            return res.status(500).json({
-                success: false,
-                message: "Razorpay refund failed: " + (rpError.error?.description || rpError.message)
-            });
-        }
 
-        // 2. Update Local DB
-        payment.status = "refunded";
-        await payment.save();
-
-        // 3. Downgrade User
-        if (payment.userId) {
-            const user = await User.findById(payment.userId._id);
-            if (user && user.plan === "pro") {
-                user.plan = "free";
-                user.planExpiresAt = null;
-                user.subscription = undefined;
-                await user.save();
-            }
-
-            // 4. Send Email
-            await sendEmail({
+            // Email: Refund Rejected
+             await sendEmail({
                 to: user.email,
-                subject: "Refund Processed - Bunchly",
+                subject: "Update on your Refund Request",
                 html: getPremiumEmailHtml({
-                    title: "Refund Processed",
+                    title: "Refund Request Rejected",
                     messageLines: [
                         `Hi ${user.name},`,
-                        `Your payment of <strong>₹${payment.amount / 100}</strong> has been successfully refunded.`,
-                        `The amount will reflect in your original payment source within 5-7 business days.`,
-                        `Your account plan has been reverted to <strong>Free</strong>.`
-                    ],
-                    accentColor: "#4F46E5"
+                        `We reviewed your request for a refund regarding Order #${originalPayment.orderId}.`,
+                        `After careful consideration, we are unable to approve your refund request at this time.`,
+                        rejectionReason ? `<strong>Reason:</strong> ${rejectionReason}` : null,
+                        `You can review our refund policy or contact support if you have further questions.`
+                    ].filter(Boolean),
+                    accentColor: "#DC2626", // Red
+                    actionText: "Contact Support",
+                    actionUrl: `mailto:bunchly.contact@gmail.com`
                 })
             });
-        }
 
-        return res.status(200).json({
-            success: true,
-            message: "Refund processed successfully"
-        });
+            return res.json({ success: true, message: "Refund rejected" });
+
+        } else if (action === "approve") {
+            // Process Refund via Razorpay
+            try {
+                // Initialize Razorpay
+                const instance = new Razorpay({
+                    key_id: process.env.RAZORPAY_KEY_ID,
+                    key_secret: process.env.RAZORPAY_KEY_SECRET,
+                });
+
+                // Request refund from Razorpay
+                try {
+                    await instance.payments.refund(originalPayment.paymentId, {
+                        speed: "normal",
+                        notes: {
+                            reason: "Admin approved refund",
+                            adminId: req.user._id.toString()
+                        }
+                    });
+                } catch (razorpayError) {
+                    console.error("Razorpay Refund Error:", razorpayError);
+                    return res.status(400).json({
+                        success: false,
+                        message: razorpayError.error?.description || "Razorpay Refund Failed. Check balance or credentials."
+                    });
+                }
+
+                // Update original payment
+                originalPayment.refundRequestStatus = "approved";
+                await originalPayment.save();
+
+                // Create NEW "Refunded" Record for History
+                await Payment.create({
+                    userId: user._id,
+                    plan: originalPayment.plan,
+                    amount: originalPayment.amount, // Record the refunded amount
+                    currency: originalPayment.currency,
+                    provider: originalPayment.provider,
+                    orderId: `REF-${Date.now()}`,
+                    paymentId: `REF-${Date.now()}`,
+                    invoiceNumber: `INV-REF-${Date.now()}`,
+                    status: "refunded",
+                    refundReason: originalPayment.refundReason
+                });
+
+                // Downgrade User
+                await User.findByIdAndUpdate(user._id, {
+                    plan: "free",
+                    $unset: { subscriptionId: 1, planExpiresAt: 1 }
+                });
+
+                // Email
+                await sendEmail({
+                    to: user.email,
+                    subject: "Refund Approved - Bunchly",
+                    html: getPremiumEmailHtml({
+                        title: "Refund Processed",
+                        messageLines: [
+                            `Hi ${user.name},`,
+                            `Your refund request has been <strong>approved</strong>.`,
+                            `A refund of <strong>₹${originalPayment.amount / 100}</strong> has been initiated.`,
+                            `The amount will reflect in your original payment source within 5-7 business days.`,
+                            `Your account plan has been reverted to <strong>Free</strong>.`
+                        ],
+                        accentColor: "#10B981" // Green
+                    })
+                });
+
+                return res.json({ success: true, message: "Refund processed successfully" });
+
+            } catch (razorpayError) {
+                console.error("Razorpay Refund Error:", razorpayError);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: "Failed to process refund with payment gateway" 
+                });
+            }
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid action" });
+        }
 
     } catch (error) {
         console.error("[RefundError]", error);

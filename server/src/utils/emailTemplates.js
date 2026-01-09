@@ -59,3 +59,37 @@ export const getPremiumEmailHtml = ({
     </html>
     `;
 };
+
+export const refundApproved = (userName) => getPremiumEmailHtml({
+    title: "Refund Processed",
+    messageLines: [
+        `Hi ${userName},`,
+        `Your refund request has been <strong>approved</strong>.`,
+        `The amount will effect in your original payment source within 5-7 business days.`,
+        `Your account plan has been reverted to <strong>Free</strong>.`
+    ],
+    accentColor: "#10B981" // Green
+});
+
+export const refundRejected = (userName, reason) => getPremiumEmailHtml({
+    title: "Refund Request Rejected",
+    messageLines: [
+        `Hi ${userName},`,
+        `We reviewed your request for a refund.`,
+        `After careful consideration, we are unable to approve your refund request at this time.`,
+        reason ? `<strong>Reason:</strong> ${reason}` : null,
+        `You can review our refund policy or contact support if you have further questions.`
+    ].filter(Boolean),
+    accentColor: "#DC2626", // Red
+    actionText: "Contact Support",
+    actionUrl: `mailto:bunchly.contact@gmail.com`
+});
+
+
+const emailTemplates = {
+    getPremiumEmailHtml,
+    refundApproved,
+    refundRejected
+};
+
+export default emailTemplates;

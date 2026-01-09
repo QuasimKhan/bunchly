@@ -65,8 +65,22 @@ const paymentSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["paid", "failed", "refunded"],
+            enum: ["paid", "failed", "refunded", "refund_requested", "refund_rejected"],
             default: "paid",
+        },
+
+        refundReason: {
+            type: String,
+        },
+
+        refundRequestedAt: {
+            type: Date,
+        },
+
+        refundRequestStatus: {
+            type: String,
+            enum: ["none", "requested", "approved", "rejected"],
+            default: "none",
         },
     },
     { timestamps: true }

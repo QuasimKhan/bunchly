@@ -19,24 +19,32 @@ const CTA = () => {
                 dark:bg-black
             "
         >
-            {/* Ambient Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/20 to-black pointer-events-none" />
+
+             {/* Premium Aurora Background */}
+            <div className="absolute inset-0 -z-10 bg-white dark:bg-[#050505]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] sm:h-[800px] opacity-40 dark:opacity-20 pointer-events-none">
+                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/20 via-purple-500/10 to-transparent blur-3xl" />
+                </div>
+                 {/* Orbs - reduced size on mobile */}
+                <div className="absolute top-[10%] left-[10%] w-48 h-48 sm:w-72 sm:h-72 bg-indigo-500/30 rounded-full blur-[80px] sm:blur-[100px] mix-blend-screen animate-float" />
+                <div className="absolute top-[20%] right-[10%] w-60 h-60 sm:w-96 sm:h-96 bg-purple-500/20 rounded-full blur-[90px] sm:blur-[120px] mix-blend-screen animate-float" style={{ animationDelay: "2s" }} />
+            </div>
             
             {/* Animated Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[1000px] h-[600px] sm:h-[1000px] bg-indigo-600/20 rounded-full blur-[120px] sm:blur-[180px] pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
+            {/* <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[1000px] h-[600px] sm:h-[1000px] bg-indigo-600/20 rounded-full blur-[120px] sm:blur-[180px] pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} /> */}
 
             <div className="relative z-10 max-w-4xl mx-auto">
                 <AnimateOnScroll>
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
-                        <Sparkles className="w-4 h-4 text-indigo-400" />
-                        <span className="text-sm font-medium text-gray-300">Start your journey today</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/5 border border-white/10 mb-8 backdrop-blur-md">
+                        <Sparkles className="w-4 h-4 text-gray-900 dark:text-indigo-400" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-300">Start your journey today</span>
                     </div>
 
                     <h2
                         className="
                             text-4xl sm:text-6xl md:text-7xl
                             font-bold
-                            text-white
+                            text-gray-900 dark:text-white
                             tracking-tight
                             mb-6 sm:mb-8
                         "
@@ -50,7 +58,7 @@ const CTA = () => {
                     <p
                         className="
                             text-lg sm:text-xl
-                            text-gray-400
+                            text-gray-500 dark:text-gray-300
                             max-w-2xl
                             mx-auto
                             leading-relaxed
