@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import VerificationToken from "../models/VerificationToken.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
+import { sendVerificationEmail, sendWelcomeEmail, sendForgotPasswordEmail, sendPasswordChangeEmail } from "../utils/email.js";
 import { getClientInfo } from "../utils/clientInfo.js";
 
 export const signup = async (req, res) => {
@@ -398,7 +398,11 @@ export const login = async (req, res) => {
         
         // 🔹 Record Login History
         const clientInfo = getClientInfo(req);
-        user.loginHistory.push(clientInfo);
+        // Add session ID to history
+        user.loginHistory.push({
+            ...clientInfo,
+            sessionId: req.sessionID
+        });
         
         // Keep only last 50 entries
         if (user.loginHistory.length > 50) {
@@ -507,7 +511,10 @@ export const googleAuthCallback = async (req, res) => {
             
             // 🔹 Record Login History (Google)
             const clientInfo = getClientInfo(req);
-            existingUser.loginHistory.push(clientInfo);
+            existingUser.loginHistory.push({
+                ...clientInfo,
+                sessionId: req.sessionID
+            });
             if (existingUser.loginHistory.length > 50) {
                 existingUser.loginHistory = existingUser.loginHistory.slice(-50);
             }
@@ -543,8 +550,18 @@ export const googleAuthCallback = async (req, res) => {
             authProvider: "google",
             isVerified: true,
             password: undefined,
-            loginHistory: [getClientInfo(req)]
+            loginHistory: [{
+                ...getClientInfo(req),
+                sessionId: req.sessionID
+            }]
         });
+
+        // 🔹 Send Welcome Email (Google Signup)
+        try {
+            await sendWelcomeEmail(newUser.email, newUser.name);
+        } catch (mailError) {
+            console.error("Failed to send welcome email to google user:", mailError);
+        }
 
         req.session.userId = newUser._id;
         return res.redirect(`${ENV.CLIENT_URL}/oauth/callback`);
@@ -617,5 +634,187 @@ export const logout = async (req, res) => {
             success: false,
             message: error.message,
         });
+    }
+};
+
+/* -------------------------------------------------------------------------- */
+/*                               FORGOT PASSWORD                               */
+/* -------------------------------------------------------------------------- */
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
+        }
+
+        const user = await User.findOne({ email });
+        
+        // Security: Don't reveal if user exists or not, but for this specific app flow 
+        // and per instructions, we follow standard flow.
+        if (!user) {
+            // Mock success to prevent enumeration or just return 404 depending on policy.
+            // Prompt asked for "industry grade". 
+            // Industry grade usually implies silence on 404, but for UX on non-critical apps 404 is often used.
+            // I'll return success but do nothing.
+             return res.status(200).json({
+                success: true,
+                message: "If an account with that email exists, we have sent an OTP.",
+            });
+        }
+
+        if (user.authProvider !== "email") {
+             return res.status(400).json({
+                success: false,
+                message: "This account uses Google Sign-In. You cannot reset password.",
+            });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Hash OTP
+        const hashedOtp = await bcrypt.hash(otp, 12);
+
+        user.resetPasswordOtp = hashedOtp;
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+        await user.save();
+
+        try {
+            await sendForgotPasswordEmail(user.email, otp, user.name);
+        } catch (err) {
+            user.resetPasswordOtp = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+            throw new Error("Failed to send email. Please try again.");
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent to your email",
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const verifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: "Email and OTP are required" });
+        }
+
+        const user = await User.findOne({ email }).select("+resetPasswordOtp +resetPasswordExpires");
+
+        if (!user || !user.resetPasswordOtp || !user.resetPasswordExpires) {
+             return res.status(400).json({ success: false, message: "Invalid Request" });
+        }
+
+        if (Date.now() > user.resetPasswordExpires.getTime()) {
+             return res.status(400).json({ success: false, message: "OTP has expired" });
+        }
+
+        const isValid = await bcrypt.compare(otp, user.resetPasswordOtp);
+        if (!isValid) {
+             return res.status(400).json({ success: false, message: "Invalid OTP" });
+        }
+
+        // OTP verified. Generate a temporary token for the next step (Reset).
+        const resetTokenRaw = crypto.randomBytes(32).toString("hex");
+        const hashedToken = await bcrypt.hash(resetTokenRaw, 12);
+
+        user.resetPasswordToken = hashedToken;
+        // Optionally clear OTP to prevent reuse, but maybe keep until final reset? 
+        // Clearing it ensures one-time use of OTP.
+        user.resetPasswordOtp = undefined; 
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP Verified",
+            resetToken: resetTokenRaw
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, password, resetToken } = req.body;
+        
+        if (!email || !password || !resetToken) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+
+        // Validate Password Strength
+        const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordStrengthRegex.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 chars with 1 uppercase, 1 lowercase, 1 number, and 1 special char.",
+            });
+        }
+
+        const user = await User.findOne({ email }).select("+resetPasswordToken +resetPasswordExpires");
+
+        if (!user || !user.resetPasswordToken) {
+            return res.status(400).json({ success: false, message: "Invalid Request" });
+        }
+
+        if (Date.now() > user.resetPasswordExpires.getTime()) {
+            return res.status(400).json({ success: false, message: "Session expired. Please start over." });
+        }
+
+        const isValidToken = await bcrypt.compare(resetToken, user.resetPasswordToken);
+        if (!isValidToken) {
+            return res.status(400).json({ success: false, message: "Invalid Token" });
+        }
+
+        // Update Password
+        const hashedPassword = await bcrypt.hash(password, 12);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        
+        // Log user in automatically
+        const clientInfo = getClientInfo(req);
+        user.loginHistory.push({
+            ...clientInfo,
+            sessionId: req.sessionID
+        });
+        
+        await user.save();
+        
+        // Create session
+        req.session.userId = user._id;
+
+        // Send Email
+        try {
+            await sendPasswordChangeEmail(user.email, user.name);
+        } catch (e) {
+            console.error(e);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                username: user.username,
+                plan: user.plan,
+                role: user.role,
+                image: user.image,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };

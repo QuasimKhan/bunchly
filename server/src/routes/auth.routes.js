@@ -9,6 +9,9 @@ import {
     logout,
     resendVerification,
     checkUsernameAvailability,
+    forgotPassword,
+    verifyOtp,
+    resetPassword,
 } from "../controllers/auth.controller.js";
 
 const authRouter = express.Router();
@@ -22,4 +25,10 @@ authRouter.get("/google", googleAuthRedirect);
 authRouter.get("/google/callback", googleAuthCallback);
 authRouter.get("/me", getMe);
 authRouter.post("/logout", logout);
+
+/* Forgot Password Routes */
+authRouter.post("/forgot-password", forgotPassword);
+authRouter.post("/verify-otp", verifyOtp);
+authRouter.post("/reset-password", resetPassword);
+
 export default authRouter;

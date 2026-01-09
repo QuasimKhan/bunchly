@@ -116,7 +116,7 @@ export const sendWelcomeEmail = async (email, name) => {
     await sendEmail({ to: email, subject: "Welcome to Bunchly! 🎉", html });
 };
 
-export const sendPromotionalEmail = async (email, subject, content) => {
+export const sendPromotionalEmail = async (email, subject, content, attachments = []) => {
     const html = `
         <div style="${BASE_STYLE}">
             <div style="${CONTAINER_STYLE}">
@@ -134,5 +134,120 @@ export const sendPromotionalEmail = async (email, subject, content) => {
         </div>
     `;
 
-    await sendEmail({ to: email, subject: subject, html });
+    await sendEmail({ to: email, subject: subject, html, attachments });
+};
+
+export const sendExpiryWarningEmail = async (email, name, daysLeft) => {
+    const html = `
+        <div style="${BASE_STYLE}">
+            <div style="${CONTAINER_STYLE}">
+                <div style="${HEADER_STYLE}">
+                    <img src="https://bunchly.netlify.app/img/Bunchly-dark.png" alt="Bunchly" width="140" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="${CONTENT_STYLE}">
+                    <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #111; margin-bottom: 24px;">
+                        Action Required: Subscription Expiring ⚠️
+                    </h1>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Hi ${name},
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Just a heads up that your <strong>Bunchly Pro</strong> subscription will expire in <strong>${daysLeft} days</strong>.
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        To avoid losing access to premium themes, detailed analytics, and your verified badge, please renew your plan today.
+                    </p>
+                    <div style="text-align: center;">
+                        <a href="https://bunchly.netlify.app/dashboard/billing" style="${BUTTON_STYLE}">Renew Subscription</a>
+                    </div>
+                </div>
+                <div style="${FOOTER_STYLE}">
+                    <p>© ${new Date().getFullYear()} Bunchly Inc. All rights reserved.</p>
+                    <p>If you have questions, reply to this email.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    await sendEmail({ to: email, subject: `Action Required: Your plan expires in ${daysLeft} days`, html });
+};
+
+export const sendPasswordChangeEmail = async (email, name) => {
+    const html = `
+        <div style="${BASE_STYLE}">
+            <div style="${CONTAINER_STYLE}">
+                <div style="${HEADER_STYLE}">
+                    <img src="https://bunchly.netlify.app/img/Bunchly-dark.png" alt="Bunchly" width="140" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="${CONTENT_STYLE}">
+                    <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #111; margin-bottom: 24px;">
+                        Security Alert: Password Changed 🔐
+                    </h1>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Hi ${name},
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        The password for your Bunchly account was just changed.
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        If you made this change, you can safely ignore this email.
+                    </p>
+                    <p style="font-size: 16px; color: #DC2626; font-weight: 600; margin-bottom: 24px;">
+                        If you did not make this change, please contact our support team immediately to secure your account.
+                    </p>
+                    <div style="text-align: center;">
+                        <a href="mailto:bunchly.contact@gmail.com" style="${BUTTON_STYLE}">Contact Support</a>
+                    </div>
+                </div>
+                <div style="${FOOTER_STYLE}">
+                    <p>© ${new Date().getFullYear()} Bunchly Inc. All rights reserved.</p>
+                    <p>This is a security notification sent to ${email}.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    await sendEmail({ to: email, subject: "Security Alert: Your password was changed", html });
+};
+
+export const sendForgotPasswordEmail = async (email, otp, name) => {
+    const html = `
+        <div style="${BASE_STYLE}">
+            <div style="${CONTAINER_STYLE}">
+                <div style="${HEADER_STYLE}">
+                    <img src="https://bunchly.netlify.app/img/Bunchly-dark.png" alt="Bunchly" width="140" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="${CONTENT_STYLE}">
+                    <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #111; margin-bottom: 24px;">
+                        Reset your Password 🔐
+                    </h1>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Hi ${name || 'there'},
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        We received a request to reset your Bunchly password. Enter the code below to proceed:
+                    </p>
+                    
+                    <div style="background: #f3f4f6; border-radius: 12px; padding: 24px; text-align: center; margin: 32px 0;">
+                        <span style="font-family: monospace; font-size: 32px; letter-spacing: 8px; font-weight: 700; color: #111;">
+                            ${otp}
+                        </span>
+                    </div>
+
+                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 24px; text-align: center;">
+                        This code will expire in 10 minutes.
+                    </p>
+                    
+                    <p style="font-size: 14px; color: #9ca3af; text-align: center; margin-top: 32px;">
+                        If you didn't request this, you can safely ignore this email.
+                    </p>
+                </div>
+                <div style="${FOOTER_STYLE}">
+                    <p>© ${new Date().getFullYear()} Bunchly Inc. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    await sendEmail({ to: email, subject: "Reset your Password", html });
 };

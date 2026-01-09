@@ -48,6 +48,18 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: "email", // "email" | "google" etc.
         },
+        resetPasswordOtp: {
+            type: String,
+            select: false,
+        },
+        resetPasswordExpires: {
+            type: Date,
+            select: false,
+        },
+        resetPasswordToken: {
+            type: String,
+            select: false,
+        },
 
         // 🔹 PLAN / SAAS
         plan: {
@@ -141,6 +153,7 @@ const userSchema = new mongoose.Schema(
 
         // 🔹 SECURITY & LOGS
         loginHistory: [{
+            sessionId: String, // Store express-session ID
             ip: String,
             device: String, // e.g., "iPhone", "Mac", "Windows"
             os: String,
