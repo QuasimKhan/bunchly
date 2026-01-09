@@ -17,13 +17,15 @@ import billingRouter from "./routes/billing.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import seoRouter from "./routes/seo.routes.js";
 import settingsRouter from "./routes/settings.routes.js";
+import feedbackRouter from "./routes/feedback.routes.js";
 
 const app = express();
 startCronJobs();
 
 //middlewares
 app.use(helmet());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(cors(corsOptions));
@@ -45,6 +47,7 @@ app.use("/api/billing", apiLimiter, billingRouter);
 app.use("/api/admin", apiLimiter, adminRouter);
 app.use("/api", apiLimiter, seoRouter);
 app.use("/api/settings", apiLimiter, settingsRouter);
+app.use("/api/feedback", apiLimiter, feedbackRouter);
 
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;

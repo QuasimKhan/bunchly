@@ -3,14 +3,16 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { navItems } from "../../constants/navItems";
 import ThemeToggle from "../ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
-import { LogOut, User as UserIcon, Zap } from "lucide-react";
+import { LogOut, User as UserIcon, Zap, MessageSquarePlus } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import FeedbackModal from "../dashboard/FeedbackModal";
 
 const Sidebar = ({ sidebarOpen, closeSidebar }) => {
     const location = useLocation();
     const { user, logout } = useAuth();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -99,8 +101,18 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
                     </div>
                 )}
 
-                {/* 4. User Section */}
+             {/* 4. User Section */}
                 <div className="p-4 border-t border-neutral-200 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.02]">
+                    
+                    {/* Feedback Button */}
+                    <button
+                        onClick={() => setShowFeedbackModal(true)}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 mb-2 rounded-xl text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-neutral-200 transition-colors group"
+                    >
+                        <MessageSquarePlus className="w-5 h-5 text-neutral-400 group-hover:text-neutral-600 dark:text-neutral-500 dark:group-hover:text-neutral-300" />
+                        Feedback
+                    </button>
+
                     <Link 
                         to="/dashboard/profile" 
                         onClick={closeSidebar}
@@ -141,6 +153,9 @@ const Sidebar = ({ sidebarOpen, closeSidebar }) => {
                     </div>
                 </div>
             </aside>
+
+            {/* Modals */}
+            <FeedbackModal isOpen={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
 
             {/* Logout Modal */}
             <Modal open={showLogoutModal} onClose={() => setShowLogoutModal(false)}>
