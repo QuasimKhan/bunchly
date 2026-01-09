@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import OAuthCallback from "./pages/OAuthCallback.jsx";
@@ -25,7 +26,7 @@ import Checkout from "./pages/Checkout.jsx";
 import { useCookieConsent } from "./hooks/useCookieConsent.js";
 import { loadAnalytics } from "./lib/analytics.js";
 import ConsentBanner from "./components/ConsentBanner.jsx";
-import Privacy from "./pages/Privacy.jsx";
+import Policy from "./pages/Policy.jsx";
 import AdminRoute from "./components/auth/AdminRoute.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import AdminRevenue from "./pages/admin/AdminRevenue";
@@ -36,6 +37,7 @@ import AdminCoupons from "./pages/admin/AdminCoupons.jsx";
 import Appearance from "./pages/Appearance.jsx";
 import AdminPayments from "./pages/admin/AdminPayments.jsx";
 import AdminMarketing from "./pages/admin/AdminMarketing.jsx";
+import AdminFeedback from "./pages/admin/AdminFeedback.jsx";
 
 const App = () => {
     const { user } = useAuth();
@@ -55,12 +57,15 @@ const App = () => {
                 {/* Public Route (open for all like Linktree) */}
                 <Route path="/" element={<Home />} />
                 <Route path="/:username" element={<PublicProfilePage />} />
-                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/policy" element={<Policy />} />
+                <Route path="/privacy" element={<Policy />} />
+
 
                 {/* Guest-only Routes (user must be logged OUT) */}
                 <Route element={<GuestRoute />}>
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route
                         path="/verify-email-sent"
                         element={<VerifyEmailSent />}
@@ -116,6 +121,7 @@ const App = () => {
                         <Route path="payments" element={<AdminPayments />} />
                         <Route path="coupons" element={<AdminCoupons />} />
                         <Route path="marketing" element={<AdminMarketing />} />
+                        <Route path="feedback" element={<AdminFeedback />} />
                     </Route>
                 </Route>
                 </Route>
