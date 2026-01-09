@@ -325,18 +325,48 @@ export default function EditModal({
                        TEXT MODE
                     =========================== */
                     <>
-                        <input
-                            value={draft}
-                            onChange={(e) => setDraft(e.target.value)}
-                            className="
-                                w-full px-4 py-3 rounded-xl 
-                                border border-neutral-300 dark:border-neutral-700
-                                bg-white dark:bg-neutral-900 
-                                text-neutral-900 dark:text-white
-                                focus:ring-2 ring-indigo-500/50 outline-none
-                                transition-all
-                            "
-                        />
+                        {field === "bio" ? (
+                            <div className="space-y-2">
+                                <textarea
+                                    value={draft}
+                                    onChange={(e) => {
+                                        if (e.target.value.length <= 160) {
+                                            setDraft(e.target.value);
+                                        }
+                                    }}
+                                    placeholder="Tell the world about yourself..."
+                                    rows={4}
+                                    className="
+                                        w-full px-4 py-3 rounded-xl 
+                                        border border-neutral-300 dark:border-neutral-700
+                                        bg-white dark:bg-neutral-900 
+                                        text-neutral-900 dark:text-white
+                                        focus:ring-2 ring-indigo-500/50 outline-none
+                                        transition-all resize-none
+                                        placeholder:text-neutral-400
+                                    "
+                                />
+                                <div className="flex justify-end">
+                                    <span className={`text-xs font-medium ${draft.length >= 150 ? "text-amber-500" : "text-neutral-400"}`}>
+                                        {draft.length}/160 characters
+                                    </span>
+                                </div>
+                            </div>
+                        ) : (
+                            <input
+                                value={draft}
+                                onChange={(e) => setDraft(e.target.value)}
+                                className="
+                                    w-full px-4 py-3 rounded-xl 
+                                    border border-neutral-300 dark:border-neutral-700
+                                    bg-white dark:bg-neutral-900 
+                                    text-neutral-900 dark:text-white
+                                    focus:ring-2 ring-indigo-500/50 outline-none
+                                    transition-all
+                                "
+                                placeholder={`Enter your ${field}`}
+                            />
+                        )}
 
                         {field === "username" && (
                             <p className="mt-2 text-sm h-5">

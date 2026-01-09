@@ -133,6 +133,7 @@ export default function Profile({ user }) {
 
             <ChangePasswordModal
                 open={changePasswordModal}
+                isGoogleUser={profile.authProvider === "google"}
                 oldPassword={passwordForm.old}
                 newPassword={passwordForm.new}
                 confirmPassword={passwordForm.confirm}

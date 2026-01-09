@@ -36,7 +36,7 @@ export const updateSettings = async (req, res) => {
 
 export const sendBroadcast = async (req, res) => {
     try {
-        const { subject, content, testEmail } = req.body;
+        const { subject, content, testEmail, audience = 'all', specificEmail, attachments = [] } = req.body;
 
         if (!subject || !content) {
             return res.status(400).json({ success: false, message: "Subject and Content are required" });
@@ -44,29 +44,44 @@ export const sendBroadcast = async (req, res) => {
 
         // Test Mode
         if (testEmail) {
-            await sendPromotionalEmail(testEmail, subject, content);
+            await sendPromotionalEmail(testEmail, subject, content, attachments);
             return res.status(200).json({ success: true, message: "Test email sent successfully" });
         }
 
-        // Bulk Mode
-        // Fetch all verified users who haven't opted out (assuming verified for now)
-        const users = await User.find({ isVerified: true }).select("email");
+        // Determine Audience
+        let query = { isVerified: true }; // Default base query
+        if (audience === 'pro') {
+            query.plan = 'pro';
+        } else if (audience === 'free') {
+            query.plan = { $ne: 'pro' };
+        } else if (audience === 'specific') {
+            if (!specificEmail) {
+                return res.status(400).json({ success: false, message: "Specific email is required" });
+            }
+            query.email = { $regex: new RegExp(`^${specificEmail}$`, 'i') }; // Case insensitive exact match
+        }
+
+        // Fetch Users
+        const users = await User.find(query).select("email name");
         
-        // Return immediately to client so they don't timeout
+        if (users.length === 0) {
+            return res.status(404).json({ success: false, message: "No users found matching criteria" });
+        }
+
+        // Return immediately to client
         res.status(200).json({ 
             success: true, 
-            message: `Broadcast started for ${users.length} users. user's will receive emails shortly.` 
+            message: `Broadcast queued for ${users.length} users (${audience})` 
         });
 
         // Async Processing - Chunked Sender
-        // We use a simple chunking mechanism to avoid overwhelming the email provider
         const BATCH_SIZE = 20;
         const DELAY_MS = 1000; // 1 second between batches
 
         const processBatch = async (batch) => {
             await Promise.all(
                 batch.map(user => 
-                    sendPromotionalEmail(user.email, subject, content)
+                    sendPromotionalEmail(user.email, subject, content, attachments)
                         .catch(err => console.error(`Failed to send to ${user.email}:`, err.message))
                 )
             );
@@ -86,7 +101,6 @@ export const sendBroadcast = async (req, res) => {
         })();
 
     } catch (error) {
-        // Only reachable if sync part fails
         if (!res.headersSent) {
             res.status(500).json({ success: false, message: error.message });
         } else {

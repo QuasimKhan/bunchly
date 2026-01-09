@@ -86,12 +86,21 @@ const Billing = () => {
         );
     }
 
+    /* ---------------- LOGIC ---------------- */
+    // Helper to check 3-day refund window
+    const latestPayment = payments.length > 0 ? payments[0] : null;
+    const canRefund = isPro && latestPayment && (Date.now() - new Date(latestPayment.createdAt).getTime() < 3 * 24 * 60 * 60 * 1000);
+
     return (
         <div className="max-w-5xl mx-auto px-4 pb-20 animate-fade-in-up">
             <BillingHeader />
 
             <div className="space-y-8">
-                <CurrentPlanCard user={user} onRequestRefund={() => setShowRefundModal(true)} />
+                <CurrentPlanCard 
+                    user={user} 
+                    onRequestRefund={() => setShowRefundModal(true)} 
+                    canRefund={canRefund}
+                />
                 <BillingHistory payments={payments} isPro={isPro} />
             </div>
 
@@ -122,8 +131,15 @@ function BillingHeader() {
     );
 }
 
-function CurrentPlanCard({ user, onRequestRefund }) {
+function CurrentPlanCard({ user, onRequestRefund, canRefund }) {
     const isPro = user.plan === "pro";
+    const isExpired = user.plan === "free" && user.planExpiresAt; // Was pro, now expired
+    
+    // Check if expiring soon (e.g., within 5 days)
+    const daysUntilExpiry = user.planExpiresAt 
+        ? Math.ceil((new Date(user.planExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)) 
+        : null;
+    const isExpiringSoon = isPro && daysUntilExpiry !== null && daysUntilExpiry <= 5;
 
     return (
         <section className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-xl shadow-indigo-500/20 border border-white/10">
@@ -137,8 +153,13 @@ function CurrentPlanCard({ user, onRequestRefund }) {
                     <div className="space-y-4 flex-1">
                         <div className="flex items-center gap-3">
                              <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider">
-                                Current Plan
+                                {isExpired ? "Plan Expired" : "Current Plan"}
                              </div>
+                             {isExpiringSoon && (
+                                <div className="px-3 py-1 rounded-full bg-amber-500/80 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider animate-pulse">
+                                    Expiring Soon
+                                </div>
+                             )}
                         </div>
                         
                         <div>
@@ -153,6 +174,7 @@ function CurrentPlanCard({ user, onRequestRefund }) {
                             </p>
                         </div>
 
+                        {/* PRO / EXPIRING STATE */}
                         {isPro && user.planExpiresAt && (
                             <div className="flex flex-wrap items-center gap-4">
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black/20 border border-white/10 backdrop-blur-md">
@@ -160,28 +182,49 @@ function CurrentPlanCard({ user, onRequestRefund }) {
                                     <span className="text-sm font-medium">Renews on {new Date(user.planExpiresAt).toLocaleDateString()}</span>
                                 </div>
 
-                                <button 
-                                    onClick={onRequestRefund}
-                                    className="text-sm text-indigo-200 hover:text-white underline decoration-indigo-300/50 hover:decoration-white transition-colors"
-                                >
-                                    Request Refund / Cancellation
-                                </button>
+                                {canRefund ? (
+                                    <button 
+                                        onClick={onRequestRefund}
+                                        className="text-sm text-indigo-200 hover:text-white underline decoration-indigo-300/50 hover:decoration-white transition-colors cursor-pointer"
+                                    >
+                                        Request Refund
+                                    </button>
+                                ) : (
+                                    <div className="text-xs text-indigo-300/60 cursor-default" title="Refunds available within 3 days of purchase">
+                                        Refund window closed
+                                    </div>
+                                )}
                             </div>
+                        )}
+                        
+                        {/* Renew Button for Pro Users Expiring Soon */}
+                        {isExpiringSoon && (
+                             <div className="pt-2">
+                                <Button 
+                                    text="Renew Plan"
+                                    icon={Zap}
+                                    onClick={() => window.location.href = "/dashboard/upgrade"} // Or direct to checkout logic
+                                    className="bg-white text-indigo-600 hover:bg-indigo-50 border-none font-bold shadow-lg shadow-black/20 cursor-pointer"
+                                />
+                             </div>
                         )}
                     </div>
 
+                    {/* FREE / EXPIRED STATE */}
                     {!isPro && (
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 max-w-md w-full lg:w-auto">
                             <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
                                 <Receipt className="w-5 h-5" />
-                                Unlock Billing History
+                                {isExpired ? "Renew Subscription" : "Unlock Billing History"}
                             </h3>
                             <p className="text-sm text-indigo-100 mb-4">
-                                Upgrade to Pro to access detailed invoices and payment history.
+                                {isExpired 
+                                    ? "Your Pro benefits have expired. Renew now to regain access." 
+                                    : "Upgrade to Pro to access detailed invoices and payment history."}
                             </p>
                             <Button 
-                                text="Upgrade Now"
-                                className="w-full bg-white text-indigo-600 hover:bg-indigo-50 border-none font-bold"
+                                text={isExpired ? "Renew Plan" : "Upgrade Now"}
+                                className="w-full bg-white text-indigo-600 hover:bg-indigo-50 border-none font-bold cursor-pointer"
                                 onClick={() => window.location.href = "/dashboard/upgrade"}
                             />
                         </div>

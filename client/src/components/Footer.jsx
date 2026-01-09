@@ -32,7 +32,7 @@ const Footer = () => {
                     {/* Minimal Links */}
                     <div className="flex gap-4 text-sm text-neutral-500">
                         <FooterLink href="/privacy" label="Privacy" />
-                        <FooterLink href="/terms" label="Terms" />
+                        <FooterLink href="/policy" label="Policy" />
                     </div>
                 </div>
 

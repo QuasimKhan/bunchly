@@ -96,6 +96,20 @@ const AdminUserDetail = () => {
                 danger: true,
                 confirmText: "Process Refund",
                 payload
+            },
+            'logout_session': {
+                title: "Terminate Session?",
+                message: "User will be logged out from this specific device immediately.",
+                danger: true,
+                confirmText: "Logout Device",
+                payload
+            },
+            'logout_all': {
+                title: "Logout Everywhere?",
+                message: "User will be logged out from ALL active sessions.",
+                danger: true,
+                confirmText: "Logout Everywhere",
+                payload
             }
         };
 
@@ -141,6 +155,20 @@ const AdminUserDetail = () => {
             }
             else if (type === 'refund_payment') {
                 res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/payments/${payload}/refund`, {
+                    method: 'POST',
+                    credentials: "include"
+                });
+            }
+            else if (type === 'logout_session') {
+                res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/logout-session`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: id, sessionId: payload }),
+                    credentials: "include"
+                });
+            }
+            else if (type === 'logout_all') {
+                res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${id}/logout-all`, {
                     method: 'POST',
                     credentials: "include"
                 });
@@ -393,26 +421,57 @@ const AdminUserDetail = () => {
                             )}
                         </div>
                     </div>
-                     <div className="bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-neutral-200 dark:border-white/5 shadow-sm">
-                        <h3 className="font-bold text-lg mb-4 text-neutral-900 dark:text-white">Usage Stats</h3>
-                        <div className="space-y-4">
-                             <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
-                                <span className="text-neutral-500">Total Links Created</span>
-                                <span className="font-bold text-neutral-900 dark:text-white">{stats.totalLinks}</span>
-                             </div>
-                             <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
-                                <span className="text-neutral-500">Lifetime Profile Views</span>
-                                <span className="font-bold text-neutral-900 dark:text-white">{user.profileViews}</span>
-                             </div>
-                             <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
-                                <span className="text-neutral-500">Plan Status</span>
-                                <span className="font-bold text-neutral-900 dark:text-white uppercase">{user.plan}</span>
-                             </div>
-                             <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
-                                <span className="text-neutral-500">Pro Expiry</span>
-                                <span className="font-bold text-neutral-900 dark:text-white">
-                                    {user.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString() : 'N/A'}
-                                </span>
+
+                     <div className="space-y-6">
+                        <div className="bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-neutral-200 dark:border-white/5 shadow-sm">
+                            <h3 className="font-bold text-lg mb-4 text-neutral-900 dark:text-white">Usage Stats</h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
+                                    <span className="text-neutral-500">Total Links Created</span>
+                                    <span className="font-bold text-neutral-900 dark:text-white">{stats.totalLinks}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
+                                    <span className="text-neutral-500">Lifetime Profile Views</span>
+                                    <span className="font-bold text-neutral-900 dark:text-white">{user.profileViews}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
+                                    <span className="text-neutral-500">Plan Status</span>
+                                    <span className="font-bold text-neutral-900 dark:text-white uppercase">{user.plan}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-100 dark:border-white/5">
+                                    <span className="text-neutral-500">Pro Expiry</span>
+                                    <span className="font-bold text-neutral-900 dark:text-white">
+                                        {user.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString() : 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Personal Details Card */}
+                        <div className="bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-neutral-200 dark:border-white/5 shadow-sm">
+                             <h3 className="font-bold text-lg mb-4 text-neutral-900 dark:text-white">Personal Details</h3>
+                             <div className="space-y-4">
+                                <InfoRow 
+                                    label="Public Profile" 
+                                    value={user.preferences?.publicProfile?.isPublic ? "Visible" : "Hidden"} 
+                                    icon={Globe}
+                                />
+                                <InfoRow 
+                                    label="Language" 
+                                    value={user.preferences?.language?.toUpperCase() || "EN"} 
+                                    icon={Globe}
+                                />
+                                <InfoRow 
+                                    label="Timezone" 
+                                    value={user.preferences?.timezone || "UTC"} 
+                                    icon={MapPin}
+                                />
+                                <div className="pt-2">
+                                     <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-2">Bio</span>
+                                     <p className="text-sm text-neutral-700 dark:text-neutral-300 italic bg-neutral-50 dark:bg-white/5 p-3 rounded-lg border border-neutral-100 dark:border-white/5">
+                                        {user.bio || "No bio set."}
+                                     </p>
+                                </div>
                              </div>
                         </div>
                     </div>
@@ -429,14 +488,24 @@ const AdminUserDetail = () => {
                         </div>
                     ) : (
                         <div className="w-full overflow-x-auto">
+                            <div className="p-4 flex justify-end bg-neutral-50 dark:bg-white/5 border-b border-neutral-200 dark:border-white/5 sticky left-0">
+                                <Button 
+                                    onClick={() => requestAction('logout_all')}
+                                    variant="outline"
+                                    text="Logout All Devices"
+                                    icon={LogOut}
+                                    className="text-red-600 border-red-200 hover:bg-red-50 cursor-pointer"
+                                />
+                            </div>
                             <table className="w-full text-sm">
                                 <thead className="bg-neutral-50 dark:bg-white/5">
                                     <tr className="text-left text-neutral-500">
                                         <th className="px-6 py-4 whitespace-nowrap">Device / OS</th>
                                         <th className="px-6 py-4 whitespace-nowrap">Browser</th>
                                         <th className="px-6 py-4 whitespace-nowrap">Location</th>
-                                        <th className="px-6 py-4 whitespace-nowrap">IP Address</th>
+                                        <th className="px-6 py-4 whitespace-nowrap">Status</th>
                                         <th className="px-6 py-4 whitespace-nowrap text-right">Time</th>
+                                        <th className="px-6 py-4 whitespace-nowrap text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-200 dark:divide-white/5">
@@ -467,11 +536,30 @@ const AdminUserDetail = () => {
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 font-mono text-xs text-neutral-500 whitespace-nowrap">
-                                                {log.ip}
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {log.isActive ? (
+                                                    <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold uppercase flex items-center gap-1 w-fit">
+                                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Active
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-1 rounded-full bg-neutral-100 text-neutral-500 dark:bg-white/10 dark:text-neutral-400 text-xs font-bold uppercase">
+                                                        Inactive
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-neutral-500">
                                                 {new Date(log.timestamp).toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                {log.isActive && (
+                                                    <button 
+                                                        onClick={() => requestAction('logout_session', log.sessionId)}
+                                                        className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                                                        title="Logout Device"
+                                                    >
+                                                        <LogOut className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -644,7 +732,7 @@ const AdminUserDetail = () => {
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
                             currentAction.danger ? 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'bg-indigo-100 text-indigo-600'
                         }`}>
-                             {currentAction.type === 'refund_payment' ? <DollarSign className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+                             {currentAction.type === 'refund_payment' ? <DollarSign className="w-6 h-6" /> : (currentAction.type === 'logout_all' || currentAction.type === 'logout_session') ? <LogOut className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
                         </div>
                         <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">
                             {currentAction.title}

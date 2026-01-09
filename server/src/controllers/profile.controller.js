@@ -4,7 +4,7 @@ import VerificationToken from "../models/VerificationToken.js";
 import crypto from "crypto";
 import { ENV } from "../config/env.js";
 import bcrypt from "bcryptjs";
-import { sendVerificationEmail } from "../utils/email.js";
+import { sendVerificationEmail, sendPasswordChangeEmail } from "../utils/email.js";
 import ProfileView from "../models/ProfileView.js";
 import { getAnalyticsContext } from "../utils/analyticsContext.js";
 
@@ -364,6 +364,13 @@ export const changePassword = async (req, res) => {
         user.password = hashedPassword;
 
         await user.save();
+
+        // 🔹 Security Notification
+        try {
+            await sendPasswordChangeEmail(user.email, user.name);
+        } catch (mailError) {
+            console.error("Failed to send password change email:", mailError);
+        }
 
         return res.status(200).json({
             success: true,

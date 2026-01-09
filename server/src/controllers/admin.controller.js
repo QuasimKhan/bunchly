@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 import Link from "../models/Link.js";
@@ -58,9 +59,33 @@ export const getUserDetails = async (req, res) => {
             ])
         ]);
 
+        // 🔹 Active Session Check
+        // We check which of the loginHistory sessions still exist in the DB
+        const sessionIds = user.loginHistory
+            .map(h => h.sessionId)
+            .filter(id => id); // Filter out undefined/null
+
+        let activeSessionIds = new Set();
+        if (sessionIds.length > 0) {
+            const sessions = await mongoose.connection.db.collection("session")
+                .find({ _id: { $in: sessionIds } })
+                .project({ _id: 1 }) // Only need ID
+                .toArray();
+            activeSessionIds = new Set(sessions.map(s => s._id));
+        }
+
+        // Enrich login history with 'isActive' status
+        const enrichedHistory = user.loginHistory.map(h => ({
+            ...h.toObject(),
+            isActive: activeSessionIds.has(h.sessionId)
+        }));
+
+        const userObj = user.toObject();
+        userObj.loginHistory = enrichedHistory;
+
         return res.status(200).json({
             success: true,
-            user,
+            user: userObj,
             links,
             payments,
             stats: {
@@ -580,5 +605,54 @@ export const deleteUser = async (req, res) => {
     } catch (error) {
         console.error("[AdminDeleteUserError]", error);
         return res.status(500).json({ success: false, message: "Failed to delete user" });
+    }
+};
+
+/* --------------------------------------------------
+   LOGOUT SPECIFIC SESSION
+-------------------------------------------------- */
+export const logoutUserSession = async (req, res) => {
+    try {
+        const { userId, sessionId } = req.body;
+        
+        if (sessionId) {
+             await mongoose.connection.db.collection("session").deleteOne({ _id: sessionId });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Session terminated successfully"
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Failed to logout session" });
+    }
+};
+
+/* --------------------------------------------------
+   LOGOUT USER EVERYWHERE
+-------------------------------------------------- */
+export const logoutUserEverywhere = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        const sessionIds = user.loginHistory.map(h => h.sessionId).filter(Boolean);
+
+        if (sessionIds.length > 0) {
+            await mongoose.connection.db.collection("session").deleteMany({ 
+                _id: { $in: sessionIds } 
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "User logged out from all tracked devices"
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Failed to logout user everywhere" });
     }
 };

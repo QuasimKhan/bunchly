@@ -9,7 +9,9 @@ import {
     processRefund,
     getUserDetails,
     updateUserPlan,
-    deleteUserLink
+    deleteUserLink,
+    logoutUserSession,
+    logoutUserEverywhere
 } from "../controllers/admin.controller.js";
 import { getRevenueStats, emailRevenueReport } from "../controllers/revenue.controller.js";
 import { 
@@ -44,6 +46,8 @@ router.delete("/coupons/:id", deleteCoupon);
 // User Deep Inspection & Control
 router.get("/users/:id/details", getUserDetails);
 router.patch("/users/:id/plan", updateUserPlan);
+router.post("/users/logout-session", logoutUserSession);
+router.post("/users/:userId/logout-all", logoutUserEverywhere);
 router.delete("/links/:linkId", deleteUserLink);
 
 // Payment Routes

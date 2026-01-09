@@ -25,7 +25,7 @@ const Hero = () => {
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm backdrop-blur-sm mb-6 sm:mb-8 transition-transform hover:scale-105 cursor-default">
                         <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
                         <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
-                             v2.0
+                             v2.0 - Live
                         </span>
                     </div>
                 </AnimateOnScroll>
@@ -84,7 +84,7 @@ const Hero = () => {
                             icon={Play}
                             size="lg"
                             variant="outline"
-                            onClick={() => navigate("/quasim")}
+                            onClick={() => navigate("/bunchly")}
                             className="w-full sm:w-auto bg-white/50 dark:bg-white/5 backdrop-blur-md border-gray-200 dark:border-gray-800"
                         />
                     </div>

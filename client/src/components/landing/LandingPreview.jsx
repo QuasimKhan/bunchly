@@ -60,7 +60,7 @@ const LandingPreview = () => {
                     </AnimateOnScroll>
 
                     {/* Desktop Preview (secondary) */}
-                    <AnimateOnScroll delay={0.2} className="hidden sm:block">
+                    <AnimateOnScroll delay={0.2} className="block mt-[-40px] sm:mt-0 z-0 sm:z-auto">
                          <div className="relative group perspective-1000">
                              <div className="absolute -inset-4 bg-purple-500/20 blur-3xl opacity-0 group-hover:opacity-100 transition duration-700" />
                              
@@ -72,8 +72,8 @@ const LandingPreview = () => {
                                     border border-gray-200 dark:border-gray-800
                                     shadow-2xl
                                     p-2
-                                    w-[500px]
-                                    rotate-0 sm:rotate-2 hover:rotate-0 transition-transform duration-500
+                                    w-[280px] sm:w-[500px]
+                                    rotate-6 sm:rotate-2 hover:rotate-0 transition-transform duration-500
                                     glass-panel
                                 "
                             >
