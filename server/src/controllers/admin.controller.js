@@ -267,8 +267,15 @@ export const processRefund = async (req, res) => {
             return res.status(404).json({ success: false, message: "Payment not found" });
         }
 
-        if (originalPayment.refundRequestStatus !== "requested") {
-             return res.status(400).json({ success: false, message: "No pending refund request for this payment" });
+        if (action === "reject") {
+            if (originalPayment.refundRequestStatus !== "requested") {
+                return res.status(400).json({ success: false, message: "No pending refund request to reject" });
+            }
+        } else if (action === "approve") {
+            // Check if already refunded
+            if (originalPayment.status === "refunded" || originalPayment.refundRequestStatus === "approved") {
+                return res.status(400).json({ success: false, message: "Payment is already refunded" });
+            }
         }
 
         const user = originalPayment.userId;
