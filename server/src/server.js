@@ -1,8 +1,5 @@
-// Polyfill for Node 18+ environments using undici
-import { File } from 'node:buffer';
-if (!global.File) {
-  global.File = File;
-}
+// Polyfill must be imported first
+import "./polyfills.js";
 
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
