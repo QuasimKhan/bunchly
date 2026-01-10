@@ -27,6 +27,7 @@ import { useCookieConsent } from "./hooks/useCookieConsent.js";
 import { loadAnalytics } from "./lib/analytics.js";
 import ConsentBanner from "./components/ConsentBanner.jsx";
 import Policy from "./pages/Policy.jsx";
+import Contact from "./pages/Contact.jsx";
 import AdminRoute from "./components/auth/AdminRoute.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import AdminRevenue from "./pages/admin/AdminRevenue";
@@ -60,6 +61,9 @@ const App = () => {
                 <Route path="/:username" element={<PublicProfilePage />} />
                 <Route path="/policy" element={<Policy />} />
                 <Route path="/privacy" element={<Policy />} />
+                <Route path="/terms" element={<Policy />} />
+                <Route path="/refund-policy" element={<Policy />} />
+                <Route path="/contact" element={<Contact />} />
 
 
                 {/* Guest-only Routes (user must be logged OUT) */}

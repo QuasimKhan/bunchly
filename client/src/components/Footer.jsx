@@ -30,9 +30,11 @@ const Footer = () => {
                     </div>
 
                     {/* Minimal Links */}
-                    <div className="flex gap-4 text-sm text-neutral-500">
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-500">
                         <FooterLink href="/privacy" label="Privacy" />
-                        <FooterLink href="/policy" label="Policy" />
+                        <FooterLink href="/terms" label="Terms" />
+                        <FooterLink href="/refund-policy" label="Refunds" />
+                        <FooterLink href="/contact" label="Contact" />
                     </div>
                 </div>
 
