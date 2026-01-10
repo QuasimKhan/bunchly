@@ -132,16 +132,20 @@ const userSchema = new mongoose.Schema(
             bgColor: { type: String, default: "#ffffff" },
             bgGradient: { type: String, default: "from-indigo-500 to-purple-600" },
             bgImage: { type: String, default: "" },
+            bgBlur: { type: Number, default: 0 },
+            bgOverlay: { type: Number, default: 0 },
             buttonStyle: {
                 type: String,
                 enum: ["fill", "outline", "soft", "shadow", "hard-shadow"],
                 default: "fill",
             },
+            buttonRoundness: { type: String, default: "xl" },
             buttonColor: { type: String, default: "#171717" },
             buttonFontColor: { type: String, default: "#ffffff" },
             fontFamily: { type: String, default: "Inter" },
             fontColor: { type: String, default: "#171717" },
             layout: { type: String, default: "classic" },
+            hideBranding: { type: Boolean, default: false },
         },
 
         // 🔹 FLAGS / STATUS
@@ -149,6 +153,7 @@ const userSchema = new mongoose.Schema(
             isBanned: { type: Boolean, default: false },
             isStaff: { type: Boolean, default: false },
             onboardingCompleted: { type: Boolean, default: false },
+            strikes: { type: Number, default: 0 },
         },
 
         // 🔹 SECURITY & LOGS

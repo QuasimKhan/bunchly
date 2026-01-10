@@ -18,6 +18,7 @@ import adminRouter from "./routes/admin.routes.js";
 import seoRouter from "./routes/seo.routes.js";
 import settingsRouter from "./routes/settings.routes.js";
 import feedbackRouter from "./routes/feedback.routes.js";
+import reportRouter from "./routes/report.routes.js";
 
 const app = express();
 startCronJobs();
@@ -48,6 +49,7 @@ app.use("/api/admin", apiLimiter, adminRouter);
 app.use("/api", apiLimiter, seoRouter);
 app.use("/api/settings", apiLimiter, settingsRouter);
 app.use("/api/feedback", apiLimiter, feedbackRouter);
+app.use("/api/reports", apiLimiter, reportRouter);
 
 app.get("/api/session", (req, res) => {
     if (!req.session.views) req.session.views = 1;

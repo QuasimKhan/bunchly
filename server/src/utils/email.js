@@ -1,5 +1,7 @@
 import { sendEmail } from "./brevoEmail.js";
 
+const CLIENT_URL = process.env.CLIENT_URL || "https://bunchly.netlify.app";
+
 const BASE_STYLE = `
     font-family: 'Inter', 'Segoe UI', sans-serif;
     color: #1a1a1a;
@@ -250,4 +252,120 @@ export const sendForgotPasswordEmail = async (email, otp, name) => {
     `;
 
     await sendEmail({ to: email, subject: "Reset your Password", html });
+};
+
+// --------------------------------------------------------------------------
+// REPORT SYSTEM EMAILS
+// --------------------------------------------------------------------------
+
+export const sendReportReceivedEmail = async (email, reportedUsername) => {
+    const html = `
+        <div style="${BASE_STYLE}">
+            <div style="${CONTAINER_STYLE}">
+                <div style="${HEADER_STYLE}">
+                    <img src="https://bunchly.netlify.app/img/Bunchly-dark.png" alt="Bunchly" width="140" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="${CONTENT_STYLE}">
+                    <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #111; margin-bottom: 24px;">
+                        Report Received 🛡️
+                    </h1>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Thank you for helping keep Bunchly safe.
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        We have received your report regarding the user <strong>@${reportedUsername}</strong>. Our safety team will review the content and take appropriate action in accordance with our Community Guidelines.
+                    </p>
+                    <p style="font-size: 14px; color: #6b7280; text-align: center;">
+                        We do not share your identity with the reported user.
+                    </p>
+                </div>
+                <div style="${FOOTER_STYLE}">
+                    <p>© ${new Date().getFullYear()} Bunchly Inc. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    await sendEmail({ to: email, subject: "We received your report", html });
+};
+
+export const sendStrikeWarningEmail = async (email, username, strikeCount, reason) => {
+    const html = `
+        <div style="${BASE_STYLE}">
+            <div style="${CONTAINER_STYLE}">
+                <div style="${HEADER_STYLE}">
+                    <img src="https://bunchly.netlify.app/img/Bunchly-dark.png" alt="Bunchly" width="140" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="${CONTENT_STYLE}">
+                    <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #DC2626; margin-bottom: 24px;">
+                        Community Guidelines Warning ⚠️
+                    </h1>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Hi ${username},
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        We are writing to inform you that your profile has received a strike due to a violation of our <a href="https://bunchly.netlify.app/policy" style="color: #4F46E5;">Community Guidelines</a>.
+                    </p>
+                    
+                    <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                        <p style="margin: 0; color: #991B1B; font-weight: 600;">Violation Reason:</p>
+                        <p style="margin: 4px 0 0 0; color: #7F1D1D;">${reason}</p>
+                    </div>
+
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        <strong>Current Strike Count: ${strikeCount}/3</strong>
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Please remove any content that violates our policies immediately. <strong>If you reach 3 strikes, your account will be permanently banned.</strong>
+                    </p>
+
+                    <div style="text-align: center;">
+                        <a href="https://bunchly.netlify.app/dashboard/profile" style="${BUTTON_STYLE}">Review My Profile</a>
+                    </div>
+                </div>
+                <div style="${FOOTER_STYLE}">
+                    <p>© ${new Date().getFullYear()} Bunchly Inc. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    await sendEmail({ to: email, subject: `Warning: Policy Violation (Strike ${strikeCount}/3)`, html });
+};
+
+export const sendBanEmail = async (email, username, reason) => {
+    const html = `
+        <div style="${BASE_STYLE}">
+            <div style="${CONTAINER_STYLE}">
+                <div style="${HEADER_STYLE}">
+                    <img src="https://bunchly.netlify.app/img/Bunchly-dark.png" alt="Bunchly" width="140" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="${CONTENT_STYLE}">
+                    <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #DC2626; margin-bottom: 24px;">
+                        Account Terminated 🚫
+                    </h1>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Hi ${username},
+                    </p>
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        Your Bunchly account has been permanently suspended because you have reached <strong>3 strikes</strong> for violating our Community Guidelines.
+                    </p>
+
+                     <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                        <p style="margin: 0; color: #991B1B; font-weight: 600;">Final Violation:</p>
+                        <p style="margin: 4px 0 0 0; color: #7F1D1D;">${reason}</p>
+                    </div>
+
+                    <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+                        As a result, your profile is no longer accessible and you have been logged out of all devices. Decisons regarding permanent bans are final and not subject to appeal at this time.
+                    </p>
+                </div>
+                <div style="${FOOTER_STYLE}">
+                    <p>© ${new Date().getFullYear()} Bunchly Inc. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    await sendEmail({ to: email, subject: "Account Terminated - Bunchly Safety Team", html });
 };

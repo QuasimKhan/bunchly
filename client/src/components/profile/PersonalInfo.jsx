@@ -1,7 +1,7 @@
 
 import React from 'react';
 import EditProfileField from './EditProfileField';
-import { User, AtSign, AlignLeft, Mail } from 'lucide-react';
+import { User, AtSign, AlignLeft, Mail, Shield } from 'lucide-react';
 
 const PersonalInfo = ({ user, onEdit }) => {
     return (
@@ -48,6 +48,27 @@ const PersonalInfo = ({ user, onEdit }) => {
                         onEdit={() => onEdit("bio")}
                         fullWidth
                     />
+                </div>
+
+                <div className="md:col-span-2">
+                    <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/50 flex items-center justify-between transition-colors">
+                         <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${user.flags?.strikes > 0 ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500' : 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-500'}`}>
+                                <Shield className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Account Standing</p>
+                                <p className={`font-semibold ${user.flags?.strikes > 0 ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
+                                    {user.flags?.strikes > 0 ? `Warning (${user.flags.strikes}/3 Strikes)` : "Good Standing"}
+                                </p>
+                            </div>
+                        </div>
+                        {user.flags?.strikes > 0 && (
+                            <div className="hidden sm:block text-xs text-amber-600 dark:text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/10 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-900/30">
+                                3 Strikes = Permanent Ban
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </section>

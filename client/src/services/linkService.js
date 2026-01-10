@@ -23,6 +23,12 @@ export const deleteLink = async (id) => {
     return res.data;
 };
 
+// Preview metadata
+export const getLinkPreview = async (url) => {
+    const res = await api.post("/api/links/preview", { url });
+    return res.data?.data; // returns { title, image, description, icon }
+};
+
 export const reorderLinks = async (orderedIds) => {
     const res = await api.patch("/api/links/reorder", { orderedIds });
     return res; // return full axios response

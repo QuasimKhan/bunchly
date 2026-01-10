@@ -8,15 +8,18 @@ import {
 } from "../services/linkService";
 
 import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
+// import Modal from "../components/ui/Modal"; // Replaced by AddBlockModal
 import LinkCard from "../components/link-card/LinkCard";
 import SortableLink from "../components/links/SortableLink";
 import CollectionItem from "../components/links/CollectionItem";
 import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
 import EditLinkModal from "../components/links/EditLinkModal";
+import AddBlockModal from "../components/links/AddBlockModal"; // NEW
+import ProductCard from "../components/links/ProductCard"; // NEW
+import SectionHeader from "../components/links/SectionHeader"; // NEW
 
 import { toast } from "sonner";
-import { Eye, Link as LinkIcon, Plus, FolderPlus, X, Sparkles, Smartphone, Layers } from "lucide-react";
+import { Eye, Link as LinkIcon, Plus, FolderPlus, X, Sparkles, Smartphone, Layers, ShoppingBag } from "lucide-react";
 
 import IconPickerDrawer from "../components/icon-picker/IconPickerDrawer";
 
@@ -47,10 +50,8 @@ const Links = () => {
     const [loading, setLoading] = useState(true);
 
     // MODALS
-    const [openModal, setOpenModal] = useState(false);
-    const [form, setForm] = useState({ title: "", url: "", description: "", type: "link", parentId: null });
-    const [error, setError] = useState("");
-    const [creating, setCreating] = useState(false);
+    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [addParentId, setAddParentId] = useState(null); // If adding to collection
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
@@ -69,11 +70,11 @@ const Links = () => {
 
     const { user } = useAuth();
     
-    // Improved Sensors for Mobile/Touch
+    // Sensors
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
         useSensor(TouchSensor, { 
-            activationConstraint: { delay: 250, tolerance: 5 } // Hold to drag on mobile
+            activationConstraint: { delay: 250, tolerance: 5 } 
         })
     );
     
@@ -105,33 +106,17 @@ const Links = () => {
         }
     };
 
-    // HANDLE FORM CHANGE
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    // CREATE
-    const handleCreate = async (e) => {
-        e.preventDefault();
-        setCreating(true);
-        setError("");
-        
-        if (form.type === 'link' && (!form.title.trim() || !form.url.trim())) {
-            setError("Title and URL are required"); setCreating(false); return;
-        }
-        if (form.type === 'collection' && !form.title.trim()) {
-             setError("Collection title is required"); setCreating(false); return;
-        }
-
+    // CREATE (From AddBlockModal)
+    const handleCreate = async (formData) => {
+        // formData contains { title, url, type, parentId, imageUrl, price ... }
         try {
-            await createLink(form);
-            toast.success(`${form.type === 'collection' ? 'Collection' : 'Link'} created`);
-            setOpenModal(false);
+            await createLink(formData);
+            toast.success("Added successfully");
+            setAddModalOpen(false);
             fetchLinks();
         } catch (err) {
             toast.error(err.response?.data?.message || "Failed to create");
-        } finally {
-            setCreating(false);
+            throw err; // Allow modal to handle error state if needed
         }
     };
 
@@ -162,25 +147,52 @@ const Links = () => {
         }
     };
 
-    // UTILS
-    const openCreateModal = (type, parentId = null) => {
-        setForm({ title: "", url: "", description: "", type, parentId });
-        setOpenModal(true);
+    // Helper: Open Add Modal
+    const openAddModal = (parentId = null) => {
+        setAddParentId(parentId);
+        setAddModalOpen(true);
     };
 
     // LIMITS LOGIC
+    // We count "items" vs "collections" generally.
+    const isFree = user.plan === "free";
+    const maxLinks = PLAN_LIMITS.free.maxLinks || 10;
+    const maxCollections = PLAN_LIMITS.free.maxCollections || 2;
+
     const linkCount = links.filter(l => l.type !== 'collection').length;
     const collectionCount = links.filter(l => l.type === 'collection').length;
-    const isFree = user.plan === "free";
     
-    // Safety defaults
-    const maxLinks = PLAN_LIMITS.free.maxLinks || 3;
-    const maxCollections = PLAN_LIMITS.free.maxCollections || 1;
-
-    const isLinkLimitReached = isFree && linkCount >= maxLinks;
-    const isCollectionLimitReached = isFree && collectionCount >= maxCollections;
+    const isLimitReached = isFree && linkCount >= maxLinks; // simplified
 
     const rootLinks = links.filter(l => !l.parentId);
+
+    // RENDER BLOCK GENERIC
+    const renderBlock = (link) => {
+        const commonProps = {
+            link,
+            onToggle: handleToggle,
+            onEdit: (item) => { setEditData(item); setEditModalOpen(true); },
+            onDelete: (id) => { setDeleteId(id); setDeleteModalOpen(true); },
+            onOpenIconPicker: (l) => { setIconPickerFor(l); setIconPickerOpen(true); }
+        };
+
+        switch (link.type) {
+            case 'collection':
+                return (
+                    <CollectionItem
+                        {...commonProps}
+                        childrenLinks={links.filter(l => l.parentId === link._id)}
+                        onAddChild={(pid) => openAddModal(pid)}
+                    />
+                );
+            case 'product':
+                return <ProductCard {...commonProps} />;
+            case 'header':
+                return <SectionHeader {...commonProps} />;
+            default:
+                return <LinkCard {...commonProps} />;
+        }
+    };
 
     return (
         <div className="flex flex-col lg:flex-row h-full lg:h-[calc(100vh-80px)] overflow-hidden bg-neutral-50 dark:bg-[#0C0C0E]">
@@ -210,57 +222,30 @@ const Links = () => {
                              </button>
                         </div>
                         <p className="text-neutral-500 max-w-lg">
-                            Manage your public profile links and collections. Drag to reorder.
+                            Manage your public profile links, products, and collections.
                         </p>
                      </header>
 
-                    {/* Add Buttons */}
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {/* Add Button (Unified) */}
+                    <div>
                         <button
-                            disabled={isLinkLimitReached}
-                            onClick={() => openCreateModal('link')}
-                            className="group flex flex-col items-center justify-center gap-4 p-6 sm:p-8 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/20 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            disabled={isLimitReached}
+                            onClick={() => openAddModal(null)}
+                            className="w-full group flex items-center justify-center gap-3 p-6 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/20 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         >
-                            <div className="w-12 h-12 rounded-full bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
-                                <Plus className="w-6 h-6" />
+                            <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                                <Plus className="w-5 h-5" />
                             </div>
-                            <div className="text-center">
-                                <span className="block font-semibold text-neutral-900 dark:text-neutral-100">
-                                    {isLinkLimitReached ? "Limit Reached" : "Add Link"}
-                                </span>
-                                <span className="text-xs text-neutral-400 mt-1">
-                                    {isLinkLimitReached ? "Upgrade for more" : "URL, Music, Video"}
-                                </span>
-                            </div>
+                            <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                                Add Content Block
+                            </span>
                         </button>
-
-                        <button
-                            disabled={isCollectionLimitReached}
-                            onClick={() => openCreateModal('collection')}
-                            className="group flex flex-col items-center justify-center gap-4 p-6 sm:p-8 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/20 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                        >
-                            <div className="w-12 h-12 rounded-full bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
-                                <FolderPlus className="w-6 h-6" />
-                            </div>
-                             <div className="text-center">
-                                <span className="block font-semibold text-neutral-900 dark:text-neutral-100">
-                                    {isCollectionLimitReached ? "Limit Reached" : "Add Collection"}
-                                </span>
-                                <span className="text-xs text-neutral-400 mt-1">
-                                    {isCollectionLimitReached ? "Upgrade for more" : "Group your links"}
-                                </span>
-                            </div>
-                        </button>
+                         {isLimitReached && (
+                             <p className="text-center text-xs text-rose-500 mt-2">
+                                Free plan limit reached. Upgrade to Pro for more.
+                             </p>
+                         )}
                     </div>
-
-                    {/* Limit Warning */}
-                    {(isLinkLimitReached || isCollectionLimitReached) && (
-                        <PaywallCard 
-                            title="Limit Reached" 
-                            description="Upgrade to Pro to add unlimited links and unlock advanced features." 
-                            compact
-                        />
-                    )}
 
                     {/* Content List */}
                     <div className="space-y-4 min-h-[300px]">
@@ -275,7 +260,7 @@ const Links = () => {
                                 </div>
                                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Start Building</h3>
                                 <p className="text-neutral-500 mt-2 max-w-sm mx-auto">
-                                    Your page is empty. Add your first link or collection to get started.
+                                    Your page is empty. Add a link, product, or collection to get started.
                                 </p>
                             </div>
                         ) : (
@@ -289,25 +274,7 @@ const Links = () => {
                                     <div className="flex flex-col gap-4 pb-20 lg:pb-0">
                                         {rootLinks.map((link) => (
                                             <SortableLink key={link._id} id={link._id}>
-                                                {link.type === 'collection' ? (
-                                                    <CollectionItem
-                                                        link={link}
-                                                        childrenLinks={links.filter(l => l.parentId === link._id)}
-                                                        onToggle={handleToggle}
-                                                        onEdit={(item) => { setEditData(item); setEditModalOpen(true); }}
-                                                        onDelete={(id) => { setDeleteId(id); setDeleteModalOpen(true); }}
-                                                        onAddChild={(pid) => openCreateModal('link', pid)}
-                                                        onOpenIconPicker={(l) => { setIconPickerFor(l); setIconPickerOpen(true); }}
-                                                    />
-                                                ) : (
-                                                    <LinkCard 
-                                                        link={link}
-                                                        onToggle={handleToggle}
-                                                        onEdit={(item) => { setEditData(item); setEditModalOpen(true); }}
-                                                        onDelete={(id) => { setDeleteId(id); setDeleteModalOpen(true); }}
-                                                        onOpenIconPicker={(l) => { setIconPickerFor(l); setIconPickerOpen(true); }}
-                                                    />
-                                                )}
+                                                {renderBlock(link)}
                                             </SortableLink>
                                         ))}
                                     </div>
@@ -330,31 +297,29 @@ const Links = () => {
 
             {/* RIGHT PANEL: LIVE PREVIEW (Desktop) */}
             <div className="hidden lg:flex w-[480px] border-l border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-[#0F0F14] justify-center pt-12 overflow-y-auto custom-scrollbar relative">
-                <div className="sticky top-10 h-fit scale-[0.85] 2xl:scale-[0.85] transition-transform origin-top">
-                    
-                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-4 py-1.5 rounded-full shadow-sm text-xs font-medium text-neutral-500 z-10 flex items-center gap-2">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        Live Preview
-                    </div>
-
-                    {/* Phone Mockup */}
-                    <div className="bg-[#1a1a1a] rounded-[3rem] p-3 shadow-2xl h-[700px] w-[350px] mx-auto overflow-hidden relative ring-1 ring-white/10 ring-offset-4 ring-offset-neutral-100 dark:ring-offset-black">
-                         {/* Side Buttons */}
-                         <div className="absolute top-24 -left-1 w-1 h-10 bg-neutral-700 rounded-l-md"></div>
-                         <div className="absolute top-40 -left-1 w-1 h-16 bg-neutral-700 rounded-l-md"></div>
-                         <div className="absolute top-24 -right-1 w-1 h-16 bg-neutral-700 rounded-r-md"></div>
+                <div className="sticky top-8 h-fit scale-[0.85] 2xl:scale-[0.9] transition-transform origin-top">
+                    {/* The Premium Phone Mockup */}
+                    <div className="bg-neutral-900 rounded-[3rem] border-[10px] border-neutral-900 p-2 shadow-2xl h-[720px] w-[360px] mx-auto overflow-hidden relative ring-1 ring-white/10">
+                      
+                        
+                        {/* Side Buttons */}
+                        <div className="absolute top-24 -right-3 w-1 h-12 bg-neutral-800 rounded-r-md"></div>
+                        <div className="absolute top-24 -left-3 w-1 h-8 bg-neutral-800 rounded-l-md"></div>
+                        <div className="absolute top-36 -left-3 w-1 h-12 bg-neutral-800 rounded-l-md"></div>
 
                         {/* Screen */}
-                        <div className="w-full h-full bg-white dark:bg-black rounded-[2.5rem] overflow-hidden relative isolate">
-                            {/* Dynamic Island / Notch */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-50 flex justify-center items-center">
-                                <div className="w-12 h-1 bg-neutral-800/50 rounded-full"></div>
-                            </div>
-                            
-                            <LivePreview user={user} links={links} />
+                        <div className="w-full h-full bg-white dark:bg-neutral-950 rounded-[2.2rem] overflow-hidden relative border border-neutral-800">
+                            <LivePreview user={user} links={links} mode="preview" />
+                        </div>
+                    </div>
+
+                    {/* Pulsating Badge Below */}
+                    <div className="text-center mt-6 text-sm font-medium text-neutral-400">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm backdrop-blur-sm mb-6 sm:mb-8 transition-transform hover:scale-105 cursor-default">
+                            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
+                                Live Preview
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -384,53 +349,12 @@ const Links = () => {
 
             {/* --- MODALS --- */}
 
-            {/* Create/Add Modal */}
-            <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                <div className="text-center mb-6">
-                    <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                         {form.type === 'collection' ? <FolderPlus className="w-6 h-6"/> : <LinkIcon className="w-6 h-6"/> }
-                    </div>
-                    <h2 className="text-xl font-bold text-neutral-900 dark:text-white">
-                        {form.type === 'collection' ? 'Create Collection' : 'Add Link'}
-                    </h2>
-                    {form.parentId && <p className="text-sm text-neutral-500 mt-1">Adding to collection</p>}
-                </div>
-                
-                <form onSubmit={handleCreate} className="space-y-4">
-                    <InputField
-                         label="Title"
-                         name="title"
-                         value={form.title}
-                         onChange={handleChange}
-                         placeholder={form.type === 'collection' ? "e.g. My Music" : "e.g. My Portfolio"}
-                         required
-                         autoFocus
-                    />
-                    
-                    {form.type !== 'collection' && (
-                        <InputField
-                            label="URL"
-                            name="url"
-                            value={form.url}
-                            onChange={handleChange}
-                            placeholder="https://"
-                            required={form.type === 'link'}
-                        />
-                    )}
-                    
-                    <div className="flex gap-3 mt-8">
-                         <Button text="Cancel" variant="outline" fullWidth onClick={() => setOpenModal(false)} />
-                         <Button 
-                            text="Create" 
-                            type="submit" 
-                            loading={creating} 
-                            fullWidth 
-                            disabled={!form.title || (form.type !== 'collection' && !form.url)}
-                            className={(!form.title || (form.type !== 'collection' && !form.url)) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-                        />
-                    </div>
-                </form>
-            </Modal>
+            <AddBlockModal 
+                open={addModalOpen}
+                onClose={() => setAddModalOpen(false)}
+                onCreate={handleCreate}
+                parentId={addParentId}
+            />
 
             <EditLinkModal 
                 open={editModalOpen} 

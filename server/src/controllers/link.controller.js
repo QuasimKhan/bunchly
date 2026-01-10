@@ -4,24 +4,40 @@ import { PLANS } from "../config/plans.js";
 import User from "../models/User.js";
 import LinkClick from "../models/LinkClick.js";
 import { getAnalyticsContext } from "../utils/analyticsContext.js";
+import { fetchUrlMetadata } from "../services/metadata.service.js"; // Import new service
 
 // Create a new link
 export const createLink = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { title, url, description } = req.body;
-        let icon = req.body.icon;
+        const { title, url, description, type = "link" } = req.body;
+        let { icon, imageUrl, price, currency, layout } = req.body;
 
-        if (!title || (!url && req.body.type !== "collection")) {
-            return res.status(400).json({
-                success: false,
-                message: "Title and URL are required",
-            });
+        // Validation based on type
+        if (type === 'header') {
+            if (!title) return res.status(400).json({ success: false, message: "Header title is required" });
+        } else if (type === 'link' || type === 'product') {
+             if (!title && !url) { 
+                 // If sending metadata request, we might want to allow empty title if we fetch it? 
+                 // But for creation, usually we expect at least a URL.
+                 return res.status(400).json({ success: false, message: "URL is required" });
+             }
         }
 
-        if (!icon) {
+        // Auto-fetch icon if missing (for standard links)
+        if (!icon && url) {
             const detected = detectIconFromUrl(url);
             if (detected) icon = detected;
+        }
+
+        // Auto-fetch Metadata for Products (if no image/title provided, optional)
+        // Usually frontend calls /preview first, but we can do a fallback here.
+        if (type === 'product' && url && (!imageUrl || !title)) {
+             const meta = await fetchUrlMetadata(url);
+             if (meta) {
+                 if (!imageUrl) imageUrl = meta.image;
+                 if (!title) req.body.title = meta.title; // update title if missing
+             }
         }
 
         //PLAN ENFORCEMENT (Free vs Pro)
@@ -35,7 +51,7 @@ export const createLink = async (req, res) => {
             });
         }
 
-        const isCollection = req.body.type === 'collection';
+        const isCollection = type === 'collection';
         
         if (isCollection) {
             const collectionCount = await Link.countDocuments({ userId, type: 'collection' });
@@ -47,14 +63,18 @@ export const createLink = async (req, res) => {
                  });
             }
         } else {
-            // Count only actual links (ignore collections in this count)
-            const linkCount = await Link.countDocuments({ userId, type: 'link' });
-            if (linkCount >= planRules.maxLinks) {
-                 return res.status(403).json({ 
-                     success: false, 
-                     code: "PLAN_LIMIT_REACHED",
-                     message: `Free plan limit: Max ${planRules.maxLinks} links. Upgrade to Pro.` 
-                 });
+            // Count total items (links + products + headers? maybe headers don't count?)
+            // Usually headers shouldn't count towards link limits, but standard links do.
+            // Let's count 'link' and 'product' towards maxLinks for now.
+            if (type === 'link' || type === 'product') {
+                const linkCount = await Link.countDocuments({ userId, type: { $in: ['link', 'product'] } });
+                if (linkCount >= planRules.maxLinks) {
+                     return res.status(403).json({ 
+                         success: false, 
+                         code: "PLAN_LIMIT_REACHED",
+                         message: `Free plan limit: Max ${planRules.maxLinks} items. Upgrade to Pro.` 
+                     });
+                }
             }
         }
 
@@ -64,18 +84,22 @@ export const createLink = async (req, res) => {
 
         const link = await Link.create({
             userId,
-            title,
-            url: url || "", // collections might not have URL
+            title: req.body.title || title || "Untitled", // fallback
+            url: url || "", 
             description: description || "",
             icon: icon || "",
+            imageUrl: imageUrl || "",
+            price: price || "",
+            currency: currency || "USD",
+            layout: layout || "list",
             order,
-            type: req.body.type || "link",
+            type,
             parentId: req.body.parentId || null,
         });
 
         res.status(201).json({
             success: true,
-            message: "Link created",
+            message: "Created successfully",
             data: link,
         });
     } catch (error) {
@@ -83,6 +107,27 @@ export const createLink = async (req, res) => {
             success: false,
             message: error.message || "Server error",
         });
+    }
+};
+
+// PREVIEW METADATA (New Endpoint)
+export const getLinkPreview = async (req, res) => {
+    try {
+        const { url } = req.body;
+        if (!url) return res.status(400).json({ success: false, message: "URL is required" });
+
+        const metadata = await fetchUrlMetadata(url);
+        
+        // Also try to detect icon
+        const icon = detectIconFromUrl(url);
+
+        return res.status(200).json({
+            success: true,
+            data: { ...metadata, icon }
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -120,12 +165,19 @@ export const updateLink = async (req, res) => {
             });
         }
 
+        // Standard fields
         if (req.body.title !== undefined) link.title = req.body.title;
         if (req.body.url !== undefined) link.url = req.body.url;
-        if (req.body.description !== undefined)
-            link.description = req.body.description;
+        if (req.body.description !== undefined) link.description = req.body.description;
         if (req.body.icon !== undefined) link.icon = req.body.icon;
         if (req.body.isActive !== undefined) link.isActive = req.body.isActive;
+        
+        // Product/Extended fields
+        if (req.body.imageUrl !== undefined) link.imageUrl = req.body.imageUrl;
+        if (req.body.price !== undefined) link.price = req.body.price;
+        if (req.body.currency !== undefined) link.currency = req.body.currency;
+        if (req.body.layout !== undefined) link.layout = req.body.layout;
+        if (req.body.type !== undefined) link.type = req.body.type; // cautious about type change?
 
         await link.save();
 

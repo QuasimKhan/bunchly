@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, FolderClosed, ChevronDown, ExternalLink } from "lucide-react";
+import { FolderOpen, FolderClosed, ChevronDown, ExternalLink, ShoppingBag } from "lucide-react";
 import TickBadge from "../ui/TickBadge";
 import LinkFavicon from "../link-card/LinkFavicon"; 
 import { motion, AnimatePresence } from "framer-motion";
@@ -73,8 +73,6 @@ export const LivePreview = ({
         bgLayerStyle.backgroundSize = "cover";
         bgLayerStyle.backgroundPosition = "center";
         bgLayerStyle.filter = `blur(${bgBlur}px)`;
-        // Note: transform scale needed to prevent white edges when blurring? 
-        // For simplicity, we assume blur is small or image is large.
         if(bgBlur > 0) bgLayerStyle.transform = "scale(1.05)"; 
     } else if (bgType === "gradient") {
          if (bgGradient.includes("bg-") || bgGradient.includes("[")) {
@@ -104,7 +102,6 @@ export const LivePreview = ({
         if (buttonStyle === "soft") return { 
             ...base, 
             backgroundColor: buttonColor.startsWith("#") ? `${buttonColor}15` : buttonColor, 
-            // Fallback for non-hex if somehow it creeps in, though themes.js is fixed.
             color: buttonColor,
             backdropFilter: "blur(10px)",
         };
@@ -150,22 +147,223 @@ export const LivePreview = ({
         show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } }
     };
 
+    // RENDER BLOCK
+    const renderBlock = (link) => {
+        // 1. SECTION HEADER
+        if (link.type === 'header') {
+            return (
+                <motion.div variants={itemVariants} className="w-full py-4 text-center">
+                    <h2 className="text-lg font-bold opacity-90 tracking-tight" style={{ color: fontColor }}>
+                        {link.title}
+                    </h2>
+                </motion.div>
+            );
+        }
+
+        // 2. PRODUCT
+        if (link.type === 'product') {
+            return (
+                <motion.a
+                    variants={itemVariants}
+                    href={mode === 'public' ? `${import.meta.env.VITE_API_URL}/api/links/${link._id}/redirect` : '#'}
+                    target="_blank" rel="noreferrer"
+                    onClick={(e) => handleLinkClick(e, link)}
+                    className={`group w-full flex items-center gap-4 p-3 ${roundnessClass} transition-all active:scale-[0.98] hover:scale-[1.01] hover:shadow-xl relative overflow-hidden bg-white/90 dark:bg-neutral-900/80 backdrop-blur-sm cursor-pointer border border-transparent hover:border-black/5 dark:hover:border-white/10`}
+                    style={{ ...btnStyle, padding: '0.75rem' }} 
+                >
+                    {/* Image */}
+                    <div className={`w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-hidden shadow-inner relative`}>
+                        {link.imageUrl ? (
+                            <img src={link.imageUrl} alt={link.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-neutral-400 dark:text-neutral-600">
+                                <ShoppingBag className="w-8 h-8" />
+                            </div>
+                        )}
+                        {/* Price Badge Overlay */}
+                         {link.price && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold text-center py-1">
+                                {link.currency === 'INR' ? '₹' : link.currency === 'EUR' ? '€' : link.currency === 'GBP' ? '£' : '$'}{link.price}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 flex flex-col items-start justify-center gap-1.5 h-full">
+                        <span className="font-bold text-sm sm:text-lg leading-tight line-clamp-2 text-left tracking-tight">
+                            {link.title}
+                        </span>
+                        
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs font-bold uppercase tracking-wider opacity-60 flex items-center gap-1">
+                                <ShoppingBag className="w-3 h-3" /> Shop
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {/* CTA Arrow/Icon */}
+                    <div className="pr-2 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
+                         <div className="w-8 h-8 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center">
+                            <ExternalLink className="w-4 h-4" />
+                         </div>
+                    </div>
+                </motion.a>
+            );
+        }
+
+        // 3. COLLECTION
+        if (link.type === 'collection') {
+            const children = activeLinks.filter(c => c.parentId === link._id);
+            const isExpanded = expanded[link._id];
+
+            return (
+                <motion.div variants={itemVariants} className="w-full">
+                    <button
+                        onClick={(e) => toggleCollection(link._id, e)}
+                        className={`w-full relative overflow-hidden flex items-center gap-4 px-5 py-4.5 ${roundnessClass} transition-all active:scale-[0.98] z-10 group`}
+                        style={btnStyle}
+                    >
+                        <div className="shrink-0 flex items-center justify-center">
+                            {link.icon ? (
+                                <LinkFavicon url={link.url} icon={link.icon} size={24} />
+                            ) : (
+                                <div className="opacity-80">
+                                    {isExpanded ? <FolderOpen className="w-6 h-6"/> : <FolderClosed className="w-6 h-6"/>}
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                            <span className="block font-bold tracking-tight truncate text-lg">
+                                {link.title}
+                            </span>
+                        </div>
+                        <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} style={{ color: 'currentColor' }}>
+                            <ChevronDown className="w-5 h-5 opacity-70" />
+                        </div>
+                    </button>
+
+                    <AnimatePresence>
+                        {isExpanded && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="flex flex-col gap-3 pl-4 mt-3 border-l-2 border-white/10 ml-6 py-1">
+                                    {children.map((child) => (
+                                       <div key={child._id} className="w-full">
+                                            {/* Reuse renderBlock logic but strip outer motion.div variants if recursing to avoid double animation triggering unexpectedly or just inline logic */}
+                                            {/* Simplified for children to be a bit smaller/denser usually */}
+                                            {renderChildBlock(child)}
+                                       </div>
+                                    ))}
+                                    {children.length === 0 && <div className="text-xs opacity-50 py-2 italic pl-2">Empty Collection</div>}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+            );
+        }
+
+        // 4. STANDARD LINK
+        return (
+            <motion.a
+                variants={itemVariants}
+                href={mode === 'public' ? `${import.meta.env.VITE_API_URL}/api/links/${link._id}/redirect` : '#'}
+                target="_blank" rel="noreferrer"
+                onClick={(e) => handleLinkClick(e, link)}
+                className={`group flex items-center gap-4 px-5 py-4.5 ${roundnessClass} transition-all active:scale-[0.98] hover:scale-[1.01] hover:shadow-lg relative overflow-hidden`}
+                style={btnStyle}
+            >
+                {/* Hover Sheen */}
+                {buttonStyle === 'fill' && (
+                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none skew-x-12"></div>
+                )}
+
+                <div className="shrink-0 flex items-center justify-center">
+                        <LinkFavicon url={link.url} icon={link.icon} size={24} />
+                </div>
+                
+                <span className="flex-1 font-bold tracking-tight text-center pr-10 truncate text-lg">
+                    {link.title}
+                </span>
+            </motion.a>
+        );
+    };
+
+    // Helper for nested blocks (slightly different styling or same?)
+    // For now, let's reuse generally, but maybe smaller?
+    const renderChildBlock = (link) => {
+        if (link.type === 'product') {
+            return (
+                 <a
+                    href={mode === 'public' ? `${import.meta.env.VITE_API_URL}/api/links/${link._id}/redirect` : '#'}
+                    target="_blank" rel="noreferrer"
+                    onClick={(e) => handleLinkClick(e, link)}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors bg-white/5 cursor-pointer group"
+                    style={{ color: fontColor }}
+                >
+                     <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden shrink-0 border border-black/5 shadow-sm relative">
+                        {link.imageUrl ? (
+                             <img src={link.imageUrl} alt={link.title} className="w-full h-full object-cover transition-transform group-hover:scale-110"/>
+                        ) : (
+                             <ShoppingBag className="w-5 h-5 m-auto text-neutral-400"/>
+                        )}
+                        {/* Tiny Price Tag */}
+                        {link.price && (
+                            <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-bold text-center leading-none py-0.5">
+                                {link.currency === 'INR' ? '₹' : '$'}{link.price}
+                            </div>
+                        )}
+                     </div>
+                     <div className="flex-1 min-w-0">
+                         <div className="text-sm font-semibold truncate group-hover:underline decoration-white/30 underline-offset-2">{link.title}</div>
+                         <div className="text-[10px] opacity-70 uppercase tracking-wider flex items-center gap-1">
+                            Shop
+                         </div>
+                     </div>
+                     <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                </a>
+            );
+        }
+        if (link.type === 'header') return null; // Headers inside collections? Maybe support, maybe not. Let's hide for now or show as text.
+        
+        // Standard Link Child
+        return (
+            <a
+                href={mode === 'public' ? `${import.meta.env.VITE_API_URL}/api/links/${link._id}/redirect` : '#'}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => handleLinkClick(e, link)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                style={{ color: fontColor }}
+            >
+                <LinkFavicon url={link.url} icon={link.icon} size={20} />
+                <span className="text-sm font-semibold truncate">{link.title}</span>
+                <ExternalLink className="w-3 h-3 opacity-40 ml-auto" />
+            </a>
+        );
+    };
+
     return (
         <div className={`relative w-full h-full overflow-hidden ${className}`}>
              {/* 1. Background Layer */}
             <div 
-                className={`absolute inset-0 z-0 ${bgClass}`} 
+                className={`${mode === 'public' ? 'fixed' : 'absolute'} inset-0 z-0 ${bgClass}`} 
                 style={bgLayerStyle} 
             />
 
             {/* 2. Overlay Layer (Black Opacity) */}
             <div 
-                className="absolute inset-0 z-0 bg-black pointer-events-none transition-opacity duration-300" 
+                className={`${mode === 'public' ? 'fixed' : 'absolute'} inset-0 z-0 bg-black pointer-events-none transition-opacity duration-300`} 
                 style={{ opacity: bgOverlay }} 
             />
 
             {/* 3. Noise Texture */}
-            <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-repeat" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` }}></div>
+            <div className={`${mode === 'public' ? 'fixed' : 'absolute'} inset-0 z-0 opacity-[0.03] pointer-events-none bg-repeat`} style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` }}></div>
 
             {/* 4. Scrollable Content Area */}
             <div 
@@ -219,99 +417,11 @@ export const LivePreview = ({
     
                     {/* Links List */}
                     <div className="w-full flex flex-col gap-4 pb-12">
-                        {activeLinks.filter(l => !l.parentId).map((link) => {
-                            
-                            // COLLECTION
-                            if (link.type === "collection") {
-                                const children = activeLinks.filter(c => c.parentId === link._id);
-                                const isExpanded = expanded[link._id];
-    
-                                return (
-                                    <motion.div variants={itemVariants} key={link._id} className="w-full">
-                                        <button
-                                            onClick={(e) => toggleCollection(link._id, e)}
-                                            className={`w-full relative overflow-hidden flex items-center gap-4 px-5 py-4.5 ${roundnessClass} transition-all active:scale-[0.98] z-10 group`}
-                                            style={btnStyle}
-                                        >
-                                            <div className="shrink-0 flex items-center justify-center">
-                                                {link.icon ? (
-                                                    <LinkFavicon url={link.url} icon={link.icon} size={24} />
-                                                ) : (
-                                                    <div className="opacity-80">
-                                                        {isExpanded ? <FolderOpen className="w-6 h-6"/> : <FolderClosed className="w-6 h-6"/>}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 text-left min-w-0">
-                                                <span className="block font-bold tracking-tight truncate text-lg">
-                                                    {link.title}
-                                                </span>
-                                            </div>
-                                            <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} style={{ color: 'currentColor' }}>
-                                                <ChevronDown className="w-5 h-5 opacity-70" />
-                                            </div>
-                                        </button>
-    
-                                        <AnimatePresence>
-                                            {isExpanded && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: "auto", opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                                    className="overflow-hidden"
-                                                >
-                                                    <div className="flex flex-col gap-3 pl-6 mt-3 border-l-2 border-white/10 ml-6 py-1">
-                                                        {children.map((child) => (
-                                                            <a
-                                                                key={child._id}
-                                                                href={mode === 'public' ? `${import.meta.env.VITE_API_URL}/api/links/${child._id}/redirect` : '#'}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                onClick={(e) => handleLinkClick(e, child)}
-                                                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                                                                style={{ color: fontColor }}
-                                                            >
-                                                                <LinkFavicon url={child.url} icon={child.icon} size={20} />
-                                                                <span className="text-sm font-semibold truncate">{child.title}</span>
-                                                                <ExternalLink className="w-3 h-3 opacity-40 ml-auto" />
-                                                            </a>
-                                                        ))}
-                                                        {children.length === 0 && <div className="text-xs opacity-50 py-2 italic pl-2">Empty Collection</div>}
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </motion.div>
-                                )
-                            }
-    
-                            // STANDARD LINK
-                            return (
-                                <motion.a
-                                    variants={itemVariants}
-                                    key={link._id}
-                                    href={mode === 'public' ? `${import.meta.env.VITE_API_URL}/api/links/${link._id}/redirect` : '#'}
-                                    target="_blank" rel="noreferrer"
-                                    onClick={(e) => handleLinkClick(e, link)}
-                                    className={`group flex items-center gap-4 px-5 py-4.5 ${roundnessClass} transition-all active:scale-[0.98] hover:scale-[1.01] hover:shadow-lg relative overflow-hidden`}
-                                    style={btnStyle}
-                                >
-                                    {/* Hover Sheen Effect for standard fills */}
-                                    {buttonStyle === 'fill' && (
-                                        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none skew-x-12"></div>
-                                    )}
-    
-                                    <div className="shrink-0 flex items-center justify-center">
-                                         <LinkFavicon url={link.url} icon={link.icon} size={24} />
-                                    </div>
-                                    
-                                    <span className="flex-1 font-bold tracking-tight text-center pr-10 truncate text-lg">
-                                        {link.title}
-                                    </span>
-                                </motion.a>
-                            );
-                        })}
+                        {activeLinks.filter(l => !l.parentId).map((link) => (
+                             <React.Fragment key={link._id}>
+                                {renderBlock(link)}
+                             </React.Fragment>
+                        ))}
                     </div>
                 </motion.div>
             </div>

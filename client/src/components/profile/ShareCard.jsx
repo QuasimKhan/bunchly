@@ -1,33 +1,40 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Download, X, Share2, Copy } from "lucide-react";
+import { Download, X, Share2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { toPng, toBlob } from "html-to-image";
 
 const ShareCard = ({ user, onClose }) => {
     const cardRef = useRef(null);
     const profileUrl = `${window.location.origin}/${user.username}`;
-    const [generating, setGenerating] = React.useState(false);
+    const [generating, setGenerating] = useState(false);
+
+    // 💎 Premium "Obsidian" Gradient
+    const cardGradient = "linear-gradient(145deg, #0f172a 0%, #1e1b4b 45%, #000000 100%)";
+    const accentColor = "#6366f1"; // Indigo-500
 
     const handleDownload = async () => {
         if (!cardRef.current || generating) return;
         setGenerating(true);
         try {
-            // Wait a moment for fonts/images to be ready
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for render stability
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
             const dataUrl = await toPng(cardRef.current, { 
                 cacheBust: true, 
-                pixelRatio: 2, // High resolution
-                backgroundColor: 'transparent'
+                pixelRatio: 4, 
+                backgroundColor: null, // Transparent bg for rounded corners
+                style: { transform: 'none', margin: 0 }, // Reset positioning for capture
             });
+            
             const link = document.createElement("a");
-            link.download = `${user.username}-bunchly.png`;
+            link.download = `${user.username}-bunchly-card.png`;
             link.href = dataUrl;
             link.click();
-            toast.success("Image saved to gallery!");
+            toast.success("Saved to gallery!");
         } catch (err) {
             console.error(err);
-            toast.error("Failed to save image");
+            toast.error("Could not save image.");
         } finally {
             setGenerating(false);
         }
@@ -41,27 +48,25 @@ const ShareCard = ({ user, onClose }) => {
     const handleNativeShare = async () => {
         setGenerating(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 100));
 
-            const shareData = {
-                title: `Meet ${user.name || user.username} on Bunchly`,
-                text: `Check out my profile on Bunchly! 🚀\n\n${user.bio ? user.bio + "\n\n" : ""}@${user.username}`,
-                url: profileUrl,
-            };
-
+            const shareTitle = `Connect with ${user.name || user.username}`;
+            const shareText = `Scan to connect with me on Bunchly!\n\n${profileUrl}`;
+            
             if (navigator.canShare && navigator.canShare({ files: [new File([], 'test.png', { type: 'image/png' })] }) && cardRef.current) {
                  const blob = await toBlob(cardRef.current, { 
                     cacheBust: true, 
-                    pixelRatio: 2, 
-                    backgroundColor: 'transparent'
+                    pixelRatio: 3, 
+                    style: { transform: 'none', margin: 0 },
                 });
                 
                 if (blob) {
-                    const file = new File([blob], `${user.username}-profile.png`, { type: "image/png" });
+                    const file = new File([blob], `bunchly-${user.username}.png`, { type: "image/png" });
                     const fileShareData = { 
-                        ...shareData, 
                         files: [file],
-                        // Some apps ignore text if files are present, but we send it anyway
+                        title: shareTitle,
+                        text: shareText,
+                        url: profileUrl 
                     };
                     
                     if (navigator.canShare(fileShareData)) {
@@ -71,116 +76,149 @@ const ShareCard = ({ user, onClose }) => {
                 }
             }
 
-            // Fallback to link only
+            // Fallback
             if (navigator.share) {
-                await navigator.share(shareData);
+                await navigator.share({
+                    title: shareTitle,
+                    text: shareText,
+                    url: profileUrl,
+                });
             } else {
                 handleCopyLink();
             }
         } catch (err) {
-            console.error(err);
-             // User cancellation or error
+            console.error("Share failed:", err);
         } finally {
             setGenerating(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="relative w-full max-w-[320px]"> {/* Compact Width */}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-xl animate-in fade-in duration-300">
+            <div className="relative w-full max-w-[340px] flex flex-col gap-8 scale-100 animate-in zoom-in-95 duration-300">
                 
-                <div className="bg-white dark:bg-[#18181B] rounded-[28px] p-5 w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-200 overflow-hidden ring-1 ring-white/10 relative">
+                {/* Close Button */}
+                <button 
+                    onClick={onClose}
+                    className="absolute -top-12 right-0 p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all cursor-pointer border border-white/5 active:scale-95 z-50"
+                    aria-label="Close"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                {/* 🪪 THE PREMIUM CAPTURE CARD */}
+                {/* We remove transforms from this specific container during capture to fix the "disturbed design" bug */}
+                <div 
+                    ref={cardRef}
+                    className="relative w-full aspect-[9/14] rounded-[32px] overflow-hidden flex flex-col items-center justify-between p-8 shadow-2xl select-none group"
+                    style={{ background: cardGradient }}
+                >
+                    {/* --- BACKGROUND FX --- */}
+                    {/* Noise Texture */}
+                    <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")` }}></div>
                     
-                    {/* Close Button - Internal & Explicit */}
-                    <button 
-                        onClick={onClose}
-                        className="absolute top-4 right-4 p-1.5 rounded-full bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-500 dark:text-neutral-400 transition-colors z-20"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                    {/* Ambient Glows */}
+                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-indigo-500/20 to-transparent pointer-events-none" />
+                    <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-purple-600/30 rounded-full blur-[80px] pointer-events-none" />
+                    <div className="absolute -top-24 -left-24 w-80 h-80 bg-indigo-600/20 rounded-full blur-[80px] pointer-events-none" />
 
-                    <h3 className="text-lg font-bold text-center mb-5 text-neutral-900 dark:text-white tracking-tight">Share Profile</h3>
-
-                    {/* The Card to be captured */}
-                    <div 
-                        ref={cardRef}
-                        className="aspect-[4/5] w-full rounded-2xl overflow-hidden relative flex flex-col items-center justify-center p-6 mb-6 select-none shadow-xl transform transition-transform"
-                        style={{
-                            background: "radial-gradient(circle at 0% 0%, #4f46e5 0%, transparent 55%), radial-gradient(circle at 100% 100%, #ec4899 0%, transparent 55%), #0f172a",
-                        }}
-                    >
-                        {/* Noise texture overlay */}
-                        <div className="absolute inset-0 opacity-30 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` }}></div>
-
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl flex flex-col items-center gap-4 shadow-2xl w-full max-w-[200px]">
-                            {/* Profile Pic */}
-                            <div className="relative">
+                    {/* --- TOP: PROFILE --- */}
+                    <div className="relative z-10 flex flex-col items-center text-center gap-4 w-full mt-4">
+                        <div className="relative p-1 rounded-full bg-gradient-to-br from-white/30 to-white/5 backdrop-blur-sm border border-white/10 shadow-xl">
+                            <div className="w-24 h-24 rounded-full overflow-hidden bg-neutral-900 border-4 border-neutral-900/50">
                                 {user.image ? (
-                                    <img src={user.image} alt={user.username} className="w-16 h-16 rounded-full object-cover border-[3px] border-white shadow-lg" crossOrigin="anonymous" />
+                                    <img src={user.image} alt={user.username} className="w-full h-full object-cover" crossOrigin="anonymous" />
                                 ) : (
-                                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-2xl font-bold text-indigo-600 shadow-lg">
-                                        {user.username[0].toUpperCase()}
+                                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-indigo-400 bg-neutral-800">
+                                        {user.username[0]?.toUpperCase()}
                                     </div>
                                 )}
-                                <div className="absolute -bottom-1.5 -right-1.5 bg-black text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white shadow-sm">
-                                    @{user.username}
-                                </div>
                             </div>
-
-                            {/* Premium QR Code */}
-                            <div className="bg-white p-3 rounded-2xl shadow-sm border border-neutral-100">
-                                <QRCodeSVG 
-                                    value={profileUrl} 
-                                    size={130}
-                                    level="H"
-                                    fgColor="#000000"
-                                    bgColor="#ffffff"
-                                    imageSettings={{
-                                        src: "/apple-touch-icon.png",
-                                        x: undefined,
-                                        y: undefined,
-                                        height: 28,
-                                        width: 28,
-                                        excavate: true,
-                                    }}
-                                />
+                            {/* Verification Badge (Visual Only) */}
+                            <div className="absolute bottom-1 right-1 bg-indigo-500 text-white p-1 rounded-full border-[3px] border-[#0f172a] shadow-sm">
+                                <Check className="w-3.5 h-3.5" strokeWidth={3} />
                             </div>
-
-                            {/* Brand Logo Below QR */}
-                            <img 
-                                src="/img/Bunchly-dark.png" 
-                                alt="Bunchly" 
-                                className="h-8 object-contain opacity-95 drop-shadow-sm mt-1" 
-                            />
+                        </div>
+                        
+                        <div>
+                             <h2 className="text-white font-bold text-2xl tracking-tight leading-tight drop-shadow-md">
+                                {user.name || user.username}
+                            </h2>
+                            <p className="text-indigo-200/80 text-sm font-medium m-1.5 uppercase tracking-widest text-[10px]">
+                                @{user.username}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="grid grid-cols-3 gap-2">
-                        <button onClick={handleNativeShare} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 group">
-                            <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                                <Share2 className="w-4 h-4" />
-                            </div>
-                            Share
-                        </button>
-                        <button onClick={handleCopyLink} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 group">
-                            <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                                <Copy className="w-4 h-4" />
-                            </div>
-                            Copy
-                        </button>
-                        <button onClick={handleDownload} disabled={generating} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 group disabled:opacity-50">
-                            <div className="w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
-                                <Download className="w-4 h-4" />
-                            </div>
-                            Save
-                        </button>
+                    {/* --- CENTER: QR CODE PLAQUE --- */}
+                    <div className="relative z-10 bg-neutral-900 p-5 rounded-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] border border-white/10 group-hover:scale-[1.02] transition-transform duration-500 will-change-transform">
+                         <QRCodeSVG 
+                            value={profileUrl} 
+                            size={180}
+                            level="H" 
+                            fgColor="#ffffff" // Dark Slate
+                            bgColor="#0f172a"
+                            imageSettings={{
+                                src: "/favicon.ico",
+                                x: undefined,
+                                y: undefined,
+                                height: 36,
+                                width: 36,
+                                excavate: true,
+                            }}
+                        />
+                         <p className="text-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-4">Scan me</p>
                     </div>
 
+                    {/* --- FOOTER: BRANDING --- */}
+                    <div className="relative z-10 mt-4">
+                        <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-lg group-hover:bg-white/10 transition-colors duration-500">
+                             <span className="text-[7px] text-indigo-200/60 font-bold tracking-widest uppercase">Powered by</span>
+                            <img src="/img/Bunchly-dark.png" alt="Bunchly" className="h-4 opacity-90 drop-shadow-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- ACTION BAR --- */}
+                <div className="grid grid-cols-3 gap-4 px-2">
+                    <ActionButton 
+                        icon={Share2} 
+                        label="Share" 
+                        onClick={handleNativeShare} 
+                        loading={generating}
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500/50 shadow-indigo-500/25"
+                    />
+                    <ActionButton 
+                        icon={Copy} 
+                        label="Copy" 
+                        onClick={handleCopyLink} 
+                        className="bg-neutral-800 hover:bg-neutral-700 text-white border-neutral-700 shadow-black/20"
+                    />
+                    <ActionButton 
+                        icon={Download} 
+                        label="Save" 
+                        onClick={handleDownload} 
+                        loading={generating}
+                        className="bg-neutral-800 hover:bg-neutral-700 text-white border-neutral-700 shadow-black/20"
+                    />
                 </div>
             </div>
         </div>
     );
 };
+
+// Helper for sleek buttons
+const ActionButton = ({ icon: Icon, label, onClick, loading, className = "" }) => (
+    <button 
+        onClick={onClick}
+        disabled={loading}
+        className={`flex flex-col items-center justify-center gap-2 py-3.5 px-2 rounded-2xl border shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 cursor-pointer ${className}`}
+    >
+        <div className={`w-8 h-8 flex items-center justify-center rounded-full bg-white/10 mb-1`}>
+            <Icon className="w-5 h-5" />
+        </div>
+        <span className="text-[11px] font-bold tracking-wide uppercase">{loading ? "..." : label}</span>
+    </button>
+);
 
 export default ShareCard;

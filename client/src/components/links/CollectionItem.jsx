@@ -5,6 +5,8 @@ import { Switch } from "@headlessui/react";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import SortableLink from "./SortableLink";
 import LinkCard from "../link-card/LinkCard"; 
+import ProductCard from "./ProductCard"; // NEW
+import SectionHeader from "./SectionHeader"; // NEW
 import LinkDragHandle from "../link-card/LinkDragHandle";
 import LinkFavicon from "../link-card/LinkFavicon";
 
@@ -20,6 +22,27 @@ const CollectionItem = ({
     // Default open if it has children? or keep persistent state?
     // For now simple local state.
     const [isOpen, setIsOpen] = useState(false);
+
+    // Helper to render child based on type
+    const renderChild = (child) => {
+        const commonProps = {
+            link: child,
+            onToggle,
+            onEdit,
+            onDelete,
+            onOpenIconPicker,
+            className: "!bg-white dark:!bg-neutral-900 !border-neutral-200 dark:!border-neutral-800 !shadow-sm hover:!shadow-md"
+        };
+
+        switch (child.type) {
+            case 'product':
+                return <ProductCard {...commonProps} />;
+            case 'header':
+                return <SectionHeader {...commonProps} />;
+            default:
+                return <LinkCard {...commonProps} />;
+        }
+    };
 
     return (
         <div className="group relative rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm transition-all duration-300 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 overflow-hidden">
@@ -126,14 +149,7 @@ const CollectionItem = ({
                         <div className="relative space-y-3 pl-2 sm:pl-4 border-l-2 border-indigo-200 dark:border-indigo-900/30 ml-2 sm:ml-4 my-1">
                             {childrenLinks.map((child) => (
                                <SortableLink key={child._id} id={child._id}>
-                                  <LinkCard
-                                    link={child}
-                                    onToggle={onToggle}
-                                    onEdit={onEdit}
-                                    onDelete={onDelete}
-                                    onOpenIconPicker={onOpenIconPicker}
-                                    className="!bg-white dark:!bg-neutral-900 !border-neutral-200 dark:!border-neutral-800 !shadow-sm hover:!shadow-md"
-                                  />
+                                  {renderChild(child)}
                                </SortableLink>
                             ))}
 

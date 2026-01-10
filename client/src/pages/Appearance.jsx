@@ -75,6 +75,7 @@ const Appearance = () => {
         fontFamily: "Inter",
         fontColor: "#171717",
         theme: "custom", 
+        hideBranding: false,
     });
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -96,9 +97,34 @@ const Appearance = () => {
     };
 
     // Handle Change
-    const handleChange = (key, value, isProFeature = false) => {
+    const handleChange = async (key, value, isProFeature = false, autoSave = false) => {
         if (!checkPro(isProFeature)) return;
-        setAppearance((prev) => ({ ...prev, [key]: value }));
+        
+        // Optimistic Update
+        setAppearance(prev => {
+            const newApp = { ...prev, [key]: value };
+            
+            // Trigger Auto-Save if requested
+            if (autoSave) {
+                // Debounce or immediate? Toggles should be immediate.
+                axios.patch(
+                    `${import.meta.env.VITE_API_URL}/api/user/update-profile`,
+                    { appearance: newApp },
+                    { withCredentials: true }
+                ).then(res => {
+                    if (res.data.success) {
+                        toast.success("Saved!", { duration: 1500 });
+                        setUser(res.data.user);
+                    }
+                }).catch(err => {
+                    console.error("Auto-save failed:", err);
+                    toast.error("Failed to save");
+                    // Revert on failure
+                    setAppearance(current => ({ ...current, [key]: !value })); 
+                });
+            }
+            return newApp;
+        });
     };
 
     // Save Changes
@@ -439,7 +465,6 @@ const Appearance = () => {
                         )}
                     </Section>
 
-                    {/* buttons section */}
                     <Section title="Buttons" icon={Square} description="Shape & feel of your links">
                         <div className="space-y-8">
                             <div>
@@ -547,14 +572,45 @@ const Appearance = () => {
                         </div>
                     </Section>
 
+                    {/* branding section */}
+                    <Section title="Branding" icon={Lock} description="Manage your profile footer">
+                        <div className="flex items-center justify-between p-4 border border-neutral-200 dark:border-neutral-800 rounded-2xl bg-white dark:bg-neutral-800/20">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+                                    <img src="/favicon.ico" alt="" className="w-5 h-5 opacity-50 grayscale" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-neutral-900 dark:text-white text-sm">Hide Bunchly Branding</h4>
+                                    <p className="text-xs text-neutral-500">Remove the logo from your profile footer.</p>
+                                </div>
+                            </div>
+                            
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={appearance.hideBranding}
+                                    onChange={(e) => handleChange("hideBranding", e.target.checked, true, true)}
+                                    className="sr-only peer"
+                                />
+                                <div className={`w-11 h-6 bg-neutral-200 dark:bg-neutral-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600`}></div>
+                                
+                                {user.plan !== "pro" && (
+                                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 cursor-not-allowed z-10 flex items-center justify-center rounded-full">
+                                        <Lock className="w-3 h-3 text-neutral-600" />
+                                    </div>
+                                )}
+                            </label>
+                        </div>
+                    </Section>
+
                 </div>
 
                 {/* 📱 RIGHT COLUMN: PREVIEW */}
                 <div className="lg:col-span-5 hidden lg:block">
                     <div className="sticky top-8">
                         <div className="bg-neutral-900 rounded-[3rem] border-[10px] border-neutral-900 p-2 shadow-2xl h-[720px] w-[360px] mx-auto overflow-hidden relative ring-1 ring-white/10">
-                            {/* Phone Notch */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-neutral-900 rounded-b-xl z-20"></div>
+                          
+                            
                             
                             {/* Side Buttons */}
                             <div className="absolute top-24 -right-3 w-1 h-12 bg-neutral-800 rounded-r-md"></div>
@@ -566,8 +622,13 @@ const Appearance = () => {
                                 <LivePreview user={previewUser} links={previewLinks} mode="preview" />
                             </div>
                         </div>
-                        <div className="text-center mt-6 text-sm font-medium text-neutral-400 animate-pulse-slow">
+                        <div className="text-center mt-6 text-sm font-medium text-neutral-400">
+                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm backdrop-blur-sm mb-6 sm:mb-8 transition-transform hover:scale-105 cursor-default">
+                        <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
                              Live Preview
+                        </span>
+                    </div>
                         </div>
                     </div>
                 </div>

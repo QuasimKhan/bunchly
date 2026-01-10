@@ -44,8 +44,25 @@ const linkSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ["link", "collection"],
+            enum: ["link", "collection", "product", "header"],
             default: "link",
+        },
+        // 🔹 Product / Header Specifics
+        imageUrl: {
+            type: String, // For product images
+            default: "",
+        },
+        price: {
+            type: String, // e.g. "29.99"
+            default: "",
+        },
+        currency: {
+            type: String, // e.g. "USD", "INR"
+            default: "USD",
+        },
+        layout: {
+            type: String, // "list" | "grid" | "classic"
+            default: "list",
         },
         parentId: {
             type: mongoose.Schema.Types.ObjectId,

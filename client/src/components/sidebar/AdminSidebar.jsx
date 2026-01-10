@@ -12,7 +12,8 @@ import {
     Tag,
     Megaphone,
     MessageSquarePlus,
-    RotateCcw
+    RotateCcw,
+    Flag
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../ThemeToggle";
@@ -38,6 +39,7 @@ const AdminSidebar = ({ sidebarOpen, closeSidebar }) => {
         { label: "Coupons", href: "/admin/coupons", icon: Tag },
         { label: "Marketing", href: "/admin/marketing", icon: Megaphone },
         { label: "Feedback", href: "/admin/feedback", icon: MessageSquarePlus },
+        { label: "Reports", href: "/admin/reports", icon: Flag },
     ];
 
     return (

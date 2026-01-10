@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { 
     User, Mail, Calendar, Shield, Link as LinkIcon, 
     CreditCard, AlertTriangle, CheckCircle, Ban, ExternalLink, Trash2, Gift, LogOut, ShieldAlert, Folder, Copy, RotateCcw, DollarSign,
-    Monitor, Globe, MapPin, Laptop
+    Monitor, Globe, MapPin, Laptop, Layers
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -623,16 +623,16 @@ const AdminUserDetail = () => {
                     {/* Standalone Links */}
                     <div className="space-y-4">
                         <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest px-1">
-                            {links.some(l => l.type === 'collection') ? 'Standalone Links' : 'All Links'}
+                            {links.some(l => l.type === 'collection') ? 'Standalone Blocks' : 'All Content'}
                         </h3>
                         <div className="bg-white dark:bg-[#15151A] rounded-2xl border border-neutral-200 dark:border-white/5 overflow-hidden shadow-sm divide-y divide-neutral-100 dark:divide-white/5">
-                            {links.filter(l => l.type === 'link' && !l.parentId).map(link => (
+                            {links.filter(l => l.type !== 'collection' && !l.parentId).map(link => (
                                 <LinkRow key={link._id} link={link} requestAction={requestAction} />
                             ))}
-                            {links.filter(l => l.type === 'link' && !l.parentId).length === 0 && (
+                            {links.filter(l => l.type !== 'collection' && !l.parentId).length === 0 && (
                                 <div className="p-12 text-center text-neutral-500 flex flex-col items-center gap-2">
                                     <LinkIcon className="w-8 h-8 text-neutral-300" />
-                                    <p>No standalone links found</p>
+                                    <p>No standalone content found</p>
                                 </div>
                             )}
                         </div>
@@ -819,42 +819,73 @@ const InfoRow = ({ label, value, icon: Icon, color }) => (
 const LinkRow = ({ link, isChild, requestAction, copyToClipboard = (t) => { navigator.clipboard.writeText(t); toast.success("Copied!"); } }) => (
     <div className={`group flex flex-col md:flex-row md:items-center gap-4 p-4 hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors ${isChild ? 'pl-4 md:pl-8 border-l-4 border-transparent hover:border-indigo-500' : ''}`}>
         <div className="flex items-center gap-4 flex-1 min-w-0">
+             {/* Icon Logic */}
             <div className="flex-shrink-0">
-                <LinkFavicon url={link.url} icon={link.icon} size={40} />
+                {link.type === 'header' ? (
+                     <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-lg flex items-center justify-center text-neutral-500">
+                         <Layers className="w-5 h-5" />
+                     </div>
+                ) : link.type === 'product' && link.imageUrl ? (
+                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-white/10">
+                         <img src={link.imageUrl} alt="" className="w-full h-full object-cover" />
+                     </div>
+                ) : (
+                    <LinkFavicon url={link.url} icon={link.icon} size={40} />
+                )}
             </div>
+            
             <div className="min-w-0">
-                <h4 className="font-bold text-neutral-900 dark:text-white truncate text-sm">{link.title}</h4>
-                <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-neutral-500 hover:text-indigo-500 truncate block mt-0.5">
-                    {link.url}
-                </a>
+                <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-neutral-900 dark:text-white truncate text-sm">{link.title}</h4>
+                    {/* Types Badge */}
+                    {link.type === 'product' && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 rounded uppercase font-bold">Product</span>}
+                    {link.type === 'header' && <span className="text-[10px] bg-neutral-100 text-neutral-600 px-1.5 rounded uppercase font-bold">Header</span>}
+                </div>
+                
+                {link.type === 'header' ? (
+                    <span className="text-xs text-neutral-400 italic mt-0.5 block">Section Header</span>
+                ) : (
+                    <div className="flex items-center gap-2 mt-0.5">
+                         {link.price && <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">{link.currency} {link.price} •</span>}
+                         <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-neutral-500 hover:text-indigo-500 truncate block max-w-[200px]">
+                            {link.url}
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
 
         <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto mt-2 md:mt-0 pl-14 md:pl-0">
-            <div className="flex items-center gap-4 text-xs font-medium text-neutral-500">
-                <span className="flex items-center gap-1.5" title="Clicks">
-                    <ExternalLink className="w-3.5 h-3.5" /> {link.clicks}
-                </span>
-                <span className={`flex items-center gap-1.5 ${link.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                    <CheckCircle className="w-3.5 h-3.5" /> {link.isActive ? 'Active' : 'Hidden'}
-                </span>
-            </div>
+             {link.type !== 'header' && (
+                <div className="flex items-center gap-4 text-xs font-medium text-neutral-500">
+                    <span className="flex items-center gap-1.5" title="Clicks">
+                        <ExternalLink className="w-3.5 h-3.5" /> {link.clicks}
+                    </span>
+                    <span className={`flex items-center gap-1.5 ${link.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle className="w-3.5 h-3.5" /> {link.isActive ? 'Active' : 'Hidden'}
+                    </span>
+                </div>
+             )}
 
             <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                    onClick={() => copyToClipboard(link.url)}
-                    className="p-1.5 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                    title="Copy URL"
-                >
-                    <Copy className="w-4 h-4" />
-                </button>
-                 <button 
-                    onClick={() => window.open(link.url, '_blank')}
-                    className="p-1.5 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                    title="Open URL"
-                >
-                    <ExternalLink className="w-4 h-4" />
-                </button>
+                {link.url && (
+                    <>
+                        <button 
+                            onClick={() => copyToClipboard(link.url)}
+                            className="p-1.5 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                            title="Copy URL"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </button>
+                         <button 
+                            onClick={() => window.open(link.url, '_blank')}
+                            className="p-1.5 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                            title="Open URL"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                        </button>
+                    </>
+                )}
                 <button 
                     onClick={() => requestAction('delete_link', link._id)}
                     className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"

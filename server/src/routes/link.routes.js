@@ -6,11 +6,13 @@ import {
     reorderLinks,
     updateLink,
     redirectLink,
+    getLinkPreview, // Import
 } from "../controllers/link.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const linkRouter = express.Router();
 
+linkRouter.post("/preview", requireAuth, getLinkPreview); // New route
 linkRouter.post("/create", requireAuth, createLink);
 linkRouter.get("/", requireAuth, getLinks);
 linkRouter.patch("/reorder", requireAuth, reorderLinks);
