@@ -12,4 +12,5 @@ router.get("/", requireAuth, requireAdmin, getReports);
 router.patch("/:id", requireAuth, requireAdmin, updateReportStatus);
 router.delete("/:id", requireAuth, requireAdmin, deleteReport);
 
+
 export default router;
