@@ -31,7 +31,6 @@ export const createProOrder = async (req, res) => {
         let globalSaleApplied = false;
         if (settings?.saleActive && couponCode === "SPECIAL OFFER") {
              // Apply Global Discount
-             console.log(`[Checkout] Applying Global Sale: ${settings.saleDiscount}%`);
              discountAmount = Math.floor(BASE_PRICE * (settings.saleDiscount / 100));
              appliedCoupon = { code: "SPECIAL OFFER", discountValue: settings.saleDiscount }; // Mock for notes
              globalSaleApplied = true;
@@ -39,14 +38,12 @@ export const createProOrder = async (req, res) => {
 
         // 2. If no global sale applied, check DB coupons
         if (!globalSaleApplied && couponCode) {
-            console.log(`[Checkout] Validating Code: ${couponCode}`);
             const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
             
             if (!coupon) {
-                console.log(`[Checkout] Coupon NOT found in DB: ${couponCode}`);
+                // Invalid coupon
             } else {
                 const isValid = coupon.isValid();
-                console.log(`[Checkout] Coupon Found: ${couponCode} | Valid: ${isValid}`);
                 
                 if (isValid) {
                     appliedCoupon = coupon;
@@ -64,8 +61,6 @@ export const createProOrder = async (req, res) => {
         // Calculate final amount (in paise)
         const finalAmount = Math.max(100, BASE_PRICE + PLATFORM_FEE - discountAmount); // Minimum ₹1
 
-        console.log(`[Payment] Base: ₹${BASE_PRICE/100} | Discount: ₹${discountAmount/100} | Fee: ₹${PLATFORM_FEE/100} | Final: ₹${finalAmount/100}`);
-
         // Create Razorpay Order
         const orderOptions = {
             amount: finalAmount,
@@ -80,10 +75,6 @@ export const createProOrder = async (req, res) => {
         };
 
         const order = await razorpay.orders.create(orderOptions);
-
-        console.log(`[Razorpay] Order Created: ${order.id} | Amount: ₹${order.amount / 100} | Key End: ...${process.env.RAZORPAY_KEY_ID?.slice(-4)}`);
-
-        console.log(`[Razorpay] Order Created: ${order.id} | Amount: ₹${order.amount / 100}`);
 
         return res.status(200).json({
             success: true,
@@ -102,9 +93,6 @@ export const createProOrder = async (req, res) => {
 // Verify Pro Payment (One-Time Order)
 export const verifyProPayment = async (req, res) => {
     try {
-        console.log('[Verify] Starting payment verification...');
-        console.log('[Verify] Request body:', JSON.stringify(req.body, null, 2));
-        
         const userId = req.user._id;
         const { 
             razorpay_payment_id, 
@@ -117,8 +105,6 @@ export const verifyProPayment = async (req, res) => {
             console.error('[Verify] Missing required fields');
             return res.status(400).json({ success: false, message: "Payment details missing" });
         }
-
-        console.log('[Verify] Validating signature...');
         
         // Verify Signature
         // Formula for Orders: razorpay_order_id + "|" + razorpay_payment_id
@@ -133,8 +119,6 @@ export const verifyProPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
 
-        console.log('[Verify] Signature valid ✓');
-
         // Coupon Tracking
         let discountAmount = 0;
         if (couponCode === "SPECIAL OFFER") {
@@ -148,7 +132,6 @@ export const verifyProPayment = async (req, res) => {
                  discountAmount = Math.floor(basePrice * (settings.saleDiscount / 100));
              }
         } else if (couponCode) {
-            console.log(`[Verify] Processing coupon: ${couponCode}`);
             const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
             if (coupon) {
                 const basePrice = PRICING.pro.monthly.amount;
@@ -157,15 +140,12 @@ export const verifyProPayment = async (req, res) => {
                     : (coupon.discountValue * 100);
                  
                 await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
-                console.log(`[Verify] Coupon ${couponCode} usage incremented`);
             }
         }
 
         // Activate Pro for 30 days
         const expiryDate = new Date();
         expiryDate.setMonth(expiryDate.getMonth() + 1);
-
-        console.log('[Verify] Updating user to Pro...');
         
         await User.findByIdAndUpdate(userId, {
             plan: "pro",
@@ -179,16 +159,11 @@ export const verifyProPayment = async (req, res) => {
             }
         });
 
-        console.log('[Verify] User upgraded to Pro ✓');
-
         const invoiceNumber = `INV-${Date.now()}`;
         
         // Fetch actual payment to get the exact amount charged
-        console.log('[Verify] Fetching payment details from Razorpay...');
         const payment = await razorpay.payments.fetch(razorpay_payment_id);
         const paidAmount = payment.amount;
-
-        console.log(`[Verify] Payment amount: ₹${paidAmount / 100}`);
 
         // Record Payment
         await Payment.create({
@@ -205,8 +180,6 @@ export const verifyProPayment = async (req, res) => {
             couponCode: couponCode || null,
             discountAmount
         });
-
-        console.log('[Verify] Payment record created ✓');
 
         // Generate PDF & Email
         const pdfDoc = generateInvoicePdf({
@@ -244,12 +217,9 @@ export const verifyProPayment = async (req, res) => {
                 html: emailPayload.html,
                 attachments: [{ filename: `Invoice-${invoiceNumber}.pdf`, content: pdfBuffer }]
             });
-            console.log('[Verify] Email sent ✓');
         } catch(e) { 
             console.error("[Verify] Email send failed:", e); 
         }
-
-        console.log('[Verify] ✅ Verification complete!');
 
         return res.status(200).json({
             success: true,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, Link as LinkIcon, DollarSign, Activity, TrendingUp, Trophy } from "lucide-react";
+import { Users, Link as LinkIcon, DollarSign, Activity, TrendingUp, Trophy, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import { 
     AreaChart, 
@@ -28,12 +28,14 @@ const AdminDashboard = () => {
     const [recentUsers, setRecentUsers] = useState([]);
     const [topUsers, setTopUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchStats();
     }, []);
 
     const fetchStats = async () => {
+        setRefreshing(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
                 credentials: "include"
@@ -50,6 +52,7 @@ const AdminDashboard = () => {
             toast.error("Failed to load admin stats");
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -63,9 +66,19 @@ const AdminDashboard = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up pb-10">
-            <header>
-                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Admin Overview</h1>
-                <p className="text-neutral-500 text-sm">Deep insights and platform management.</p>
+            <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Admin Overview</h1>
+                    <p className="text-neutral-500 text-sm">Deep insights and platform management.</p>
+                </div>
+                <button 
+                    onClick={fetchStats} 
+                    disabled={refreshing}
+                    className={`p-2 rounded-xl bg-white dark:bg-[#15151A] border border-neutral-200 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/5 transition-all ${refreshing ? "opacity-50 cursor-not-allowed" : "hover:shadow-sm"}`}
+                    title="Refresh Stats"
+                >
+                    <RefreshCcw className={`w-5 h-5 text-neutral-600 dark:text-neutral-400 ${refreshing ? "animate-spin" : ""}`} />
+                </button>
             </header>
 
             {/* Stats Grid */}

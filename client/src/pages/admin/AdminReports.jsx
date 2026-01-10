@@ -39,8 +39,8 @@ const AdminReports = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const fetchReports = async () => {
-        setLoading(true);
+    const fetchReports = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/reports`, {
                 params: { 
@@ -80,7 +80,7 @@ const AdminReports = () => {
             setReports(prev => prev.filter(r => r._id !== selectedReport._id)); // Remove from list if viewing pending, or update status if viewing all
             setShowActionModal(false);
             setSelectedReport(null);
-            fetchReports(); // Refresh to be safe with filters
+            fetchReports(true); // Refresh to be safe with filters
         } catch (error) {
             toast.error("Failed to process action");
         }
@@ -95,7 +95,7 @@ const AdminReports = () => {
             );
             toast.success("Report dismissed");
             setReports(prev => prev.filter(r => r._id !== id)); // Remove from pending view
-            fetchReports();
+            fetchReports(true);
         } catch (error) {
             toast.error("Failed to dismiss report");
         }

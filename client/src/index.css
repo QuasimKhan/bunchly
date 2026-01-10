@@ -166,4 +166,72 @@ h1,h2,h3,h4,h5,h6 {
 }
 .animate-bunchlySlideUp { animation: bunchlySlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
+/* ========================================================================== */
+/* 07) THEME ANIMATIONS (Gradient & premium effects)                          */
+/* ========================================================================== */
+
+/* Gradient X (Horizontal Pan) */
+.animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 15s ease infinite;
+}
+@keyframes gradient-x {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Gradient Y (Vertical Pan) */
+.animate-gradient-y {
+    background-size: 200% 200%;
+    animation: gradient-y 15s ease infinite;
+}
+@keyframes gradient-y {
+    0% { background-position: 50% 0%; }
+    50% { background-position: 50% 100%; }
+    100% { background-position: 50% 0%; }
+}
+
+/* Gradient XY (Diagonal Pan) */
+.animate-gradient-xy {
+    background-size: 400% 400%;
+    animation: gradient-xy 15s ease infinite;
+}
+@keyframes gradient-xy {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Pulse Slow */
+.animate-pulse-slow {
+    animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Floating Grid (Cyberpunk effect) */
+@keyframes grid-scroll {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(40px); }
+}
+.animate-grid-scroll {
+    animation: grid-scroll 3s linear infinite;
+}
+
+/* Grain Animation */
+@keyframes grain {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -10%); }
+    20% { transform: translate(-15%, 5%); }
+    30% { transform: translate(7%, -25%); }
+    40% { transform: translate(-5%, 25%); }
+    50% { transform: translate(-15%, 10%); }
+    60% { transform: translate(15%, 0%); }
+    70% { transform: translate(0%, 15%); }
+    80% { transform: translate(3%, 35%); }
+    90% { transform: translate(-10%, 10%); }
+}
+.animate-grain {
+    animation: grain 8s steps(10) infinite;
+}
+
 html { scroll-behavior: smooth; }

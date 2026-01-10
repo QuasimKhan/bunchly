@@ -188,8 +188,10 @@ userSchema.pre("findOneAndDelete", async function (next) {
 });
 
 // Helpful indexes for SaaS-scale usage
-userSchema.index({ "billing.customerId": 1 });
-userSchema.index({ "billing.subscriptionId": 1 });
+// Helpful indexes for SaaS-scale usage
+userSchema.index({ username: "text", email: "text" });
+userSchema.index({ "subscription.orderId": 1 });
+userSchema.index({ "subscription.paymentId": 1 });
 
 const User = mongoose.model("User", userSchema);
 

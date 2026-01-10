@@ -78,6 +78,8 @@ const Appearance = () => {
         hideBranding: false,
     });
 
+    const [selectedCategory, setSelectedCategory] = useState("All");
+
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     // Load user appearance on mount
@@ -202,74 +204,59 @@ const Appearance = () => {
                     </header>
 
                     {/* 🎨 THEMES */}
-                    <Section title="Theme Gallery" icon={Sparkles} description="One-click premium presets">
-                        
-                        {/* PREMIUM THEMES */}
-                        <div className="mb-0">
-                             <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Premium Collection</h3>
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">PRO</span>
-                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {THEMES.filter(t => t.isPro).map((t) => (
-                                    <ThemeCard 
-                                        key={t.id} 
-                                        theme={t} 
-                                        isLocked={user.plan !== "pro"}
-                                        isSelected={appearance.theme === t.id}
-                                        onSelect={(theme) => {
-                                            if (!checkPro(true)) return;
-                                             setAppearance(prev => ({
-                                                 ...prev,
-                                                 theme: theme.id,
-                                                 bgType: theme.bgType,
-                                                 bgColor: theme.bgColor || prev.bgColor,
-                                                 bgGradient: theme.bgGradient || prev.bgGradient,
-                                                 bgImage: theme.bgType === 'image' ? theme.bgImage : "",
-                                                 bgBlur: 0,
-                                                 bgOverlay: 0,
-                                                 buttonStyle: theme.buttonStyle,
-                                                 buttonRoundness: theme.buttonRoundness || "xl",
-                                                 buttonColor: theme.buttonColor,
-                                                 buttonFontColor: theme.buttonFontColor,
-                                                 fontFamily: theme.fontFamily,
-                                                 fontColor: theme.fontColor,
-                                             }));
-                                        }}
-                                    />
+                    <Section title="Theme Gallery" icon={Sparkles} description="Premium presets & styles">
+                         <div className="space-y-6">
+                            
+                            {/* Category Tabs */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2 md:mx-0 md:px-0">
+                                {["All", "Minimal", "Animated", "Dark", "Graphics", "Nature"].map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                                            selectedCategory === cat
+                                                ? "bg-neutral-900 dark:bg-white text-white dark:text-black shadow-lg shadow-neutral-500/20"
+                                                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
                                 ))}
                             </div>
-                        </div>
 
-                         {/* FREE THEMES */}
-                         <div className="mt-8">
-                            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4">Core Collection</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {THEMES.filter(t => !t.isPro).map((t) => (
-                                    <ThemeCard 
-                                        key={t.id} 
-                                        theme={t} 
-                                        isSelected={appearance.theme === t.id}
-                                        onSelect={(theme) => {
-                                             setAppearance(prev => ({
-                                                 ...prev,
-                                                 theme: theme.id,
-                                                 bgType: theme.bgType,
-                                                 bgColor: theme.bgColor || prev.bgColor,
-                                                 bgGradient: theme.bgGradient || prev.bgGradient,
-                                                 bgImage: theme.bgType === 'image' ? theme.bgImage : "",
-                                                 bgBlur: 0,
-                                                 bgOverlay: 0,
-                                                 buttonStyle: theme.buttonStyle,
-                                                 buttonRoundness: theme.buttonRoundness || "xl",
-                                                 buttonColor: theme.buttonColor,
-                                                 buttonFontColor: theme.buttonFontColor,
-                                                 fontFamily: theme.fontFamily,
-                                                 fontColor: theme.fontColor,
-                                             }));
-                                        }}
-                                    />
-                                ))}
+                            {/* Theme Grid (Scrollable) */}
+                            <div className="max-h-[500px] overflow-y-auto pr-2 space-y-1 p-1">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
+                                    {THEMES
+                                        .filter(t => selectedCategory === "All" || t.category === selectedCategory)
+                                        .map((t) => (
+                                        <ThemeCard 
+                                            key={t.id} 
+                                            theme={t} 
+                                            isLocked={t.isPro && user.plan !== "pro"}
+                                            isSelected={appearance.theme === t.id}
+                                            onSelect={(theme) => {
+                                                if (theme.isPro && !checkPro(true)) return;
+                                                setAppearance(prev => ({
+                                                    ...prev,
+                                                    theme: theme.id,
+                                                    bgType: theme.bgType,
+                                                    bgColor: theme.bgColor || prev.bgColor,
+                                                    bgGradient: theme.bgGradient || prev.bgGradient,
+                                                    bgImage: theme.bgType === 'image' ? theme.bgImage : "",
+                                                    bgBlur: 0,
+                                                    bgOverlay: 0,
+                                                    buttonStyle: theme.buttonStyle,
+                                                    buttonRoundness: theme.buttonRoundness || "xl",
+                                                    buttonColor: theme.buttonColor,
+                                                    buttonFontColor: theme.buttonFontColor,
+                                                    fontFamily: theme.fontFamily,
+                                                    fontColor: theme.fontColor,
+                                                }));
+                                            }}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </Section>

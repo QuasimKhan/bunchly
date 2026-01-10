@@ -19,8 +19,6 @@ export const createReport = async (req, res) => {
         }
 
         // 2. Rate Limit Check (Simple: Check if IP reported this user in last 24h)
-        // DISABLED FOR TESTING:
-        /*
         const existingReport = await Report.findOne({
             reporterIp,
             reportedUser: reportedUser._id,
@@ -30,7 +28,6 @@ export const createReport = async (req, res) => {
         if (existingReport) {
             return res.status(429).json({ success: false, message: "You have already reported this profile recently." });
         }
-        */
 
         // 3. Create Report
         const report = new Report({
@@ -63,18 +60,27 @@ export const getReports = async (req, res) => {
         if (status) query.status = status;
 
         if (search) {
-            // Find users matching the search string first
-            const users = await User.find({ 
-                $or: [
-                    { username: { $regex: search, $options: 'i' } },
-                    { email: { $regex: search, $options: 'i' } }
-                ]
-            }).select('_id');
-            
-            const userIds = users.map(u => u._id);
+            // OPTIMIZED: Use Text Search if available, fallback to Regex for partial matches
+            // Note: Text search requires the text indexes added to User model
+            const users = await User.find(
+                { $text: { $search: search } },
+                { score: { $meta: "textScore" } }
+            ).sort({ score: { $meta: "textScore" } }).select('_id');
+
+            // If text search fails (e.g. partial words), fallback to regex for robustness
+            let userIds = users.map(u => u._id);
+            if (userIds.length === 0) {
+                 const fallbackUsers = await User.find({
+                    $or: [
+                        { username: { $regex: search, $options: 'i' } },
+                        { email: { $regex: search, $options: 'i' } }
+                    ]
+                }).limit(50).select('_id'); // Limit fallback to 50 to prevent explosion
+                userIds = fallbackUsers.map(u => u._id);
+            }
 
             query.$or = [
-                { reporterEmail: { $regex: search, $options: 'i' } },
+                { reporterEmail: { $regex: search, $options: 'i' } }, // Keep regex here as Reporter isn't a User model ref for Email always
                 { reportedUser: { $in: userIds } }
             ];
         }
@@ -94,7 +100,6 @@ export const getReports = async (req, res) => {
     }
 };
 
-// Admin: Update report status
 // Admin: Update report status
 export const updateReportStatus = async (req, res) => {
     try {

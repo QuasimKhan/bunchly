@@ -1,0 +1,157 @@
+/* =========================================
+   BUNCHLY PREMIUM THEME ANIMATIONS
+   ================================********* */
+
+/* --- 1. SNOWFALL --- */
+.theme-snow {
+  background-color: #0f172a;
+  background-image: 
+    radial-gradient(4px 4px at 50% 50%, white, transparent), 
+    radial-gradient(6px 6px at 10% 20%, white, transparent), 
+    radial-gradient(3px 3px at 30% 80%, white, transparent);
+  background-size: 500px 500px;
+  animation: snow 10s linear infinite;
+  position: relative;
+}
+
+.theme-snow::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(3px 3px at 15% 15%, rgba(255,255,255,0.8), transparent), 
+    radial-gradient(4px 4px at 60% 30%, rgba(255,255,255,0.6), transparent);
+  background-size: 300px 300px;
+  animation: snow 7s linear infinite reverse;
+}
+
+@keyframes snow {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: 100px 500px, 50px 400px, -50px 300px; }
+}
+
+/* --- 2. STARS (PARALLAX) --- */
+.theme-stars {
+  background-color: #000;
+  background-image: 
+    radial-gradient(1px 1px at 10px 10px, white, transparent),
+    radial-gradient(1px 1px at 150px 150px, white, transparent),
+    radial-gradient(2px 2px at 300px 50px, white, transparent),
+    radial-gradient(2px 2px at 400px 400px, white, transparent);
+  background-size: 500px 500px;
+  animation: stars 60s linear infinite;
+}
+
+.theme-stars::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(1px 1px at 50px 300px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 250px 50px, rgba(255,255,255,0.5), transparent);
+  background-size: 400px 400px;
+  animation: stars 100s linear infinite;
+}
+
+@keyframes stars {
+  from { background-position: 0 0; }
+  to { background-position: 1000px 1000px; }
+}
+
+/* --- 3. DIGITAL GRID (MOVING) --- */
+.theme-grid-move {
+  background-color: #050505;
+  background-image: 
+    linear-gradient(rgba(0, 255, 157, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 157, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+  from { background-position: 0 0; }
+  to { background-position: 40px 40px; }
+}
+
+/* --- 4. BOKEH (Floating Circles) --- */
+.theme-bokeh {
+  background: #1a1a2e;
+  overflow: hidden;
+}
+
+.theme-bokeh::before,
+.theme-bokeh::after {
+  content: '';
+  position: absolute;
+  width: 20vmax;
+  height: 20vmax;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  animation: move 20s infinite alternate;
+  z-index: 0;
+}
+
+.theme-bokeh::after {
+  width: 15vmax;
+  height: 15vmax;
+  background: rgba(79, 70, 229, 0.1);
+  animation-duration: 35s;
+  animation-direction: alternate-reverse;
+  right: 10%;
+  bottom: 10%;
+}
+
+@keyframes move {
+  from { transform: translate(-20%, -20%) rotate(0deg); }
+  to { transform: translate(20%, 20%) rotate(360deg); }
+}
+
+/* --- 5. CLOUDS (Soft Moving) --- */
+.theme-clouds {
+  background: linear-gradient(to bottom, #7dd3fc, #38bdf8);
+  position: relative;
+  overflow: hidden;
+}
+.theme-clouds::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    animation: drift 60s linear infinite;
+}
+@keyframes drift {
+    0% { background-position: 0 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* --- 6. DISCO (Colorful Flashing) --- */
+.theme-disco {
+  background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+  background-size: 400%;
+  animation: glowing 20s linear infinite;
+}
+@keyframes glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* --- 7. RAIN (Digital Matrix Lite) --- */
+.theme-rain {
+  background-color: #000;
+  background-image: linear-gradient(rgba(0, 255, 76, 0.1) 1px, transparent 1px);
+  background-size: 100% 3px;
+  animation: raining 2s linear infinite;
+}
+@keyframes raining {
+    0% { background-position: 0 -100px; }
+    100% { background-position: 0 0; }
+}
+
+/* --- PREVIEW HELPER FOR CARDS --- */
+/* Ensures animation runs on the preview card too */
+.preview-animate * {
+    animation-play-state: running !important;
+}
