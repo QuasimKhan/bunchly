@@ -4,7 +4,7 @@ import LivePreview from "../components/preview/LivePreview";
 import Button from "../components/ui/Button";
 import UpgradeModal from "../components/dashboard/UpgradeModal";
 
-import { Save, Loader2, Sparkles, TypeIcon, Square, Palette, ImageIcon, Lock, Check, Trash2 } from "lucide-react";
+import { Save, Loader2, Sparkles, TypeIcon, Square, Palette, ImageIcon, Lock, Check, Trash2, Eye } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -80,6 +80,7 @@ const Appearance = () => {
 
     const [selectedCategory, setSelectedCategory] = useState("All");
 
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     // Load user appearance on mount
@@ -198,7 +199,7 @@ const Appearance = () => {
                                 icon={loading ? Loader2 : Save}
                                 disabled={loading}
                                 onClick={handleSave}
-                                className="bg-white text-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-white dark:hover:bg-neutral-200 shadow-xl shadow-neutral-900/10 dark:shadow-white/5 rounded-xl px-6 py-2.5 font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                className="bg-white text-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-white dark:hover:bg-neutral-200 rounded-xl px-6 py-2.5 font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
                             />
                         </div>
                     </header>
@@ -209,11 +210,11 @@ const Appearance = () => {
                             
                             {/* Category Tabs */}
                             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2 md:mx-0 md:px-0">
-                                {["All", "Minimal", "Animated", "Dark", "Graphics", "Nature"].map(cat => (
+                                {["All", "Minimal", "Animated", "Dark", "Graphics", "Nature", "Architecture", "Abstract", "Technology"].map(cat => (
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
-                                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                                             selectedCategory === cat
                                                 ? "bg-neutral-900 dark:bg-white text-white dark:text-black shadow-lg shadow-neutral-500/20"
                                                 : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
@@ -634,6 +635,32 @@ const Appearance = () => {
                     </div>
                 </div>
 
+                {/* 📱 MOBILE PREVIEW MODAL */}
+                {showPreviewModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="relative w-full max-w-sm bg-white dark:bg-black rounded-[2.5rem] overflow-hidden shadow-2xl h-[85vh] ring-1 ring-white/10">
+                            <button 
+                                onClick={() => setShowPreviewModal(false)}
+                                className="absolute top-4 right-4 z-50 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 backdrop-blur-md"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            </button>
+                            <LivePreview user={previewUser} links={previewLinks} mode="preview" />
+                        </div>
+                    </div>
+                )}
+
+                {/* 📱 MOBILE FLOATING PREVIEW BTN */}
+                <div className="fixed bottom-24 right-4 z-40 md:hidden animate-bounce-slow">
+                    <button
+                        onClick={() => setShowPreviewModal(true)}
+                        className="flex items-center gap-2 px-5 py-3 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-full shadow-2xl font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
+                    >
+                        <Eye className="w-4 h-4" />
+                        Preview
+                    </button>
+                </div>
+
                 <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
             </div>
         </div>
@@ -691,7 +718,15 @@ const ThemeCard = ({ theme, isSelected, isLocked, onSelect }) => (
         }`}
     >
         {/* Preview Background */}
-        <div className={`absolute inset-0 z-0 ${theme.preview} transition-transform duration-500 group-hover:scale-110`}></div>
+        {theme.bgType === 'image' || theme.bgImage ? (
+             <img 
+                src={theme.bgImage} 
+                alt={theme.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 z-0"
+             />
+        ) : (
+             <div className={`absolute inset-0 z-0 ${theme.preview} preview-animate transition-transform duration-500 group-hover:scale-110`}></div>
+        )}
         
         {/* Active Overlay (Subtle) */}
         {!isSelected && <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 dark:group-hover:bg-white/5 transition-colors duration-300 z-0"></div>}

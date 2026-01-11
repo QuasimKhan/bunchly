@@ -11,7 +11,11 @@
     radial-gradient(3px 3px at 30% 80%, white, transparent);
   background-size: 500px 500px;
   animation: snow 10s linear infinite;
-  position: relative;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
 .theme-snow::before {
@@ -40,6 +44,10 @@
     radial-gradient(2px 2px at 400px 400px, white, transparent);
   background-size: 500px 500px;
   animation: stars 60s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .theme-stars::after {
@@ -66,6 +74,10 @@
     linear-gradient(90deg, rgba(0, 255, 157, 0.1) 1px, transparent 1px);
   background-size: 40px 40px;
   animation: gridMove 20s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes gridMove {
@@ -77,6 +89,10 @@
 .theme-bokeh {
   background: #1a1a2e;
   overflow: hidden;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .theme-bokeh::before,
@@ -109,7 +125,10 @@
 /* --- 5. CLOUDS (Soft Moving) --- */
 .theme-clouds {
   background: linear-gradient(to bottom, #7dd3fc, #38bdf8);
-  position: relative;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 .theme-clouds::before {
@@ -131,6 +150,10 @@
   background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
   background-size: 400%;
   animation: glowing 20s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 @keyframes glowing {
   0% { background-position: 0 0; }
@@ -144,6 +167,10 @@
   background-image: linear-gradient(rgba(0, 255, 76, 0.1) 1px, transparent 1px);
   background-size: 100% 3px;
   animation: raining 2s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 @keyframes raining {
     0% { background-position: 0 -100px; }
@@ -151,6 +178,477 @@
 }
 
 /* --- PREVIEW HELPER FOR CARDS --- */
+
+/* --- 8. RAIN STORM (Heavy + Flash) --- */
+.theme-rain-storm {
+  background-color: #0f172a;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  animation: rainStorm 0.5s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes rainStorm {
+  0% { background-position: 0 0; }
+  100% { background-position: 10px 20px; }
+}
+
+/* --- 9. FIREFLIES (Floating Glows) --- */
+.theme-fireflies {
+  background-color: #022c22;
+  overflow: hidden;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.theme-fireflies::before, .theme-fireflies::after {
+  content: "";
+  position: absolute;
+  width: 4px; height: 4px;
+  background: #bef264;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #bef264, 0 0 20px #bef264;
+  animation: firefly 10s infinite alternate;
+}
+.theme-fireflies::after {
+  left: 50%; top: 50%;
+  animation-duration: 15s;
+  animation-direction: alternate-reverse;
+}
+@keyframes firefly {
+  0% { transform: translate(0, 0); opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { transform: translate(100px, -50px); opacity: 0.2; }
+}
+
+/* --- 10. NEON PULSE --- */
+.theme-neon-pulse {
+  background: #000;
+  background-image: radial-gradient(circle at 50% 50%, #d946ef 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: pulseGradient 5s ease-in-out infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes pulseGradient {
+  0% { background-position: 0% 50%; opacity: 0.5; }
+  50% { background-position: 100% 50%; opacity: 1; }
+  100% { background-position: 0% 50%; opacity: 0.5; }
+}
+
+/* --- 11. CYBER SCAN --- */
+.theme-cyber-scan {
+  background: #000;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.theme-cyber-scan::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: #0ea5e9;
+  box-shadow: 0 0 15px #0ea5e9;
+  animation: scanline 3s linear infinite;
+}
+@keyframes scanline {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+
+/* --- 12. RETRO WAVE --- */
+.theme-retro-wave {
+  background: linear-gradient(to bottom, #1e1b4b 0%, #4c1d95 50%, #db2777 100%);
+  background-size: 100% 200%;
+  animation: retroPan 10s ease infinite alternate;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes retroPan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
+}
+
+/* --- 13. MESH GRADIENT --- */
+.theme-mesh {
+  background-color: #ff9a9e;
+  background-image: 
+    radial-gradient(at 40% 20%, cubic-bezier(0.18,0.89,0.32,1.28) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, #a18cd1 0px, transparent 50%),
+    radial-gradient(at 0% 50%, #fbc2eb 0px, transparent 50%);
+  background-size: 150% 150%;
+  background-size: 150% 150%;
+  animation: meshMove 10s ease infinite alternate;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes meshMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* --- 14. HEXAGONS --- */
+.theme-hex {
+  background-color: #111;
+  background-image: 
+    linear-gradient(30deg, #222 12%, transparent 12.5%, transparent 87%, #222 87.5%, #222),
+    linear-gradient(150deg, #222 12%, transparent 12.5%, transparent 87%, #222 87.5%, #222),
+    linear-gradient(30deg, #222 12%, transparent 12.5%, transparent 87%, #222 87.5%, #222),
+    linear-gradient(150deg, #222 12%, transparent 12.5%, transparent 87%, #222 87.5%, #222),
+    linear-gradient(60deg, #333 25%, transparent 25.5%, transparent 75%, #333 75%, #333),
+    linear-gradient(60deg, #333 25%, transparent 25.5%, transparent 75%, #333 75%, #333);
+  background-size: 40px 70px;
+  animation: bgSlide 20s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes bgSlide {
+  from { background-position: 0 0; }
+  to { background-position: 100px 0; }
+}
+
+/* --- 15. OCEAN WAVES (SVG-like) --- */
+.theme-waves {
+  background: conic-gradient(from 180deg at 50% 50%, #0c4a6e 0deg, #0284c7 360deg);
+  animation: spinSlow 30s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes spinSlow {
+  from { transform: scale(1.5) rotate(0deg); }
+  to { transform: scale(1.5) rotate(360deg); }
+}
+
+/* --- 16. SUNSET BLUR --- */
+.theme-sunset-blur {
+  background: linear-gradient(45deg, #f97316, #db2777, #7c3aed);
+  background-size: 200% 200%;
+  animation: glowing 10s ease infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- 17. ZEN FOG --- */
+.theme-fog {
+  background: #78716c;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.theme-fog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+  filter: blur(5px);
+  animation: fogMove 20s linear infinite;
+}
+@keyframes fogMove {
+  from { background-position: 0 0; }
+  to { background-position: 100px 100px; }
+}
+
+/* --- 18. LIQUID GRADIENT --- */
+.theme-liquid {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: liquidGradient 15s ease infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes liquidGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- 19. HOLOGRAPHIC SHIMMER --- */
+.theme-holo {
+  background-color: #e0e7ff;
+  background-image: 
+    linear-gradient(125deg, transparent 40%, rgba(255,255,255,0.8) 45%, transparent 50%),
+    linear-gradient(45deg, #c4b5fd, #67e8f9, #fca5a5);
+  background-size: 200% 200%, 100% 100%;
+  animation: holoShift 5s ease infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes holoShift {
+  0% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* --- 20. CYBERPUNK CITY --- */
+.theme-cyber-city {
+  background: radial-gradient(circle at bottom, #2b003b 0%, #000 70%);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.theme-cyber-city::before {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(232, 26, 232, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(29, 232, 232, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  transform: perspective(500px) rotateX(60deg) translateY(100px) scale(2);
+  animation: gridFly 3s linear infinite;
+}
+@keyframes gridFly {
+  from { background-position: 0 0; }
+  to { background-position: 0 40px; }
+}
+
+/* --- 21. ZEN GARDEN (Petals) --- */
+.theme-zen-garden {
+  background: linear-gradient(to bottom, #fff7ed, #fed7aa);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.theme-zen-garden::after {
+  content: "🌸";
+  position: absolute;
+  font-size: 1.5rem;
+  top: -10%;
+  left: 10%;
+  animation: fallingPetal 10s linear infinite;
+  opacity: 0.6;
+}
+@keyframes fallingPetal {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(100vh) rotate(360deg); }
+}
+
+/* --- 22. NEBULA CLOUDS --- */
+.theme-nebula {
+  background: #0f172a;
+  background-image: 
+    radial-gradient(circle at 20% 30%, #4c1d95, transparent 50%),
+    radial-gradient(circle at 80% 70%, #db2777, transparent 50%);
+  filter: blur(10px); 
+  animation: nebulaPulse 10s ease-in-out infinite alternate;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes nebulaPulse {
+  0% { filter: blur(10px) hue-rotate(0deg); }
+  100% { filter: blur(15px) hue-rotate(30deg); }
+}
+
+/* --- 23. GOLDEN DUST --- */
+.theme-gold-dust {
+  background: #000;
+}
+.theme-gold-dust::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(#fbbf24 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.3;
+  animation: dustFloat 5s ease-in-out infinite alternate;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes dustFloat {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
+
+/* --- 24. PRISM REFRACTION --- */
+.theme-prism {
+  background: #000;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.theme-prism::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff, #ff0000);
+  transform: translate(-50%, -50%);
+  filter: blur(50px);
+  animation: prismSpin 10s linear infinite;
+  opacity: 0.2;
+}
+@keyframes prismSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* --- 25. MATRIX GLITCH --- */
+.theme-glitch {
+  background: #000;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.theme-glitch::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 100%;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, #00ff00 3px, transparent 4px);
+  background-size: 100% 4px;
+  opacity: 0.1;
+  animation: glitchLine 0.2s infinite;
+}
+@keyframes glitchLine {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(5px); }
+}
+
+/* --- 26. UNDERWATER --- */
+.theme-underwater {
+  background: linear-gradient(to bottom, #0ea5e9, #0369a1);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.theme-underwater::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 50% 120%, rgba(255,255,255,0.1) 10%, transparent 50%),
+    radial-gradient(circle at 20% 100%, rgba(255,255,255,0.1) 5%, transparent 30%);
+  animation: bubbleRise 8s linear infinite;
+}
+@keyframes bubbleRise {
+  0% { transform: translateY(20px); }
+  100% { transform: translateY(-20px); }
+}
+
+/* --- 27. MIDNIGHT MIST --- */
+.theme-mist {
+  background: #18181b;
+  background-image: linear-gradient(transparent 95%, rgba(63, 63, 70, 0.5) 100%);
+  background-size: 100% 50px;
+  animation: mistScroll 10s linear infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes mistScroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 500px; }
+}
+
+/* --- 28. PAPER TEXTURE (Animated) --- */
+.theme-paper-anim {
+  background: #f5f5f4;
+  filter: contrast(120%) brightness(100%);
+}
+.theme-paper-anim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+  opacity: 0.8;
+  animation: paperShake 0.5s steps(4) infinite;
+}
+@keyframes paperShake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(1px, 1px); }
+  50% { transform: translate(-1px, 0); }
+  75% { transform: translate(0, -1px); }
+}
+
+/* --- 29. GALAXY SPIRAL --- */
+.theme-galaxy-spiral {
+  background: #000;
+  background-image: radial-gradient(circle at 50% 50%, #4c1d95, #000);
+}
+.theme-galaxy-spiral::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 300px; height: 300px;
+  background: conic-gradient(from 0deg, transparent, #a855f7, transparent);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, #a855f7, transparent);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  animation: galaxySpin 6s linear infinite;
+  filter: blur(20px);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes galaxySpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* --- 30. AURORA BOREALIS (Real) --- */
+.theme-aurora-real {
+    background: #000;
+    overflow: hidden;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.theme-aurora-real::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(120deg, transparent, #10b981, #3b82f6, transparent);
+    filter: blur(40px);
+    opacity: 0.5;
+    animation: auroraWave 8s ease-in-out infinite alternate;
+}
+@keyframes auroraWave {
+    0% { transform: rotate(0deg) translateX(0); }
+    100% { transform: rotate(10deg) translateX(50px); }
+}
+
 /* Ensures animation runs on the preview card too */
 .preview-animate * {
     animation-play-state: running !important;

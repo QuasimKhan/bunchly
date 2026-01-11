@@ -325,7 +325,7 @@ const CouponRow = ({ coupon, onToggleStatus, onToggleVisibility, onEdit, onDelet
             </div>
 
             {/* Actions */}
-            <div className="md:col-span-1 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="md:col-span-1 flex justify-end gap-2">
                  <button 
                     onClick={onEdit}
                     className="p-2 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors cursor-pointer"

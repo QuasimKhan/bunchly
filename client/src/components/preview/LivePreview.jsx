@@ -43,11 +43,13 @@ export const LivePreview = ({
         bgBlur = 0, 
         bgOverlay = 0, 
         buttonStyle = "fill",
-        buttonRoundness = "xl", // New
+        buttonRoundness = "xl", 
         buttonColor = "#171717",
         buttonFontColor = "#ffffff",
         fontFamily = "Inter",
         fontColor = "#171717",
+        profileBorderColor = "", // New
+        profileGlowColor = "",   // New
     } = appearance;
 
     // Background Logic
@@ -75,7 +77,8 @@ export const LivePreview = ({
         bgLayerStyle.filter = `blur(${bgBlur}px)`;
         if(bgBlur > 0) bgLayerStyle.transform = "scale(1.05)"; 
     } else if (bgType === "gradient") {
-         if (bgGradient.includes("bg-") || bgGradient.includes("[")) {
+         // Support Tailwind utilities, arbitrary values, AND custom theme classes
+         if (bgGradient.includes("bg-") || bgGradient.includes("[") || bgGradient.startsWith("theme-")) {
             bgClass = bgGradient;
         } else {
             bgClass = `bg-gradient-to-br ${bgGradient}`;
@@ -96,13 +99,13 @@ export const LivePreview = ({
             ...base, 
             backgroundColor: "transparent", 
             border: `2px solid ${buttonColor}`, 
-            color: buttonColor 
+            color: buttonFontColor 
         };
         
         if (buttonStyle === "soft") return { 
             ...base, 
             backgroundColor: buttonColor.startsWith("#") ? `${buttonColor}15` : buttonColor, 
-            color: buttonColor,
+            color: buttonFontColor,
             backdropFilter: "blur(10px)",
         };
         
@@ -379,21 +382,36 @@ export const LivePreview = ({
                      {/* Avatar */}
                      <motion.div variants={itemVariants} className="mb-6 group relative">
                         {user.image ? (
-                            <div className="relative">
+                            <div className="relative p-1 rounded-full">
+                                {/* Profile Glow Config */}
                                 <img 
                                     src={user.image} 
                                     alt="Profile" 
-                                    className="w-28 h-28 rounded-full object-cover shadow-2xl ring-4 ring-white/10 mx-auto transition-transform duration-500 group-hover:scale-105" 
+                                    className="w-28 h-28 rounded-full object-cover shadow-2xl mx-auto transition-transform duration-500 group-hover:scale-105 relative z-10" 
+                                    style={{ 
+                                        border: profileBorderColor ? `3px solid ${profileBorderColor}` : '3px solid rgba(255,255,255,0.1)',
+                                    }}
                                 />
-                                 {/* Subtle glow behind avatar */}
-                                <div 
-                                    className="absolute -inset-4 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-500 -z-10"
-                                ></div>
+                                 {/* Custom Glow behind avatar */}
+                                 {profileGlowColor && (
+                                     <div 
+                                        className={`absolute -inset-4 rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-500 -z-10`}
+                                        style={{ 
+                                            background: !profileGlowColor.startsWith('bg-') ? profileGlowColor : undefined 
+                                        }}
+                                    >
+                                        {profileGlowColor.startsWith('bg-') && <div className={`w-full h-full ${profileGlowColor}`}></div>}
+                                    </div>
+                                 )}
                             </div>
                         ) : (
                             <div 
                                 className="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold shadow-2xl ring-4 ring-white/10 mx-auto" 
-                                style={{ backgroundColor: buttonColor, color: buttonFontColor }}
+                                style={{ 
+                                    backgroundColor: buttonColor, 
+                                    color: buttonFontColor,
+                                    border: profileBorderColor ? `3px solid ${profileBorderColor}` : 'none'
+                                }}
                             >
                                 {initial}
                             </div>
