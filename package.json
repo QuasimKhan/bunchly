@@ -1,5 +1,5 @@
 {
-    "name": "linkhub",
+    "name": "bunchly",
     "private": true,
     "workspaces": [
         "client",
