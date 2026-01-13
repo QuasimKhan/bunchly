@@ -1,9 +1,9 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "This is SaaS of linkhub",
+  "description": "This is SaaS of Bunchly",
   "keywords": [
-    "linkhub"
+    "Bunchly"
   ],
   "license": "ISC",
   "author": "Quasim Khan",
