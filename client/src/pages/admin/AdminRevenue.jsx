@@ -355,7 +355,7 @@ const AdminRevenue = () => {
                                 <tr key={txn._id} className="hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4 flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold text-xs ring-2 ring-white dark:ring-[#15151A]">
-                                            {txn.userId?.name?.charAt(0) || "U"}
+                                            {txn.userId?.image ? <img src={txn.userId?.image} alt="User" className="w-8 h-8 rounded-full object-cover" /> : txn.userId?.name?.charAt(0) || "U"}
                                         </div>
                                         <span className="font-semibold text-neutral-900 dark:text-white">
                                             {txn.userId?.name || "Unknown"}

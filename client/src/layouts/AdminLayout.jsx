@@ -21,7 +21,7 @@ const AdminLayout = () => {
                 />
             )}
 
-            <div className="flex-1 transition-all overflow-x-hidden lg:ml-64 flex flex-col">
+            <div className="flex-1 transition-all duration-300 overflow-x-hidden lg:ml-72 flex flex-col">
                 <Topbar toggleSidebar={toggleSidebar} />
                 <main className="p-6 flex-1">
                     <Outlet />

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { 
     User, Mail, Calendar, Shield, Link as LinkIcon, 
     CreditCard, AlertTriangle, CheckCircle, Ban, ExternalLink, Trash2, Gift, LogOut, ShieldAlert, Folder, Copy, RotateCcw, DollarSign,
-    Monitor, Globe, MapPin, Laptop, Layers
+    Monitor, Globe, MapPin, Laptop, Layers, AlertCircle, Eye, EyeOff, Gavel, Activity
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -26,6 +26,7 @@ const AdminUserDetail = () => {
     const [currentAction, setCurrentAction] = useState(null); 
     const [planPeriod, setPlanPeriod] = useState(1);
     const [processing, setProcessing] = useState(false);
+    const [showAllLogs, setShowAllLogs] = useState(false); // New state for logs pagination
 
     useEffect(() => {
         fetchUserDetails();
@@ -107,8 +108,21 @@ const AdminUserDetail = () => {
             'logout_all': {
                 title: "Logout Everywhere?",
                 message: "User will be logged out from ALL active sessions.",
-                danger: true,
                 confirmText: "Logout Everywhere",
+                payload
+            },
+            'issue_strike': {
+                title: "Issue Strike?",
+                message: "This will add a strike to the user's account. 3 strikes results in an automatic ban.",
+                danger: true,
+                confirmText: "Issue Strike",
+                payload
+            },
+            'remove_strike': {
+                title: "Remove Strike?",
+                message: "This will remove one strike from the user's record.",
+                danger: false,
+                confirmText: "Remove Strike",
                 payload
             }
         };
@@ -175,6 +189,15 @@ const AdminUserDetail = () => {
                     credentials: "include"
                 });
             }
+            else if (type === 'issue_strike' || type === 'remove_strike') {
+                const action = type === 'issue_strike' ? 'add' : 'remove';
+                res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${id}/strikes`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action, reason: payload }), 
+                    credentials: "include"
+                });
+            }
 
             const data = await res.json();
             if (data.success) {
@@ -230,9 +253,9 @@ const AdminUserDetail = () => {
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-up pb-20">
              {/* Premium Header */}
-            <div className="relative rounded-3xl overflow-hidden border border-neutral-200 dark:border-white/5 shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden border border-zinc-200 dark:border-white/5 shadow-2xl bg-white/50 dark:bg-black/50 backdrop-blur-xl">
                  {/* Background Gradient */}
-                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-900/40 dark:to-purple-900/40 backdrop-blur-3xl"></div>
+                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-900/40 dark:to-purple-900/40 opacity-50"></div>
                  
                  <div className="relative p-6 md:p-10 flex flex-col md:flex-row items-start gap-8">
                     {/* Avatar Ring */}
@@ -273,15 +296,16 @@ const AdminUserDetail = () => {
                                 )}
                              </div>
                              <p className="text-neutral-500 text-lg flex flex-wrap items-center justify-center md:justify-start gap-2">
-                                @{user.username}
+                                @{user.username}  {user.isVerified && user.plan === 'pro' && <CheckCircle className="w-5 h-5 text-yellow-600 fill-yellow-600 dark:fill-yellow-600/20" />}
+                                {user.isVerified && user.plan === 'free' && <CheckCircle className="w-5 h-5 text-blue-600 fill-blue-600 dark:fill-blue-600/20" />}
                                 <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
                                 {user.email}
-                                {user.isVerified && <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-50 dark:fill-blue-500/20" />}
+                               
                              </p>
                         </div>
 
                          {/* Stats Row */}
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 border-t border-neutral-200/50 dark:border-white/5 pt-6">
+                        <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-start gap-4 md:gap-8 border-t border-neutral-200/50 dark:border-white/5 pt-6">
                             <div className="flex items-center gap-3">
                                 <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
                                     <LinkIcon className="w-5 h-5" />
@@ -355,9 +379,16 @@ const AdminUserDetail = () => {
                                 variant="secondary"
                                 text="Ban Access"
                                 icon={Ban}
-                                className="flex-1 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 border-transparent cursor-pointer w-full justify-center"
+                                className="flex-1 bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-transparent cursor-pointer w-full justify-center"
                             />
                         )}
+                        <Button 
+                            onClick={() => requestAction('issue_strike')}
+                            variant="outline"
+                            text="Strike"
+                            icon={Gavel}
+                            className="flex-1 text-orange-500 border-orange-200 hover:bg-orange-50 cursor-pointer w-full justify-center"
+                        />
                     </div>
                  </div>
             </div>
@@ -400,9 +431,30 @@ const AdminUserDetail = () => {
                             />
                             <InfoRow 
                                 label="Account Standing" 
-                                value={user.flags?.isBanned ? "BANNED" : "Good"} 
-                                icon={user.flags?.isBanned ? Ban : CheckCircle}
-                                color={user.flags?.isBanned ? "text-red-500" : "text-green-500"}
+                                value={
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex">
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className={`w-3 h-3 rounded-full mx-0.5 ${
+                                                    (user.flags?.strikes || 0) >= i ? 'bg-red-500' : 'bg-zinc-200 dark:bg-zinc-700'
+                                                }`} />
+                                            ))}
+                                        </div>
+                                        <span className={user.flags?.isBanned ? "text-red-500 font-bold" : (user.flags?.strikes > 0 ? "text-orange-500 font-semibold" : "text-green-500")}>
+                                            {user.flags?.isBanned ? "BANNED" : (user.flags?.strikes > 0 ? `${user.flags.strikes} Strike(s)` : "Good")}
+                                        </span>
+                                        {(user.flags?.strikes || 0) > 0 && (
+                                            <button 
+                                                onClick={() => requestAction('remove_strike')}
+                                                className="ml-2 text-xs text-zinc-400 hover:text-zinc-600 underline cursor-pointer"
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
+                                    </div>
+                                }
+                                icon={user.flags?.isBanned ? Ban : (user.flags?.strikes > 0 ? AlertTriangle : CheckCircle)}
+                                color={user.flags?.isBanned ? "text-red-500" : (user.flags?.strikes > 0 ? "text-orange-500" : "text-green-500")}
                             />
                              <InfoRow 
                                 label="Auth Provider" 
@@ -421,6 +473,28 @@ const AdminUserDetail = () => {
                                     icon={MapPin}
                                 />
                             )}
+                        </div>
+                    </div>
+
+                    {/* NEW: Risk Analysis Card */}
+                    <div className="bg-white dark:bg-[#15151A] rounded-2xl p-6 border border-zinc-200 dark:border-white/5 shadow-sm">
+                        <h3 className="font-bold text-lg mb-4 text-zinc-900 dark:text-white flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5 text-indigo-500" /> Security & Risk
+                        </h3>
+                        <div className="space-y-4">
+                            <InfoRow 
+                                label="Last IP Address" 
+                                value={user.loginHistory && user.loginHistory.length > 0 ? user.loginHistory[user.loginHistory.length-1].ip : 'N/A'} 
+                                valueClass="font-mono text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded"
+                                icon={Globe}
+                            />
+                            
+                            <InfoRow 
+                                label="Risk Level" 
+                                value={user.flags?.strikes > 0 ? "Elevated" : "Low"} 
+                                valueClass={user.flags?.strikes > 0 ? "text-orange-500 font-bold" : "text-green-500 font-bold"}
+                                icon={Activity}
+                            />
                         </div>
                     </div>
 
@@ -490,19 +564,25 @@ const AdminUserDetail = () => {
                         </div>
                     ) : (
                         <div className="w-full overflow-x-auto">
-                            <div className="p-4 flex justify-end bg-neutral-50 dark:bg-white/5 border-b border-neutral-200 dark:border-white/5 sticky left-0">
-                                <Button 
-                                    onClick={() => requestAction('logout_all')}
-                                    variant="outline"
-                                    text="Logout All Devices"
-                                    icon={LogOut}
-                                    className="text-red-600 border-red-200 hover:bg-red-50 cursor-pointer"
-                                />
+                            <div className="p-4 flex items-center justify-between bg-neutral-50 dark:bg-white/5 border-b border-neutral-200 dark:border-white/5 sticky left-0">
+                                <h3 className="text-sm font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wide">
+                                    Recent Activity ({user.loginHistory.length})
+                                </h3>
+                                <div className="flex gap-2">
+                                     <Button 
+                                        onClick={() => requestAction('logout_all')}
+                                        variant="outline"
+                                        text="Logout All Devices"
+                                        icon={LogOut}
+                                        className="text-red-600 border-red-200 hover:bg-red-50 cursor-pointer h-9 text-xs"
+                                    />
+                                </div>
                             </div>
                             <table className="w-full text-sm">
                                 <thead className="bg-neutral-50 dark:bg-white/5">
                                     <tr className="text-left text-neutral-500">
                                         <th className="px-6 py-4 whitespace-nowrap">Device / OS</th>
+                                        <th className="px-6 py-4 whitespace-nowrap">IP Address</th>
                                         <th className="px-6 py-4 whitespace-nowrap">Browser</th>
                                         <th className="px-6 py-4 whitespace-nowrap">Location</th>
                                         <th className="px-6 py-4 whitespace-nowrap">Status</th>
@@ -511,7 +591,7 @@ const AdminUserDetail = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-200 dark:divide-white/5">
-                                    {[...user.loginHistory].reverse().map((log, index) => (
+                                    {[...user.loginHistory].reverse().slice(0, showAllLogs ? undefined : 5).map((log, index) => (
                                         <tr key={index} className="group hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
@@ -523,6 +603,11 @@ const AdminUserDetail = () => {
                                                         <div className="text-xs text-neutral-500">{log.os}</div>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="font-mono text-xs text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-white/5 px-2 py-1 rounded border border-neutral-200 dark:border-white/5">
+                                                    {log.ip || "Unknown"}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                                                 <div className="flex items-center gap-2">
@@ -567,6 +652,20 @@ const AdminUserDetail = () => {
                                     ))}
                                 </tbody>
                             </table>
+                            {user.loginHistory.length > 5 && (
+                                <div className="p-3 border-t border-neutral-200 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.02]">
+                                    <button 
+                                        onClick={() => setShowAllLogs(!showAllLogs)}
+                                        className="w-full py-2 flex items-center justify-center gap-2 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-white/5 rounded-lg border border-transparent hover:border-neutral-200 dark:hover:border-white/10 transition-all"
+                                    >
+                                        {showAllLogs ? (
+                                            <>Show Less <EyeOff className="w-4 h-4" /></>
+                                        ) : (
+                                            <>View All Activity ({user.loginHistory.length - 5} more) <Eye className="w-4 h-4" /></>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

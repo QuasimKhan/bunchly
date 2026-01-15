@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import SmartSkeleton from "../components/ui/SmartSkeleton";
 import { buildUrl } from "../lib/seo";
 import { useSEO } from "../hooks/useSEO";
-import { WelcomeHeader, QuickStats, RecentLinks } from "../components/dashboard/DashboardWidgets";
+import { WelcomeHeader, QuickStats, RecentLinks, DetailedAnalytics } from "../components/dashboard/DashboardWidgets";
 import LivePreview from "../components/preview/LivePreview";
 import { getLinks } from "../services/linkService";
 import { ArrowRight, Sparkles, Zap } from "lucide-react";
@@ -77,6 +77,7 @@ const Dashboard = () => {
                             Performance <span className="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">Last 30 Days</span>
                         </h2>
                         <QuickStats analytics={analytics} loading={statsLoading} />
+                        <DetailedAnalytics analytics={analytics} loading={statsLoading} />
                     </section>
 
                     {/* Action Grid */}

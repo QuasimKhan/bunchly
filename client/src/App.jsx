@@ -41,6 +41,7 @@ import AdminMarketing from "./pages/admin/AdminMarketing.jsx";
 import AdminFeedback from "./pages/admin/AdminFeedback.jsx";
 import AdminRefunds from "./pages/admin/AdminRefunds.jsx";
 import AdminReports from "./pages/admin/AdminReports.jsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 
 const App = () => {
     const { user } = useAuth();
@@ -130,6 +131,7 @@ const App = () => {
                         <Route path="marketing" element={<AdminMarketing />} />
                         <Route path="feedback" element={<AdminFeedback />} />
                         <Route path="reports" element={<AdminReports />} />
+                        <Route path="analytics" element={<AdminAnalytics />} />
                     </Route>
                 </Route>
                 </Route>

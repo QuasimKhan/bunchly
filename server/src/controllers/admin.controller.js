@@ -430,7 +430,7 @@ export const getAdminStats = async (req, res) => {
             User.find({})
                 .sort({ createdAt: -1 })
                 .limit(5)
-                .select("name email plan createdAt"),
+                .select("name email plan createdAt image"),
             User.find({})
                 .sort({ profileViews: -1 })
                 .limit(5)
@@ -521,6 +521,7 @@ export const getUsers = async (req, res) => {
         if (role !== "all") {
             if (role === 'pro') query.plan = 'pro';
             else if (role === 'admin') query.role = 'admin';
+            else if (role === 'user') query.plan = 'free'; // Fixed: Filter specifically for free tier
             else query.role = role; 
         }
 
@@ -754,5 +755,82 @@ export const logoutUserEverywhere = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ success: false, message: "Failed to logout user everywhere" });
+    }
+};
+
+/* --------------------------------------------------
+   MANAGE STRIKES
+-------------------------------------------------- */
+export const manageStrikes = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { action, reason } = req.body; // action: 'add' | 'remove'
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        const currentStrikes = user.flags.strikes || 0;
+        let newStrikes = currentStrikes;
+
+        if (action === 'add') {
+            newStrikes = currentStrikes + 1;
+        } else if (action === 'remove') {
+            newStrikes = Math.max(0, currentStrikes - 1);
+        }
+
+        user.flags.strikes = newStrikes;
+        
+        // Auto-ban logic (Optional, but good for "real-time standing")
+        if (newStrikes >= 3 && !user.flags.isBanned) {
+            user.flags.isBanned = true;
+            // You might want to log this auto-ban or send a specific email
+        }
+
+        await user.save();
+
+        // EMAIL: Strike Notification
+        if (action === 'add') {
+             await sendEmail({
+                to: user.email,
+                subject: "Account Warning: Strike Issued",
+                html: getPremiumEmailHtml({
+                    title: "Community Guidelines Violation ⚠️",
+                    messageLines: [
+                        `Hi ${user.name},`,
+                        `A strike has been issued against your account due to a violation of our policies.`,
+                        reason ? `<strong>Reason:</strong> ${reason}` : null,
+                        `<strong>Current Strikes:</strong> ${newStrikes}/3`,
+                        `Please review our terms to avoid further account restrictions. Accumulating 3 strikes will result in account suspension.`
+                    ].filter(Boolean),
+                    warning: true
+                })
+            });
+        } else if (action === 'remove') {
+             await sendEmail({
+                to: user.email,
+                subject: "Account Update: Strike Removed",
+                html: getPremiumEmailHtml({
+                    title: "Strike Removed ✅",
+                    messageLines: [
+                        `Hi ${user.name},`,
+                        `Good news! A strike has been removed from your account record.`,
+                        `<strong>Current Strikes:</strong> ${newStrikes}/3`,
+                        `Thank you for maintaining a positive standing in our community.`
+                    ],
+                    accentColor: "#10B981" // Green
+                })
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Strike ${action === 'add' ? 'issued' : 'removed'} successfully`,
+            strikes: newStrikes,
+            isBanned: user.flags.isBanned
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Failed to manage strikes" });
     }
 };

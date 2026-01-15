@@ -10,7 +10,11 @@ import authRouter from "./routes/auth.routes.js";
 import profileRouter from "./routes/profile.routes.js";
 import linkRouter from "./routes/link.routes.js";
 import { redirectLink } from "./controllers/link.controller.js";
-import analyticsRouter from "./routes/analytics.routes.js";
+import userAnalyticsRouter from "./routes/userAnalytics.routes.js"; // New
+import adminAnalyticsRouter from "./routes/adminAnalytics.routes.js"; // New
+// ...
+// ... existing imports ...
+
 import paymentRouter from "./routes/payment.routes.js";
 import { startCronJobs } from "./cron.js";
 import billingRouter from "./routes/billing.routes.js";
@@ -36,13 +40,17 @@ import { authLimiter, apiLimiter } from "./config/rateLimit.js";
 
 app.use(sessionMiddleware);
 
+import analyticsMiddleware from "./middlewares/analytics.middleware.js";
+app.use(analyticsMiddleware);
+
 //routes
 
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/user", apiLimiter, profileRouter);
 app.use("/api/links", apiLimiter, linkRouter);
 app.get("/l/:id", redirectLink);
-app.use("/api/analytics", apiLimiter, analyticsRouter);
+app.use("/api/analytics", apiLimiter, userAnalyticsRouter);
+app.use("/api/admin/analytics", apiLimiter, adminAnalyticsRouter);
 app.use("/api/payment", apiLimiter, paymentRouter);
 app.use("/api/billing", apiLimiter, billingRouter);
 app.use("/api/admin", apiLimiter, adminRouter);

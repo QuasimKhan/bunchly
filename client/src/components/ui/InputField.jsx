@@ -11,6 +11,9 @@ const InputField = ({
     error,
     eye: Eye,
     onClick,
+    className = "",
+    inputClassName = "",
+    ...props
 }) => {
     return (
         <div className="mb-4">
@@ -37,6 +40,7 @@ const InputField = ({
                     dark:focus-within:border-indigo-300
 
                     ${error ? "border-red-500 dark:border-red-400" : ""}
+                    ${className}
                 `}
             >
                 {Icon && (
@@ -49,11 +53,13 @@ const InputField = ({
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}
-                    className="
+                    className={`
                         w-full bg-transparent outline-none
                         placeholder:text-gray-400 dark:placeholder:text-gray-500
                         text-gray-900 dark:text-gray-100
-                    "
+                        ${inputClassName}
+                    `}
+                    {...props}
                 />
 
                 {Eye && (
