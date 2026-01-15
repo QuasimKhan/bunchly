@@ -43,6 +43,8 @@ import AdminRefunds from "./pages/admin/AdminRefunds.jsx";
 import AdminReports from "./pages/admin/AdminReports.jsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 
+import AnalyticsTracker from "./components/analytics/AnalyticsTracker";
+
 const App = () => {
     const { user } = useAuth();
     const { consent } = useCookieConsent();
@@ -54,6 +56,7 @@ const App = () => {
     }, [consent]);
     return (
         <>
+            <AnalyticsTracker />
             <ConsentBanner />
             <Toaster richColors position="top-center" />
 

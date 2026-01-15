@@ -144,11 +144,6 @@ const PublicProfilePage = () => {
                         <Flag className="w-5 h-5 group-hover:fill-current transition-colors" />
                     </button>
                     
-                    {!user.plan || user.plan === 'free' ? (
-                        <Link to="/signup" className="ml-2 px-5 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-95">
-                            Create Yours
-                        </Link> 
-                    ) : null}
                 </div>
             </div>
 

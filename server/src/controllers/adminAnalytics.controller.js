@@ -15,13 +15,39 @@ const getDateRange = (period = "7d") => {
     return { start, end };
 };
 
-
+// Helper to get date range with filter
+const getDateMatch = (period = "7d", extraMatch = {}) => {
+    const { start, end } = getDateRange(period);
+    return { 
+        $match: { 
+            createdAt: { $gte: start, $lte: end },
+            eventType: "pageview", // Strictly Page Views only
+            ...extraMatch
+        } 
+    };
+};
 
 export const getOverview = async (req, res) => {
     try {
         const { period } = req.query;
-        const { start, end } = getDateRange(period);
-        const matchStage = { $match: { createdAt: { $gte: start, $lte: end } } };
+        const matchStage = getDateMatch(period);
+        console.log("Analytics: dateMatch", JSON.stringify(matchStage, null, 2));
+
+        // DEBUG: Drill down
+        const totalDocs = await AdminAnalytics.countDocuments({});
+        const pageViewDocs = await AdminAnalytics.countDocuments({ eventType: "pageview" });
+        const dateDocs = await AdminAnalytics.countDocuments({ createdAt: { $gte: matchStage.$match.createdAt.$gte, $lte: matchStage.$match.createdAt.$lte } });
+        const finalDocs = await AdminAnalytics.countDocuments(matchStage.$match);
+        
+        console.log("Analytics DIAGNOSTIC:", {
+            totalDocs,
+            pageViewDocs,
+            dateRangeDocs: dateDocs, 
+            finalMatchDocs: finalDocs,
+            period,
+            start: matchStage.$match.createdAt.$gte,
+            end: matchStage.$match.createdAt.$lte
+        });
 
         const stats = await AdminAnalytics.aggregate([
             matchStage,
@@ -29,25 +55,60 @@ export const getOverview = async (req, res) => {
                 $group: {
                     _id: null,
                     totalViews: { $sum: 1 },
-                    uniqueVisitors: { $addToSet: "$ip" }
+                    uniqueVisitors: { $addToSet: "$visitorId" },
+                    sessions: { $addToSet: "$sessionId" }
                 }
             },
             {
                 $project: {
                     totalViews: 1,
-                    uniqueVisitors: { $size: "$uniqueVisitors" }
+                    uniqueVisitors: { $size: "$uniqueVisitors" },
+                    sessions: { $size: "$sessions" }
                 }
             }
         ]);
 
-        // Get currently active users (last 5 mins for "Real-time" feel)
-        const activeThreshold = new Date(Date.now() - 5 * 60 * 1000);
-        const activeUsers = await AdminAnalytics.distinct("ip", { createdAt: { $gte: activeThreshold } });
+        // Calculate Average Session Duration
+        const sessionStats = await AdminAnalytics.aggregate([
+            matchStage,
+            {
+                $group: {
+                    _id: "$sessionId",
+                    start: { $min: "$createdAt" },
+                    end: { $max: "$createdAt" },
+                    events: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    duration: { $subtract: ["$end", "$start"] }, // in ms
+                    isBounce: { $eq: ["$events", 1] }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    avgDuration: { $avg: "$duration" },
+                    bounceRate: { $avg: { $cond: ["$isBounce", 1, 0] } }
+                }
+            }
+        ]);
+
+        // Get currently active users (last 30 mins)
+        // Must also match pageview to avoid count API polling as active users for this stat
+        const activeThreshold = new Date(Date.now() - 30 * 60 * 1000); 
+        const activeUsers = await AdminAnalytics.distinct("visitorId", { 
+            createdAt: { $gte: activeThreshold },
+            eventType: "pageview" 
+        });
 
         res.json({
             totalViews: stats[0]?.totalViews || 0,
             uniqueVisitors: stats[0]?.uniqueVisitors || 0,
-            activeUsers: activeUsers.length
+            sessions: stats[0]?.sessions || 0,
+            activeUsers: activeUsers.length,
+            avgSessionDuration: sessionStats[0]?.avgDuration || 0, // ms
+            bounceRate: (sessionStats[0]?.bounceRate || 0) * 100 // percentage
         });
     } catch (error) {
         console.error("Overview Stats Error:", error);
@@ -57,22 +118,19 @@ export const getOverview = async (req, res) => {
 
 export const getTimeSeries = async (req, res) => {
     try {
-        const { period } = req.query; // '24h', '7d', '30d'
-        const { start, end } = getDateRange(period);
-        
-        // Group format depends on range
-        let dateFormat = "%Y-%m-%d"; // default for 7d/30d
+        const { period } = req.query;
+        let dateFormat = "%Y-%m-%d"; 
         if (period === "24h") {
             dateFormat = "%Y-%m-%d-%H";
         }
 
         const data = await AdminAnalytics.aggregate([
-            { $match: { createdAt: { $gte: start, $lte: end } } },
+            getDateMatch(period),
             {
                 $group: {
                     _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
                     views: { $sum: 1 },
-                    uniqueVisitors: { $addToSet: "$ip" }
+                    uniqueVisitors: { $addToSet: "$visitorId" }
                 }
             },
             {
@@ -95,10 +153,8 @@ export const getTimeSeries = async (req, res) => {
 export const getGeoStats = async (req, res) => {
     try {
         const { period } = req.query;
-        const { start, end } = getDateRange(period);
-
         const data = await AdminAnalytics.aggregate([
-            { $match: { createdAt: { $gte: start, $lte: end } } },
+            getDateMatch(period),
             {
                 $group: {
                     _id: "$location.country",
@@ -119,8 +175,7 @@ export const getGeoStats = async (req, res) => {
 export const getDeviceStats = async (req, res) => {
     try {
         const { period } = req.query;
-        const { start, end } = getDateRange(period);
-        const match = { $match: { createdAt: { $gte: start, $lte: end } } };
+        const match = getDateMatch(period);
 
         const devices = await AdminAnalytics.aggregate([
             match,
@@ -142,10 +197,46 @@ export const getDeviceStats = async (req, res) => {
             { $limit: 5 }
         ]);
 
+        const resolutions = await AdminAnalytics.aggregate([
+            match,
+            { $group: { _id: "$screenResolution", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 }
+        ]);
+
+         // Mobile Specific Experience
+        const mobileSessions = await AdminAnalytics.aggregate([
+            getDateMatch(period, { "device.type": { $in: ["mobile", "tablet"] } }),
+            {
+                $group: {
+                    _id: "$sessionId",
+                    events: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    isBounce: { $eq: ["$events", 1] }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 },
+                    bounceRate: { $avg: { $cond: ["$isBounce", 1, 0] } }
+                }
+            }
+        ]);
+
+
         res.json({
             devices: devices.map(d => ({ name: d._id || "Desktop", value: d.count })),
             browsers: browsers.map(d => ({ name: d._id || "Unknown", value: d.count })),
-            os: os.map(d => ({ name: d._id || "Unknown", value: d.count }))
+            os: os.map(d => ({ name: d._id || "Unknown", value: d.count })),
+            resolutions: resolutions.map(d => ({ name: d._id || "Unknown", value: d.count })),
+            mobileStats: {
+                totalSessions: mobileSessions[0]?.count || 0,
+                bounceRate: (mobileSessions[0]?.bounceRate || 0) * 100
+            }
         });
     } catch (error) {
         console.error("Device Stats Error:", error);
@@ -156,23 +247,15 @@ export const getDeviceStats = async (req, res) => {
 export const getTopPages = async (req, res) => {
     try {
         const { period, page = 1, limit = 10 } = req.query;
-        const { start, end } = getDateRange(period);
         const skip = (page - 1) * limit;
 
         const pipeline = [
-            { 
-                $match: { 
-                    createdAt: { $gte: start, $lte: end },
-                    // Filter out null referrers if we only want frontend pages
-                    referrer: { $ne: null }
-                } 
-            },
+            getDateMatch(period, { path: { $exists: true, $ne: null } }),
             {
                 $group: {
-                    // Group by Referrer instead of Path (Path is API path, Referrer is Frontend Page)
-                    _id: "$referrer",
+                    _id: "$path",
                     views: { $sum: 1 },
-                    uniqueVisitors: { $addToSet: "$ip" }
+                    uniqueVisitors: { $addToSet: "$visitorId" }
                 }
             },
             {
@@ -199,18 +282,8 @@ export const getTopPages = async (req, res) => {
         const result = data[0];
         const total = result.metadata[0] ? result.metadata[0].total : 0;
         
-        // Clean up paths (strip domain)
-        // Note: Doing this in JS because Regex in Aggregation is heavy/complex for varying domains
-        const cleanedData = result.data.map(item => {
-            try {
-                // If it's a valid URL, strip origin
-                const url = new URL(item.path);
-                return { ...item, path: url.pathname + url.search };
-            } catch (e) {
-                // Return as is if not a valid URL (e.g. relative or weird)
-                return item;
-            }
-        });
+        // Clean up paths (strip domain if needed, though they should be relative now)
+        const cleanedData = result.data.map(item => item);
 
         res.json({
             data: cleanedData,
@@ -226,3 +299,4 @@ export const getTopPages = async (req, res) => {
         res.status(500).json({ message: "Error fetching top pages" });
     }
 };
+

@@ -49,6 +49,9 @@ app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/user", apiLimiter, profileRouter);
 app.use("/api/links", apiLimiter, linkRouter);
 app.get("/l/:id", redirectLink);
+import analyticsRouter from "./routes/analytics.routes.js"; // New tracking
+
+app.use("/api/analytics", analyticsRouter);
 app.use("/api/analytics", apiLimiter, userAnalyticsRouter);
 app.use("/api/admin/analytics", apiLimiter, adminAnalyticsRouter);
 app.use("/api/payment", apiLimiter, paymentRouter);

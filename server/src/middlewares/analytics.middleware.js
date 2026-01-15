@@ -86,6 +86,7 @@ const analyticsMiddleware = async (req, res, next) => {
                 },
 
                 referrer: req.headers.referer || null,
+                eventType: "api_call", // Mark as API call
             });
 
         } catch (error) {

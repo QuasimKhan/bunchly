@@ -38,6 +38,21 @@ const adminAnalyticsSchema = new mongoose.Schema(
             type: String, // Persistent cookie/localstorage ID if available
             index: true,
         },
+        sessionId: {
+            type: String, // Session ID from client
+            index: true,
+        },
+
+        // 🔹 CLIENT SIDE METRICS
+        eventType: {
+            type: String,
+            default: "pageview", // pageview, event, heartbeat
+            index: true,
+        },
+        screenResolution: String, // e.g., 1920x1080
+        viewport: String, // e.g., 1920x960
+        language: String, // e.g., en-US
+        interactionTime: Number, // Time spent on page in ms
 
         // 🔹 LOCATION (from IP)
         location: {
@@ -76,7 +91,7 @@ const adminAnalyticsSchema = new mongoose.Schema(
             type: String,
         },
     },
-    { timestamps: true } // adds createdAt, updatedAt
+    { timestamps: true }
 );
 
 // Indexes for fast aggregation
