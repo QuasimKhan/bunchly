@@ -143,7 +143,6 @@ const PublicProfilePage = () => {
                     >
                         <Flag className="w-5 h-5 group-hover:fill-current transition-colors" />
                     </button>
-                    
                 </div>
             </div>
 
