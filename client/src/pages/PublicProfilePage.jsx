@@ -5,7 +5,6 @@ import LivePreview from "../components/preview/LivePreview";
 import { useSEO } from "../hooks/useSEO";
 import { buildUrl } from "../lib/seo";
 import PublicProfileNotFound from "../components/PublicProfileNotFound";
-import { toast } from "sonner";
 import SmartSkeleton from "../components/ui/SmartSkeleton";
 import ShareCard from "../components/profile/ShareCard";
 import SuspendedAccount from "../components/SuspendedAccount"; // Assuming this exists or I need to find where it was
@@ -83,20 +82,7 @@ const PublicProfilePage = () => {
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><SmartSkeleton variant="profile" /></div>;
     
-    // Handle Suspended State - I noticed I need to find where SuspendedAccount is or if it was inline
-    // Based on previous reads it seemed to be imported or used. Let's assume it exists or use a fallback.
-    // Wait, let me check the file history. The previous file content had <SuspendedAccount /> but no import was visible in the top snippet. 
-    // It might have been defined in the file or imported. I'll define a simple one here if I can't find it, but better to import it if it exists.
-    // Actually, looking at the previous diff, it was there. I'll assume it's a component.
-    // If it fails, I'll fix it.
-    
-    if (isSuspended) return (
-         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-            <h1 className="text-3xl font-bold text-red-500 mb-4">Account Suspended</h1>
-            <p className="text-neutral-500">This account has been suspended for violating our terms of service.</p>
-            <Link to="/" className="mt-8 text-indigo-600 hover:underline">Go Home</Link>
-         </div>
-    );
+    if (isSuspended) return <SuspendedAccount />;
     
     if (!user) return <PublicProfileNotFound username={username} />;
 

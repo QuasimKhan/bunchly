@@ -309,10 +309,6 @@ const Signup = () => {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="relative z-10 max-w-lg mb-20"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-md mb-6 text-sm font-medium text-indigo-300">
-                        <Sparkles className="w-4 h-4" />
-                        <span>Join 50,000+ Creators</span>
-                    </div>
                     
                     <h1 className="text-5xl font-bold tracking-tight mb-6 leading-[1.15]">
                         Claim your corner <br/>

@@ -90,15 +90,6 @@ const Hero = () => {
                     </div>
                 </AnimateOnScroll>
 
-
-                
-                <AnimateOnScroll delay={0.5}>
-                    <div className="mt-8 sm:mt-12 flex items-center justify-center gap-8 opacity-60">
-                        <p className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-widest">
-                            Trusted by 10,000+ Creators
-                        </p>
-                    </div>
-                </AnimateOnScroll>
             </div>
         </section>
     );

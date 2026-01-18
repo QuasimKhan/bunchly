@@ -6,7 +6,7 @@ import { useSEO } from "../hooks/useSEO";
 import { WelcomeHeader, QuickStats, RecentLinks, DetailedAnalytics } from "../components/dashboard/DashboardWidgets";
 import LivePreview from "../components/preview/LivePreview";
 import { getLinks } from "../services/linkService";
-import { ArrowRight, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Dot, Link2, Sparkles, Zap, ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {
@@ -65,7 +65,7 @@ const Dashboard = () => {
             {/* 1. Header Area */}
             <WelcomeHeader user={user} />
 
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
                 {/* 2. Main Content (Left) */}
                 <div className="flex-1 space-y-8">
@@ -110,12 +110,13 @@ const Dashboard = () => {
                     <div className="sticky top-24">
                         <div className="flex items-center justify-between mb-4 px-2">
                              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-indigo-500" />
+                                <Dot className="w-8 h-8 text-indigo-500" />
                                 Live Preview
                             </h2>
                             <a href={`/${user.username}`} target="_blank" rel="noreferrer" className="text-xs font-medium text-indigo-600 hover:underline">
-                                Open Page
-                            </a>
+                                <Link2 className="w-4  h-4 text-indigo-500" />
+                               
+                            </a>    
                         </div>
 
                         {/* iPhone Frame */}

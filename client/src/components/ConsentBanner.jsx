@@ -11,7 +11,7 @@ const ConsentBanner = () => {
     
     useEffect(() => {
         if (ready && needsConsent) {
-            const timer = setTimeout(() => setVisible(true), 1000); // Slight delay for better UX
+            const timer = setTimeout(() => setVisible(true), 3000); // Slight delay for better UX
             return () => clearTimeout(timer);
         } else {
             setVisible(false);
@@ -28,7 +28,7 @@ const ConsentBanner = () => {
         setTimeout(rejectCookies, 300);
     };
 
-    if (!ready || !needsConsent) return null;
+    if (!ready || !needsConsent || location.pathname !== "/") return null;
 
     return (
         <AnimatePresence>

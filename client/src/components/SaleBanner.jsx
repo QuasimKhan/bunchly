@@ -74,13 +74,13 @@ const SaleBanner = ({ className = "", onStatusChange }) => {
                         )}
                     </div>
 
-                    <Link 
-                        to={linkTarget} 
+                    <a 
+                        href={linkTarget} 
                         onClick={() => setVisible(false)}
                         className="inline-flex items-center gap-1 text-white hover:text-indigo-100 font-bold border-b border-white/30 hover:border-white transition-all cursor-pointer whitespace-nowrap shrink-0"
                     >
                         Claim <span className="hidden sm:inline">Offer</span> <span className="opacity-70">→</span>
-                    </Link>
+                    </a>
                     
                     {/* Spacer for close button to prevent overlap */}
                     <div className="w-6 sm:w-0"></div>

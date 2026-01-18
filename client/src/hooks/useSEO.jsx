@@ -38,7 +38,8 @@ export const useSEO = ({
         setMeta("author", "Bunchly");
 
         // Canonical
-        setLink("canonical", url);
+        const canonicalUrl = url.split('?')[0];
+        setLink("canonical", canonicalUrl);
 
         // Open Graph
         setMeta("og:site_name", "Bunchly", "property");

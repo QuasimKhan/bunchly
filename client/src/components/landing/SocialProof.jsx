@@ -6,7 +6,7 @@ const SocialProof = () => {
             <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
                 <AnimateOnScroll>
                     <p className="text-sm font-medium text-gray-400 uppercase tracking-widest text-center mb-8">
-                        Powering over 10,000+ next-gen creators
+                        Powering next-gen creators
                     </p>
                 </AnimateOnScroll>
 

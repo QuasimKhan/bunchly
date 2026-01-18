@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationEmail, sendWelcomeEmail, sendForgotPasswordEmail, sendPasswordChangeEmail } from "../utils/email.js";
 import { getClientInfo } from "../utils/clientInfo.js";
+import { isReserved } from "../config/reserved.js";
 
 export const signup = async (req, res) => {
     try {
@@ -28,9 +29,9 @@ export const signup = async (req, res) => {
             });
         }
 
-        // Reserved usernames (No-one use this username)
-        const reserved = ["admin", "support", "help", "dashboard", "profile"];
-        if (reserved.includes(cleanUsername)) {
+
+        // Reserved usernames check
+        if (isReserved(cleanUsername)) {
             return res.status(400).json({
                 success: false,
                 message: "This username is reserved. Please choose another.",
@@ -161,20 +162,7 @@ export const checkUsernameAvailability = async (req, res) => {
         }
 
         // Reserved usernames
-        const reserved = [
-            "admin",
-            "root",
-            "support",
-            "dashboard",
-            "profile",
-            "settings",
-            "help",
-            "api",
-            "login",
-            "signup",
-        ];
-
-        if (reserved.includes(cleanUsername)) {
+        if (isReserved(cleanUsername)) {
             return res.status(400).json({
                 success: false,
                 available: false,
