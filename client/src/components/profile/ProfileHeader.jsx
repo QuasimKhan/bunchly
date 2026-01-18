@@ -3,7 +3,7 @@ import React from 'react';
 import { Camera, Calendar, Mail } from 'lucide-react';
 import TickBadge from '../ui/TickBadge';
 
-const ProfileHeader = ({ user, onEditImage }) => {
+const ProfileHeader = ({ user, onEditImage, onUpgrade }) => {
     // Determine gradient based on plan
     const isPro = user.plan === 'pro';
     const gradientClass = isPro 
@@ -50,8 +50,8 @@ const ProfileHeader = ({ user, onEditImage }) => {
                         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
                             {user.name}
                         </h1>
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-500/20">
-                            <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all ${isPro ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-500/20" : "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700"}`} onClick={!isPro ? onUpgrade : undefined}>
+                            <span className={`text-xs font-bold uppercase tracking-widest ${isPro ? "text-indigo-600 dark:text-indigo-400" : "text-neutral-500 dark:text-neutral-400"}`}>
                                 {user.plan}
                             </span>
                             {isPro && <TickBadge tier="pro" className="w-4 h-4" />}

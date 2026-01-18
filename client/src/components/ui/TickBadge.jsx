@@ -1,5 +1,7 @@
-export default function TickBadge({ tier = "free", className = "" }) {
+export default function TickBadge({ tier = "pro", className = "" }) {
     const isPaid = tier === "pro";
+
+    if (tier !== "pro") return null;
 
     return (
         <span
@@ -8,8 +10,8 @@ export default function TickBadge({ tier = "free", className = "" }) {
                 w-4 h-4 rounded-full 
                 ${
                     isPaid
-                        ? "bg-linear-to-br from-yellow-400 to-amber-600"
-                        : "bg-linear-to-br from-blue-400 to-blue-600"
+                        ? "bg-linear-to-br from-yellow-500 to-amber-600 shadow-yellow-500/30"
+                        : ""
                 }
                 shadow-md 
                 ring-2 ring-white/50 dark:ring-white/10

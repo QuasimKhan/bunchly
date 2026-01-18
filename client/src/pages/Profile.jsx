@@ -13,6 +13,7 @@ import DangerZone from "../components/profile/DangerZone";
 import EditModal from "../components/profile/EditModal";
 import DeleteAccountModal from "../components/profile/DeleteAccountModal";
 import ChangePasswordModal from "../components/profile/ChangePasswordModal";
+import UpgradeModal from "../components/dashboard/UpgradeModal";
 
 export default function Profile({ user }) {
     const [profile, setProfile] = useState(user);
@@ -23,7 +24,9 @@ export default function Profile({ user }) {
     
     // Security Modals
     const [changePasswordModal, setChangePasswordModal] = useState(false);
+
     const [accountDeleteModal, setAccountDeleteModal] = useState(false);
+    const [upgradeModal, setUpgradeModal] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
 
@@ -94,6 +97,7 @@ export default function Profile({ user }) {
             <ProfileHeader 
                 user={profile} 
                 onEditImage={() => setModal("image")} 
+                onUpgrade={() => setUpgradeModal(true)}
             />
 
             <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[2rem] p-6 md:p-10 shadow-sm space-y-12">
@@ -150,6 +154,11 @@ export default function Profile({ user }) {
                 loading={deleteLoading}
                 onClose={() => setAccountDeleteModal(false)}
                 onConfirm={handleDeleteAccount}
+            />
+
+            <UpgradeModal 
+                isOpen={upgradeModal} 
+                onClose={() => setUpgradeModal(false)} 
             />
 
         </div>

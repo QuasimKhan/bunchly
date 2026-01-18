@@ -51,6 +51,8 @@ const BUTTON_ROUNDNESS = [
 const Appearance = () => {
     const { user, setUser } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [searchQuery, setSearchQuery] = useState("");
     const navigate = useNavigate();
 
     useSEO({
@@ -90,48 +92,63 @@ const Appearance = () => {
         }
     }, [user]);
 
-    // Pro Check Helper
-    const checkPro = (isProFeature) => {
-        if (isProFeature && user.plan !== "pro") {
-            setShowUpgradeModal(true);
-            return false;
+    // Validation Helper
+    const hasProFeatures = () => {
+        if (user.plan === "pro") return false;
+
+        // 1. Check if using a known Preset Theme
+        const theme = THEMES.find(t => t.id === appearance.theme);
+        if (theme) {
+            // If it's a valid preset, we ONLY check if the preset itself is Pro.
+            // We ignore component-level checks (font/button) because they are bundled with the free theme.
+            // Exception: Branding is usually separate.
+            if (appearance.hideBranding) return true;
+            return theme.isPro; 
         }
-        return true;
+
+        // 2. If Custom (theme === 'custom' or unknown), check individual components
+        
+        // Check Gradients
+        if (appearance.bgType === 'gradient') {
+             const grad = GRADIENTS.find(g => g.value === appearance.bgGradient);
+             if (grad?.isPro) return true;
+        }
+
+        // Check Image (Always Pro)
+        if (appearance.bgType === 'image') return true;
+
+        // Check Fonts
+        const font = FONTS.find(f => f.value === appearance.fontFamily);
+        if (font?.isPro) return true;
+
+        // Check Buttons
+        const btnStyle = BUTTON_STYLES.find(b => b.value === appearance.buttonStyle);
+        if (btnStyle?.isPro) return true;
+
+        // Check Branding
+        if (appearance.hideBranding) return true;
+
+        return false;
     };
 
-    // Handle Change
-    const handleChange = async (key, value, isProFeature = false, autoSave = false) => {
-        if (!checkPro(isProFeature)) return;
-        
+    // Handle Change (Allow everything for preview)
+    const handleChange = async (key, value, isProFeature = false, markCustom = false) => {
         // Optimistic Update
         setAppearance(prev => {
             const newApp = { ...prev, [key]: value };
-            
-            // Trigger Auto-Save if requested
-            if (autoSave) {
-                // Debounce or immediate? Toggles should be immediate.
-                axios.patch(
-                    `${import.meta.env.VITE_API_URL}/api/user/update-profile`,
-                    { appearance: newApp },
-                    { withCredentials: true }
-                ).then(res => {
-                    if (res.data.success) {
-                        toast.success("Saved!", { duration: 1500 });
-                        setUser(res.data.user);
-                    }
-                }).catch(err => {
-                    console.error("Auto-save failed:", err);
-                    toast.error("Failed to save");
-                    // Revert on failure
-                    setAppearance(current => ({ ...current, [key]: !value })); 
-                });
-            }
+            if (markCustom) newApp.theme = 'custom';
             return newApp;
         });
     };
 
     // Save Changes
     const handleSave = async () => {
+        // Enforce Pro features on save
+        if (hasProFeatures()) {
+            setShowUpgradeModal(true);
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await axios.patch(
@@ -230,6 +247,7 @@ const Appearance = () => {
                                 <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
                                     {THEMES
                                         .filter(t => selectedCategory === "All" || t.category === selectedCategory)
+                                        .sort((a, b) => (a.isPro === b.isPro ? 0 : a.isPro ? 1 : -1))
                                         .map((t) => (
                                         <ThemeCard 
                                             key={t.id} 
@@ -237,7 +255,6 @@ const Appearance = () => {
                                             isLocked={t.isPro && user.plan !== "pro"}
                                             isSelected={appearance.theme === t.id}
                                             onSelect={(theme) => {
-                                                if (theme.isPro && !checkPro(true)) return;
                                                 setAppearance(prev => ({
                                                     ...prev,
                                                     theme: theme.id,
@@ -268,15 +285,17 @@ const Appearance = () => {
                             {["color", "gradient", "image"].map((type) => (
                                 <button
                                     key={type}
-                                    onClick={() => handleChange("bgType", type, type === "image" && user.plan !== "pro")}
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 cursor-pointer ${
+                                    onClick={() => handleChange("bgType", type, type === "image" && user.plan !== "pro", true)}
+                                    className={`relative px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 cursor-pointer ${
                                         appearance.bgType === type
                                             ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white ring-1 ring-black/5 dark:ring-white/10"
                                             : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
                                     }`}
                                 >
                                     {type === "gradient" && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-                                    {type === "image" && <ImageIcon className="w-3.5 h-3.5 text-rose-500" />}
+                                    {type === "image" && (
+                                        user.plan !== "pro" ? <Lock className="w-3.5 h-3.5 text-neutral-400" /> : <ImageIcon className="w-3.5 h-3.5 text-rose-500" />
+                                    )}
                                     {type.charAt(0).toUpperCase() + type.slice(1)}
                                 </button>
                             ))}
@@ -291,14 +310,14 @@ const Appearance = () => {
                                             <input
                                                 type="color"
                                                 value={appearance.bgColor}
-                                                onChange={(e) => { handleChange("bgColor", e.target.value); handleChange("theme", "custom"); }}
+                                                onChange={(e) => handleChange("bgColor", e.target.value, false, true)}
                                                 className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] cursor-pointer p-0 border-none"
                                             />
                                         </div>
                                         <input 
                                             type="text" 
                                             value={appearance.bgColor}
-                                            onChange={(e) => { handleChange("bgColor", e.target.value); handleChange("theme", "custom"); }}
+                                            onChange={(e) => handleChange("bgColor", e.target.value, false, true)}
                                             className="font-mono text-sm bg-transparent outline-none flex-1 text-neutral-600 dark:text-neutral-300 uppercase tracking-wide"
                                         />
                                     </div>
@@ -313,19 +332,14 @@ const Appearance = () => {
                                     return (
                                         <div
                                             key={grad.value}
-                                            onClick={() => { handleChange("bgGradient", grad.value, grad.isPro); handleChange("theme", "custom"); }}
+                                            onClick={() => handleChange("bgGradient", grad.value, grad.isPro, true)}
                                             className={`relative aspect-video rounded-xl cursor-pointer bg-gradient-to-br ${grad.value} ring-2 ring-offset-2 dark:ring-offset-neutral-900 transition-all ${
                                                 appearance.bgGradient === grad.value
                                                     ? "ring-indigo-600 scale-[1.02] shadow-lg"
                                                     : "ring-transparent hover:scale-[1.02] hover:shadow-md"
                                             }`}
                                         >
-                                            {isLocked && (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-20">
-                                                    <Lock className="w-5 h-5 text-white/90 mb-1" />
-                                                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">PRO</span>
-                                                </div>
-                                            )}
+                                            {grad.isPro && <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-md rounded-full p-1 z-20"><Lock className="w-3 h-3 text-white" /></div>}
                                             {appearance.bgGradient === grad.value && (
                                                 <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md p-1 rounded-full">
                                                      <Check className="w-3 h-3 text-white" />
@@ -393,10 +407,17 @@ const Appearance = () => {
                                                 const file = e.target.files[0];
                                                 if(!file) return;
                                                 setLoading(true);
+                                                setUploadProgress(0);
                                                 const formData = new FormData();
                                                 formData.append("image", file);
                                                 try {
-                                                    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/profile/upload-bg`, formData, { withCredentials: true });
+                                                    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/profile/upload-bg`, formData, { 
+                                                        withCredentials: true,
+                                                        onUploadProgress: (progressEvent) => {
+                                                            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                                                            setUploadProgress(percentCompleted);
+                                                        }
+                                                    });
                                                     if(res.data.success) {
                                                         setAppearance(prev => ({ ...prev, bgImage: res.data.bgImage, bgType: 'image', theme: 'custom' }));
                                                         toast.success("Background uploaded!");
@@ -405,9 +426,25 @@ const Appearance = () => {
                                                     toast.error("Upload failed");
                                                 } finally {
                                                     setLoading(false);
+                                                    setUploadProgress(0);
                                                 }
                                             }}
                                         />
+                                        {/* Upload Progress Bar */}
+                                        {loading && (
+                                            <div className="absolute inset-x-4 bottom-4">
+                                                <div className="flex justify-between text-xs text-neutral-500 mb-1">
+                                                    <span>Uploading...</span>
+                                                    <span>{uploadProgress}%</span>
+                                                </div>
+                                                <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                                                        style={{ width: `${uploadProgress}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </label>
                                 )}
 
@@ -426,7 +463,7 @@ const Appearance = () => {
                                             max="0.9" 
                                             step="0.05"
                                             value={appearance.bgOverlay || 0}
-                                            onChange={(e) => handleChange("bgOverlay", parseFloat(e.target.value))}
+                                            onChange={(e) => handleChange("bgOverlay", parseFloat(e.target.value), false, true)}
                                             className="w-full h-2 bg-neutral-200 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                                         />
                                     </label>
@@ -444,10 +481,41 @@ const Appearance = () => {
                                             max="20" 
                                             step="1"
                                             value={appearance.bgBlur || 0}
-                                            onChange={(e) => handleChange("bgBlur", parseInt(e.target.value))}
+                                            onChange={(e) => handleChange("bgBlur", parseInt(e.target.value), false, true)}
                                             className="w-full h-2 bg-neutral-200 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                                         />
                                     </label>
+                                    
+                                    {/* Local Mobile Preview */}
+                                    {appearance.bgImage && (
+                                        <div className="mt-4 p-3 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-900/50">
+                                            <div className="text-xs font-semibold text-neutral-500 uppercase mb-2 tracking-wide">Live Preview</div>
+                                            <div className="relative w-full aspect-[2/1] rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                                                {/* Background Image with Blur */}
+                                                <div 
+                                                    className="absolute inset-0 bg-cover bg-center transition-all duration-300"
+                                                    style={{ 
+                                                        backgroundImage: `url(${appearance.bgImage})`,
+                                                        filter: `blur(${appearance.bgBlur || 0}px)`,
+                                                        transform: 'scale(1.1)' // Prevent blur edges
+                                                    }}
+                                                />
+                                                {/* Overlay */}
+                                                <div 
+                                                    className="absolute inset-0 transition-opacity duration-300"
+                                                    style={{ 
+                                                        backgroundColor: '#000',
+                                                        opacity: appearance.bgOverlay || 0 
+                                                    }}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <span className="text-white/80 font-semibold text-sm backdrop-blur-sm px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                                                        Your Content Here
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -463,7 +531,7 @@ const Appearance = () => {
                                         return (
                                             <button
                                                 key={style.value}
-                                                onClick={() => handleChange("buttonStyle", style.value, style.isPro)}
+                                                onClick={() => handleChange("buttonStyle", style.value, style.isPro, true)}
                                                 className={`relative py-4 px-2 rounded-xl text-xs sm:text-sm font-medium border transition-all flex flex-col items-center gap-2 cursor-pointer ${
                                                     appearance.buttonStyle === style.value
                                                         ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-600 shadow-sm"
@@ -471,11 +539,7 @@ const Appearance = () => {
                                                 } ${isLocked ? "opacity-75" : ""}`}
                                             >
                                                 <span>{style.name}</span>
-                                                {isLocked && (
-                                                    <div className="absolute inset-0 bg-black/5 dark:bg-black/40 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
-                                                        <Lock className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-                                                    </div>
-                                                )}
+                                                {style.isPro && <div className="absolute top-1 left-1"><Lock className="w-3 h-3 text-neutral-400" /></div>}
                                             </button>
                                         )
                                     })}
@@ -488,7 +552,7 @@ const Appearance = () => {
                                     {BUTTON_ROUNDNESS.map((round) => (
                                         <button
                                             key={round.value}
-                                            onClick={() => handleChange("buttonRoundness", round.value)}
+                                            onClick={() => handleChange("buttonRoundness", round.value, false, true)}
                                             className={`relative py-3 px-2 rounded-xl text-xs sm:text-sm font-medium border transition-all flex flex-col items-center gap-2 cursor-pointer ${
                                                 appearance.buttonRoundness === round.value
                                                     ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-600 shadow-sm"
@@ -505,12 +569,12 @@ const Appearance = () => {
                                 <ColorPicker 
                                     label="Button Color" 
                                     value={appearance.buttonColor} 
-                                    onChange={(v) => handleChange("buttonColor", v)} 
+                                    onChange={(v) => handleChange("buttonColor", v, false, true)} 
                                 />
                                 <ColorPicker 
                                     label="Button Text" 
                                     value={appearance.buttonFontColor} 
-                                    onChange={(v) => handleChange("buttonFontColor", v)} 
+                                    onChange={(v) => handleChange("buttonFontColor", v, false, true)} 
                                 />
                             </div>
                         </div>
@@ -527,7 +591,7 @@ const Appearance = () => {
                                         return (
                                             <button
                                                 key={font.value}
-                                                onClick={() => handleChange("fontFamily", font.value, font.isPro)}
+                                                onClick={() => handleChange("fontFamily", font.value, font.isPro, true)}
                                                 style={{ fontFamily: font.value }}
                                                 className={`relative p-5 rounded-2xl border text-left transition-all cursor-pointer overflow-hidden ${
                                                     appearance.fontFamily === font.value
@@ -537,13 +601,8 @@ const Appearance = () => {
                                             >
                                                 <div className="flex justify-between items-start">
                                                     <span className="text-3xl leading-none opacity-80">Aa</span>
-                                                    {isLocked ? (
-                                                        <div className="absolute inset-0 bg-black/5 dark:bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
-                                                            <Lock className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
-                                                        </div>
-                                                    ) : (
-                                                        appearance.fontFamily === font.value && <Check className="w-4 h-4 text-indigo-600" />
-                                                    )}
+                                                    {font.isPro && <div className="absolute top-2 left-2"><Lock className="w-4 h-4 text-neutral-400" /></div>}
+                                                    {appearance.fontFamily === font.value && <Check className="w-4 h-4 text-indigo-600" />}
                                                 </div>
                                                 <span className="block text-xs mt-3 opacity-60 font-sans tracking-wider uppercase font-semibold">{font.name}</span>
                                             </button>
@@ -555,7 +614,7 @@ const Appearance = () => {
                             <ColorPicker 
                                 label="Global Text Color" 
                                 value={appearance.fontColor} 
-                                onChange={(v) => handleChange("fontColor", v)} 
+                                onChange={(v) => handleChange("fontColor", v, false, true)} 
                             />
                         </div>
                     </Section>
@@ -577,7 +636,7 @@ const Appearance = () => {
                                 <input 
                                     type="checkbox" 
                                     checked={appearance.hideBranding}
-                                    onChange={(e) => handleChange("hideBranding", e.target.checked, true, true)}
+                                    onChange={(e) => handleChange("hideBranding", e.target.checked)}
                                     className="sr-only peer"
                                 />
                                 <div className={`w-11 h-6 bg-neutral-200 dark:bg-neutral-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600`}></div>
@@ -731,11 +790,10 @@ const ThemeCard = ({ theme, isSelected, isLocked, onSelect }) => (
         {/* Active Overlay (Subtle) */}
         {!isSelected && <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 dark:group-hover:bg-white/5 transition-colors duration-300 z-0"></div>}
 
-        {/* Lock Overlay */}
+        {/* Lock Icon (Top Left) */}
         {isLocked && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center gap-2">
-                <Lock className="w-6 h-6 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest bg-white/20 px-2 py-1 rounded">Locked</span>
+            <div className="absolute top-2 left-2 z-20 bg-black/50 backdrop-blur-sm rounded-full p-1.5">
+                <Lock className="w-3 h-3 text-white" />
             </div>
         )}
 

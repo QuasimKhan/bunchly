@@ -123,42 +123,49 @@ app.get("/:username", async (req, res, next) => {
         let html = getHtml();
         if (!html) return res.send("System building... please refresh in a moment.");
 
+        // Find user by username
         const user = await User.findOne({ username, "flags.isBanned": false });
 
         if (user) {
-            // Logic to replace Meta Tags
+            // Data for Meta Tags
             const title = `${user.name || user.username} (@${user.username}) – Bunchly`;
-            const description = user.bio || "View my digital identity on Bunchly.";
-            const image = user.image || "https://bunchly.in/og-image.png";
+            const description = user.bio ? user.bio.substring(0, 160) : "View my digital identity on Bunchly.";
+            const image = user.image || "https://bunchly.in/img/og-image.png";
             const url = `https://bunchly.in/${user.username}`;
-            
-            // NOTE: We replace specific known placeholder tags or standard tags
-            // Simplest way: Replace the default tags in index.html
-            
-            // Replace Title
-            html = html.replace(/<title>.*<\/title>/, `<title>${title}</title>`);
-            
-            // Replace OG Tags
-            html = html.replace(/content="Bunchly – One Link\. Every Identity\."/g, `content="${title}"`); // Only if it matches strictly
-            
-            // Better approach: regex replacement for specific meta properties
-            html = html
-                .replace(/<meta property="og:title" content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title}" />`)
-                .replace(/<meta property="og:description" content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description}" />`)
-                .replace(/<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${image}" />`)
-                .replace(/<meta property="og:url" content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${url}" />`);
 
-             // Twitter Card
-            html = html
-                .replace(/<meta name="twitter:title" content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" content="${title}" />`)
-                .replace(/<meta name="twitter:description" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${description}" />`)
-                .replace(/<meta name="twitter:image" content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" content="${image}" />`);
+            // Helper to safe-replace regex
+            const replaceMeta = (tag, newValue) => {
+                const regex = new RegExp(`<meta property="${tag}" content=".*?" />`, "g");
+                html = html.replace(regex, `<meta property="${tag}" content="${newValue}" />`);
+            };
+
+            const replaceTwitter = (tag, newValue) => {
+                const regex = new RegExp(`<meta name="${tag}" content=".*?" />`, "g");
+                html = html.replace(regex, `<meta name="${tag}" content="${newValue}" />`);
+            };
+
+            // 1. Title
+            html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+            
+            // 2. Description
+            html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${description}" />`);
+
+            // 3. Open Graph
+            replaceMeta("og:title", title);
+            replaceMeta("og:description", description);
+            replaceMeta("og:image", image);
+            replaceMeta("og:url", url);
+
+            // 4. Twitter Card
+            replaceTwitter("twitter:title", title);
+            replaceTwitter("twitter:description", description);
+            replaceTwitter("twitter:image", image);
         }
 
         res.send(html);
     } catch (error) {
         console.error("SEO Injection Error:", error);
-        // Fallback to static HTML without injection
+        // Fallback
         const html = getHtml();
         if (html) res.send(html);
         else next();

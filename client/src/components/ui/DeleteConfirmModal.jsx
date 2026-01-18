@@ -1,36 +1,39 @@
 import React from "react";
 import Button from "./Button";
 import Modal from "./Modal";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 
-const DeleteConfirmModal = ({ open, onClose, onConfirm, deleting }) => {
+const DeleteConfirmModal = ({ open, onClose, onConfirm, deleting, title = "Delete Item?", description = "This action cannot be undone." }) => {
     return (
-        <Modal open={open} onClose={onClose}>
+        <Modal open={open} onClose={onClose} size="sm" hideClose>
             <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
-                    <AlertTriangle className="w-6 h-6" />
+                {/* Icon Circle */}
+                <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/10 flex items-center justify-center mb-6 ring-8 ring-red-50/50 dark:ring-red-900/5 animate-in zoom-in duration-300">
+                    <Trash2 className="w-10 h-10 text-red-500" strokeWidth={1.5} />
                 </div>
                 
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
-                    Delete this link?
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+                    {title}
                 </h2>
 
-                <p className="text-neutral-500 dark:text-neutral-400 mb-8 max-w-[200px]">
-                    This action cannot be undone. Are you sure you want to proceed?
+                <p className="text-neutral-500 dark:text-neutral-400 mb-8 leading-relaxed px-4">
+                    {description} 
+                    <br/>
+                    <span className="text-xs font-semibold text-red-500/80 mt-2 block uppercase tracking-wide">Are you sure?</span>
                 </p>
 
-                <div className="flex items-center justify-center gap-3 w-full">
+                <div className="grid grid-cols-2 gap-3 w-full">
                     <Button
-                        className="flex-1"
                         variant="ghost"
                         onClick={onClose}
                         text="Cancel"
+                        className="rounded-xl font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     />
 
                     <Button
-                        className="flex-1 !bg-red-600 hover:!bg-red-700 text-white border-none"
+                        className="!bg-red-600 hover:!bg-red-700 text-white border-none rounded-xl font-bold shadow-lg shadow-red-500/30"
                         onClick={onConfirm}
-                        text={deleting ? "Deleting..." : "Delete"}
+                        text={deleting ? "Deleting..." : "Yes, Delete"}
                         loading={deleting}
                         disabled={deleting}
                     />
