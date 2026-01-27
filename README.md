@@ -1,23 +1,38 @@
 # ⚡ Bunchly
 
-**The Ultimate Premium "Link in Bio" SaaS Platform.**
+**The Ultimate Premium "Bio Link" SaaS Platform.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Stack](https://img.shields.io/badge/Stack-MERN-blue?logo=react)](https://reactjs.org/)
+[![Stack](https://img.shields.io/badge/Stack-MERN-blue?logo=react&logoColor=white)](https://react.dev/)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-green)]()
 
-**Bunchly** is a high-performance, aesthetically pleasing, and feature-rich clone of platforms like Linktree. Built for creators, influencers, and professionals, it offers deep customization, real-time analytics, and seamless payment integrations in a "God Mode" SaaS experience.
+> **Live Demo:** [bunchly.in](https://bunchly.in)  
+> **API:** [api.bunchly.in](https://api.bunchly.in)
 
-![Bunchly Preview](https://via.placeholder.com/1200x600?text=Bunchly+Dashboard+Preview)
+**Bunchly** is a high-performance, aesthetically pleasing, and feature-rich platform enabling creators to consolidate their digital identity. Built with a focus on **premium design** and **scalable architecture**, it offers a "God Mode" SaaS experience with integrated payments, analytics, and deep customization.
+
+![Bunchly Preview](https://via.placeholder.com/1200x600?text=Bunchly+Premium+Dashboard)
+
+---
+
+## 📚 Developer Documentation
+
+We have prepared comprehensive documentation for developers and interview preparation. 
+
+- [**📂 Project Overview & Architecture**](./docs/interview_notes/01_Overview_Architecture.md) - Tech stack, high-level design, and monorepo structure.
+- [**⚙️ Backend Deep Dive**](./docs/interview_notes/02_Backend_Deep_Dive.md) - Auth flows, database schema, and API structure.
+- [**🎨 Frontend Deep Dive**](./docs/interview_notes/03_Frontend_Deep_Dive.md) - React architecture, state management, and styling.
+- [**🔄 Key User Flows**](./docs/interview_notes/04_Key_Flows.md) - Detailed breakdown of Payment, Auth, and Link Rendering cycles.
+- [**🗄️ Database Schema**](./docs/interview_notes/05_Database_Schema.md) - MongoDB models reference.
 
 ---
 
 ## 🌟 Key Features
 
 ### 🎨 Premium Appearance System
-*   **Dynamic Templates**: Choose from over 30+ handcrafted themes (Cyberpunk, Minimal, Glassmorphism, Brutalist).
-*   **Deep Customization**: Fine-tune button shapes (Pill, Rounded, Sharp), shadows, fonts, and background layers (Blur, Overlay).
-*   **Live Preview**: Real-time mobile preview that renders changes instantly as you edit.
+*   **Dynamic Templates**: Choose from over 30+ handcrafted themes (Cyberpunk, Minimal, Glassmorphism).
+*   **Deep Customization**: Fine-tune button shapes, shadows, fonts, and background layers (Blur, Overlay).
+*   **Live Preview**: Real-time mobile preview that renders changes instantly.
 
 ### 📊 Advanced Analytics
 *   **Insightful Charts**: Track views, clicks, and CTR with beautiful, interactive graphs.
@@ -26,32 +41,32 @@
 
 ### 💼 Pro & Monetization
 *   **SaaS Architecture**: Built-in specialized "Pro" tier logic.
-*   **Payment Gateway**: Integrated with **Razorpay** for seamless subscription handling.
-*   **Premium Gating**: Lock specific themes, analytics, and features behind subscription plans.
+*   **Payments**: Integrated with **Razorpay** for seamless subscription handling.
+*   **Premium Gating**: Lock specific themes and features behind subscription plans.
 
 ### 🛡️ Robust Backend
-*   **SEO Optimized**: Automatic `sitemap.xml` generation for user profiles and `robots.txt` configuration for Google Search Console.
-*   **Secure Auth**: JWT-based authentication with session management and HTTP-only cookies.
-*   **Admin Dashboard**: Powerful "God Mode" admin panel to manage users, payments, and system-wide settings.
+*   **SEO Optimized**: Server-Side Injection for dynamic `og:tags` on user profiles (Twitter/LinkedIn previews).
+*   **Secure Auth**: Session-based authentication with `HTTPOnly` cookies and `MongoStore`.
+*   **Admin Dashboard**: "God Mode" panel to manage users, payments, and system-wide settings.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### **Frontend**
-*   **Framework**: [React](https://reactjs.org/) (Vite)
-*   **Styling**: [TailwindCSS](https://tailwindcss.com/) + Custom CSS Variables
-*   **Animations**: [Framer Motion](https://www.framer.com/motion/)
-*   **State**: Context API
-*   **Icons**: [Lucide React](https://lucide.dev/)
-*   **Charts**: [Recharts](https://recharts.org/)
+### **Frontend (Client)**
+*   **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
+*   **Styling**: [TailwindCSS v4](https://tailwindcss.com/) + DaisyUI
+*   **Routing**: React Router v7
+*   **State**: Context API (`AuthContext`, `ThemeContext`)
+*   **Animations**: Framer Motion & GSAP
 
-### **Backend**
+### **Backend (Server)**
 *   **Runtime**: [Node.js](https://nodejs.org/)
-*   **Framework**: [Express.js](https://expressjs.com/)
-*   **Database**: [MongoDB](https://www.mongodb.com/) (Mongoose)
-*   **Auth**: JWT (JSON Web Tokens)
+*   **Framework**: [Express.js v5](https://expressjs.com/en/5x/api.html) (Beta)
+*   **Database**: [MongoDB](https://www.mongodb.com/) (Mongoose ODM)
+*   **Auth**: Express Session + Cookie Parser
 *   **Payments**: Razorpay SDK
+*   **Storage**: Cloudinary (Image Uploads)
 
 ---
 
@@ -61,6 +76,7 @@
 *   Node.js (v18+)
 *   MongoDB Atlas URI or Local MongoDB
 *   Razorpay Account (for payments)
+*   Cloudinary Account (for images)
 
 ### 1. Clone the Repository
 ```bash
@@ -73,14 +89,17 @@ cd bunchly
 cd server
 npm install
 ```
-Create a `.env` file in the `server` directory:
+Create a `.env` file in `server/`:
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_key
+SESSION_SECRET=your_secret_session_key
 Client_URL=http://localhost:5173
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
 ```
 Start the server:
 ```bash
@@ -92,7 +111,7 @@ npm run dev
 cd client
 npm install
 ```
-Create a `.env` file in the `client` directory:
+Create a `.env` file in `client/`:
 ```env
 VITE_API_URL=http://localhost:5000
 VITE_RAZORPAY_KEY_ID=your_key_id
@@ -103,16 +122,7 @@ npm run dev
 ```
 
 ### 4. Visit the App
-Open [http://localhost:5173](http://localhost:5173) to view the application.
-
----
-
-## 🌍 SEO & Deployment
-
-Bunchly comes pre-configured for deployment on platforms like **Netlify** (Frontend) and **AWS/Render** (Backend).
-
-*   **Sitemap**: Automatically generated at `/api/sitemap.xml`.
-*   **Robots.txt**: Configured to proxy the sitemap for maximum crawlability.
+Open [http://localhost:5173](http://localhost:5173) (or [bunchly.in](https://bunchly.in) in prod).
 
 ---
 
