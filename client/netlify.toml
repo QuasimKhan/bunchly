@@ -17,29 +17,18 @@
   force = true
 
 # ==================================================
-# 3. Subdomain ROOT
-# quasim.bunchly.in → /quasim
-# ==================================================
-[[redirects]]
-  from = "/"
-  to = "/quasim"
-  status = 200
-  force = true
-  conditions = { Host = ["quasim.bunchly.in"] }
-
-# ==================================================
-# 4. Subdomain ALL PATHS
-# quasim.bunchly.in/* → /quasim/*
+# 3. Subdomain redirect (HARD REDIRECT)
+# quasim.bunchly.in/* → bunchly.in/quasim
 # ==================================================
 [[redirects]]
   from = "/*"
-  to = "/quasim/:splat"
-  status = 200
+  to = "https://bunchly.in/quasim"
+  status = 301
   force = true
   conditions = { Host = ["quasim.bunchly.in"] }
 
 # ==================================================
-# 5. SPA fallback (MUST BE LAST)
+# 4. SPA fallback (MAIN DOMAIN ONLY)
 # ==================================================
 [[redirects]]
   from = "/*"
