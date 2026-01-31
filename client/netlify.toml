@@ -1,11 +1,25 @@
-# Proxy Sitemap to Backend
+# ==================================================
+# 1. Redirect Netlify default domain → Custom domain
+# ==================================================
+[[redirects]]
+  from = "https://bunchly.netlify.app/*"
+  to = "https://bunchly.in/:splat"
+  status = 301
+  force = true
+
+# ==================================================
+# 2. Proxy sitemap to backend (SEO-safe)
+# ==================================================
 [[redirects]]
   from = "/sitemap.xml"
   to = "https://api.bunchly.in/api/sitemap.xml"
   status = 200
   force = true
 
-# Subdomain ROOT: quasim.bunchly.in → /quasim
+# ==================================================
+# 3. Subdomain ROOT
+# quasim.bunchly.in → /quasim
+# ==================================================
 [[redirects]]
   from = "/"
   to = "/quasim"
@@ -13,7 +27,10 @@
   force = true
   conditions = { Host = ["quasim.bunchly.in"] }
 
-# Subdomain ALL PATHS: quasim.bunchly.in/* → /quasim/*
+# ==================================================
+# 4. Subdomain ALL PATHS
+# quasim.bunchly.in/* → /quasim/*
+# ==================================================
 [[redirects]]
   from = "/*"
   to = "/quasim/:splat"
@@ -21,7 +38,9 @@
   force = true
   conditions = { Host = ["quasim.bunchly.in"] }
 
-# SPA Fallback (Must be last)
+# ==================================================
+# 5. SPA fallback (MUST BE LAST)
+# ==================================================
 [[redirects]]
   from = "/*"
   to = "/index.html"
